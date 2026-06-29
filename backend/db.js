@@ -142,11 +142,12 @@ export async function initDb() {
     if (isPg) {
         const client = await pgPool.connect();
         try {
-            // Read and run schema.sql
             const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
+            // Remove single line SQL comments
+            const cleanSql = schemaSql.replace(/--.*$/gm, '');
             
             // Adapt schema for PostgreSQL
-            let pgSchema = schemaSql
+            let pgSchema = cleanSql
                 .replace(/INTEGER PRIMARY KEY AUTOINCREMENT/g, 'SERIAL PRIMARY KEY')
                 .replace(/\bDATETIME\b/g, 'TIMESTAMP')
                 .replace(/CHECK\(confirmed IN \(0, 1\)\)/g, ''); // ignore boolean check in postgres
@@ -154,7 +155,7 @@ export async function initDb() {
             const statements = pgSchema
                 .split(';')
                 .map(s => s.trim())
-                .filter(s => s.length > 0 && !s.startsWith('--'));
+                .filter(s => s.length > 0);
 
             for (const statement of statements) {
                 if (statement.toUpperCase().startsWith('PRAGMA')) continue;
@@ -177,7 +178,8 @@ export async function initDb() {
         await db.run('PRAGMA foreign_keys = ON');
 
         const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
-        const statements = schemaSql
+        const cleanSql = schemaSql.replace(/--.*$/gm, '');
+        const statements = cleanSql
             .split(';')
             .map(s => s.trim())
             .filter(s => s.length > 0);
