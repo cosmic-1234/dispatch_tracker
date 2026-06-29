@@ -107,6 +107,19 @@ body {
   width: var(--sidebar-collapsed-width);
 }
 
+.sidebar.collapsed .nav-label {
+  display: none !important;
+}
+
+.sidebar.collapsed .sidebar-header h2 {
+  display: none !important;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
 .sidebar-header {
   height: var(--header-height);
   background-color: var(--primary-navy);

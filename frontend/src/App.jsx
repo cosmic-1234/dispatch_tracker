@@ -143,9 +143,16 @@ export default function App() {
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <Truck size={20} color="#1C6BF4" />
-          <h2>Solvent SCM</h2>
+        <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+            <Truck size={20} color="#FFFFFF" style={{ cursor: sidebarCollapsed ? 'pointer' : 'default' }} onClick={() => sidebarCollapsed && setSidebarCollapsed(false)} />
+            {!sidebarCollapsed && <h2>Solvent SCM</h2>}
+          </div>
+          {!sidebarCollapsed && (
+            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
+              <ChevronLeft size={16} />
+            </button>
+          )}
         </div>
         
         <nav className="sidebar-nav">
@@ -183,11 +190,13 @@ export default function App() {
           </a>
         </nav>
 
-        <div className="sidebar-footer">
-          <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
+        {sidebarCollapsed && (
+          <div className="sidebar-footer" style={{ justifyContent: 'center', padding: '10px 0' }}>
+            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }} title="Expand Menu">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* 2. Main Workspace */}
@@ -196,8 +205,8 @@ export default function App() {
         <header className="top-header">
           <div className="header-title">
             <h1>SOLVENT DISTRIBUTION PLANNER PORTAL</h1>
-            <span className="badge" style={{ backgroundColor: '#EEF2F6', border: '1px solid #E2E8F0', textTransform: 'none', display: 'flex', gap: '6px' }}>
-              <Clock size={12} color="#64748B" />
+            <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
+              <Clock size={12} color="#515559" />
               <span>Simulated SCM System Date: <strong>{systemDate}</strong></span>
             </span>
           </div>
