@@ -1,0 +1,374 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Edit2, X, AlertTriangle, ShieldCheck } from 'lucide-react';
+
+export default function CompanyMaster({ API_BASE, triggerRefresh }) {
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Search/Filters State
+  const [search, setSearch] = useState('');
+  const [tierFilter, setTierFilter] = useState('All');
+  const [creditFilter, setCreditFilter] = useState('All');
+
+  // Modals state
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [editingId, setEditingId] = useState(null);
+
+  // Form Fields
+  const [compId, setCompId] = useState('');
+  const [compName, setCompName] = useState('');
+  const [compTier, setCompTier] = useState('B');
+  const [compContactPerson, setCompContactPerson] = useState('');
+  const [compContactPhone, setCompContactPhone] = useState('');
+  const [compCreditStatus, setCompCreditStatus] = useState('Active');
+  const [selectedProducts, setSelectedProducts] = useState({
+    Acetone: false,
+    Benzene: false,
+    DEP: false,
+    'Ethyl Acetate': false,
+    Retarder: false,
+    Toluene: false
+  });
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = () => {
+    setLoading(true);
+    fetch(`${API_BASE}/companies`)
+      .then(res => res.json())
+      .then(data => {
+        setCompanies(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  };
+
+  const handleEditClick = (c) => {
+    setFormError('');
+    setEditingId(c.id);
+    setCompId(c.id);
+    setCompName(c.name);
+    setCompTier(c.tier);
+    setCompContactPerson(c.contact_person);
+    setCompContactPhone(c.contact_phone);
+    setCompCreditStatus(c.credit_status);
+
+    // Map products
+    const prodMap = {
+      Acetone: false,
+      Benzene: false,
+      DEP: false,
+      'Ethyl Acetate': false,
+      Retarder: false,
+      Toluene: false
+    };
+    c.primary_products.forEach(p => {
+      if (prodMap[p] !== undefined) prodMap[p] = true;
+    });
+    setSelectedProducts(prodMap);
+    setShowFormModal(true);
+  };
+
+  const handleAddClick = () => {
+    setFormError('');
+    setEditingId(null);
+    setCompId('');
+    setCompName('');
+    setCompTier('B');
+    setCompContactPerson('');
+    setCompContactPhone('');
+    setCompCreditStatus('Active');
+    setSelectedProducts({
+      Acetone: false,
+      Benzene: false,
+      DEP: false,
+      'Ethyl Acetate': false,
+      Retarder: false,
+      Toluene: false
+    });
+    setShowFormModal(true);
+  };
+
+  const handleCheckboxChange = (prod) => {
+    setSelectedProducts(prev => ({
+      ...prev,
+      [prod]: !prev[prod]
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!compId.trim()) return setFormError('Company ID is required.');
+    if (!compName.trim()) return setFormError('Company name is required.');
+    
+    const products = Object.keys(selectedProducts).filter(k => selectedProducts[k]);
+    if (products.length === 0) {
+      return setFormError('Please select at least one primary product.');
+    }
+
+    const payload = {
+      id: compId.trim().toUpperCase(),
+      name: compName.trim(),
+      tier: compTier,
+      primary_products: products,
+      contact_person: compContactPerson.trim(),
+      contact_phone: compContactPhone.trim(),
+      credit_status: compCreditStatus
+    };
+
+    const url = editingId ? `${API_BASE}/companies/${editingId}` : `${API_BASE}/companies`;
+    const method = editingId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          setFormError(data.error);
+        } else {
+          setShowFormModal(false);
+          fetchCompanies();
+          triggerRefresh();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        setFormError('Network communication error.');
+      });
+  };
+
+  // Filter Companies list
+  const filtered = companies.filter(c => {
+    const matchesSearch = c.id.toLowerCase().includes(search.toLowerCase()) || 
+                          c.name.toLowerCase().includes(search.toLowerCase()) ||
+                          c.contact_person.toLowerCase().includes(search.toLowerCase());
+    const matchesTier = tierFilter === 'All' || c.tier === tierFilter;
+    const matchesCredit = creditFilter === 'All' || c.credit_status === creditFilter;
+
+    return matchesSearch && matchesTier && matchesCredit;
+  });
+
+  return (
+    <>
+      {/* 1. Header controls */}
+      <div className="card" style={{ padding: '12px 16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748B' }} />
+              <input 
+                type="text" 
+                placeholder="Search Client ID / Name..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ paddingLeft: '32px', width: '220px', height: '32px' }}
+              />
+            </div>
+
+            <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)} style={{ height: '32px', padding: '4px 8px' }}>
+              <option value="All">All Priority Tiers</option>
+              <option value="A">Tier A</option>
+              <option value="B">Tier B</option>
+              <option value="C">Tier C</option>
+            </select>
+
+            <select value={creditFilter} onChange={(e) => setCreditFilter(e.target.value)} style={{ height: '32px', padding: '4px 8px' }}>
+              <option value="All">All Credit Statuses</option>
+              <option value="Active">Active</option>
+              <option value="On Hold">On Hold</option>
+            </select>
+          </div>
+
+          <button className="btn btn-primary" onClick={handleAddClick}>
+            <Plus size={16} />
+            <span>Add Client Company</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Companies Data Grid */}
+      <div className="card">
+        <div className="table-wrapper">
+          <table className="sap-table">
+            <thead>
+              <tr>
+                <th>Company ID</th>
+                <th>Company Name</th>
+                <th>Tier</th>
+                <th>Primary Product lanes</th>
+                <th>Contact Person</th>
+                <th>Phone Number</th>
+                <th>Credit Verification</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px' }}>Loading client companies directory...</td>
+                </tr>
+              ) : filtered.map(c => (
+                <tr key={c.id}>
+                  <td className="mono" style={{ fontWeight: 600 }}>{c.id}</td>
+                  <td><strong>{c.name}</strong></td>
+                  <td><span className={`tier-badge ${c.tier}`}>Tier {c.tier}</span></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      {c.primary_products.map(p => (
+                        <span key={p} style={{ fontSize: '10px', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '1px 4px', borderRadius: '2px', color: '#1E3A8A' }}>
+                          {p}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td>{c.contact_person}</td>
+                  <td>{c.contact_phone}</td>
+                  <td>
+                    {c.credit_status === 'Active' ? (
+                      <span className="badge dispatched" style={{ display: 'inline-flex', gap: '4px', textTransform: 'none' }}>
+                        <ShieldCheck size={11} /> Active
+                      </span>
+                    ) : (
+                      <span className="badge onhold" style={{ display: 'inline-flex', gap: '4px', textTransform: 'none' }}>
+                        <AlertTriangle size={11} /> Credit Hold
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => handleEditClick(c)}>
+                      <Edit2 size={12} style={{ marginRight: '4px' }} />
+                      <span>Edit</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {(!loading && filtered.length === 0) && (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px', color: '#64748B' }}>No client companies found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 3. CRUD Form Modal */}
+      {showFormModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '550px' }}>
+            <div className="modal-header">
+              <h3>{editingId ? 'Edit Customer Specifications' : 'Register New Client Company'}</h3>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowFormModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {formError && (
+                  <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px', fontSize: '12px', borderRadius: '4px' }}>
+                    {formError}
+                  </div>
+                )}
+                
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Company ID <span className="required-star">*</span></label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. COMP-007" 
+                      value={compId} 
+                      onChange={(e) => setCompId(e.target.value)}
+                      disabled={editingId !== null}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Company Name <span className="required-star">*</span></label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Alpha Solvents" 
+                      value={compName} 
+                      onChange={(e) => setCompName(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Priority Customer Tier</label>
+                    <select value={compTier} onChange={(e) => setCompTier(e.target.value)}>
+                      <option value="A">Tier A (First Priority)</option>
+                      <option value="B">Tier B (Standard priority)</option>
+                      <option value="C">Tier C (Opportunistic)</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Credit Account Status</label>
+                    <select value={compCreditStatus} onChange={(e) => setCompCreditStatus(e.target.value)}>
+                      <option value="Active">Active (Clearances approved)</option>
+                      <option value="On Hold">On Hold (Block new orders)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Contact Person</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. John Doe" 
+                      value={compContactPerson} 
+                      onChange={(e) => setCompContactPerson(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Contact Phone</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. +91-98765-XXXXX" 
+                      value={compContactPhone} 
+                      onChange={(e) => setCompContactPhone(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Primary products checklist */}
+                <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
+                  <label style={{ fontSize: '11px', marginBottom: '8px', display: 'block' }}>Primary Solvent Portfolios <span className="required-star">*</span></label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                    {Object.keys(selectedProducts).map(prod => (
+                      <label key={prod} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', textTransform: 'none', fontWeight: 'normal', color: 'var(--text-primary)' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedProducts[prod]} 
+                          onChange={() => handleCheckboxChange(prod)}
+                        />
+                        <span>{prod}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowFormModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Company Master</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

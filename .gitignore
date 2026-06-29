@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.local
+backend/dispatch.db
+backend/dispatch.db-journal
+.DS_Store
+*.log
