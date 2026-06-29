@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Clock,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Menu
 } from 'lucide-react';
 
 // Components
@@ -144,13 +145,19 @@ export default function App() {
       {/* 1. Left Sidebar Navigation */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-            <Truck size={20} color="#FFFFFF" style={{ cursor: sidebarCollapsed ? 'pointer' : 'default' }} onClick={() => sidebarCollapsed && setSidebarCollapsed(false)} />
-            {!sidebarCollapsed && <h2>Solvent SCM</h2>}
-          </div>
-          {!sidebarCollapsed && (
-            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
-              <ChevronLeft size={16} />
+          {!sidebarCollapsed ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                <Truck size={20} color="#FFFFFF" />
+                <h2>Solvent SCM</h2>
+              </div>
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
+                <Menu size={16} />
+              </button>
+            </>
+          ) : (
+            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Expand Menu">
+              <Menu size={16} />
             </button>
           )}
         </div>
@@ -189,14 +196,6 @@ export default function App() {
             <span className="nav-label">Portal Settings</span>
           </a>
         </nav>
-
-        {sidebarCollapsed && (
-          <div className="sidebar-footer" style={{ justifyContent: 'center', padding: '10px 0' }}>
-            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }} title="Expand Menu">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
       </aside>
 
       {/* 2. Main Workspace */}
