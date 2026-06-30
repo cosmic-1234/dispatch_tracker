@@ -27,6 +27,7 @@ import ProductionPlan from './components/ProductionPlan';
 import CompanyMaster from './components/CompanyMaster';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
+import shaktiLogo from './assets/shakti_logo.png';
 
 export default function App() {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -144,21 +145,24 @@ export default function App() {
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center' }}>
+        <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center', height: sidebarCollapsed ? 'auto' : 'var(--header-height)', padding: sidebarCollapsed ? '12px 0' : '0 16px', flexDirection: sidebarCollapsed ? 'column' : 'row', gap: sidebarCollapsed ? '8px' : '0' }}>
           {!sidebarCollapsed ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                <Truck size={20} color="#FFFFFF" />
-                <h2>Solvent SCM</h2>
+                <img src={shaktiLogo} alt="Shakti" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
+                <h2>SHAKTI SCM</h2>
               </div>
               <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
                 <Menu size={16} />
               </button>
             </>
           ) : (
-            <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Expand Menu">
-              <Menu size={16} />
-            </button>
+            <>
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Expand Menu">
+                <Menu size={16} />
+              </button>
+              <img src={shaktiLogo} alt="Shakti" style={{ height: '20px', width: 'auto', objectFit: 'contain', cursor: 'pointer' }} onClick={() => setSidebarCollapsed(false)} />
+            </>
           )}
         </div>
         
@@ -202,8 +206,9 @@ export default function App() {
       <div className="main-wrapper">
         {/* Header Bar */}
         <header className="top-header">
-          <div className="header-title">
-            <h1>SOLVENT DISTRIBUTION PLANNER PORTAL</h1>
+          <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
+            <h1>SHAKTI SOLVENT PLANNING PORTAL</h1>
             <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
               <Clock size={12} color="#515559" />
               <span>Simulated SCM System Date: <strong>{systemDate}</strong></span>
