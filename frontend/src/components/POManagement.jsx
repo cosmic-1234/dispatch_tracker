@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Eye, Filter, ArrowUpDown, X, PlusCircle, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, Filter, ArrowUpDown, X, PlusCircle, Trash2, Calendar, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
+
 
 export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [pos, setPos] = useState([]);
@@ -27,11 +28,21 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [newPoId, setNewPoId] = useState('');
   const [newCompanyId, setNewCompanyId] = useState('');
   const [newDateReceived, setNewDateReceived] = useState(systemDate);
+  const [newCommittedDate, setNewCommittedDate] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [newItems, setNewItems] = useState([
     { product_type: 'Acetone', quantity: '' }
   ]);
   const [formError, setFormError] = useState('');
+
+  // Renegotiation Modal State
+  const [showRenegotiateModal, setShowRenegotiateModal] = useState(false);
+  const [renegotiatePoId, setRenegotiatePoId] = useState(null);
+  const [renegotiateNewDate, setRenegotiateNewDate] = useState('');
+  const [renegotiateReason, setRenegotiateReason] = useState('');
+  const [renegotiateError, setRenegotiateError] = useState('');
+  const [renegotiating, setRenegotiating] = useState(false);
+
 
   // Load POs and Companies
   useEffect(() => {
@@ -169,6 +180,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
         id: newPoId.trim(),
         company_id: newCompanyId,
         date_received: newDateReceived,
+        committed_dispatch_date: newCommittedDate || undefined,
         notes: newNotes,
         items: cleanedItems
       })
@@ -182,6 +194,8 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
           setShowCreateModal(false);
           setNewPoId('');
           setNewCompanyId('');
+          setNewDateReceived(systemDate);
+          setNewCommittedDate('');
           setNewNotes('');
           setNewItems([{ product_type: 'Acetone', quantity: '' }]);
           fetchPOs();
@@ -263,6 +277,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                 <th onClick={() => handleSort('pending_qty')}>Pending Qty (MT) <ArrowUpDown size={10} style={{ marginLeft: '4px' }} /></th>
                 <th onClick={() => handleSort('date_received')}>Date Received <ArrowUpDown size={10} style={{ marginLeft: '4px' }} /></th>
                 <th onClick={() => handleSort('order_age')}>Order Age <ArrowUpDown size={10} style={{ marginLeft: '4px' }} /></th>
+                <th onClick={() => handleSort('committed_dispatch_date')}>Committed Date <ArrowUpDown size={10} style={{ marginLeft: '4px' }} /></th>
                 <th onClick={() => handleSort('status')}>Status <ArrowUpDown size={10} style={{ marginLeft: '4px' }} /></th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
@@ -286,6 +301,9 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                         {po.company_credit_status === 'On Hold' && (
                           <span style={{ fontSize: '9px', color: '#DC2626', fontWeight: 600 }}>🚫 CREDIT HOLD</span>
                         )}
+                        {po.relationship_risk_flag === 1 && (
+                          <span style={{ fontSize: '9px', color: '#7C3AED', fontWeight: 600 }}>⚡ RELATIONSHIP RISK</span>
+                        )}
                       </div>
                     </td>
                     <td><span className={`tier-badge ${po.company_tier}`}>{po.company_tier}</span></td>
@@ -302,6 +320,20 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                     <td className="mono" style={{ fontWeight: 500, color: pending > 0 ? '#1C6BF4' : 'inherit' }}>{pending.toFixed(1)} MT</td>
                     <td>{po.date_received}</td>
                     <td>{po.order_age} day(s)</td>
+                    <td>
+                      {po.committed_dispatch_date ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontSize: '11px' }}>{po.committed_dispatch_date}</span>
+                          {po.commitment_status && (
+                            <span style={{
+                              fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px',
+                              background: po.commitment_status === 'Honored' ? '#D1FAE5' : po.commitment_status === 'Missed' ? '#FEE2E2' : po.commitment_status === 'Renegotiated' ? '#FEF3C7' : '#EFF6FF',
+                              color: po.commitment_status === 'Honored' ? '#065F46' : po.commitment_status === 'Missed' ? '#991B1B' : po.commitment_status === 'Renegotiated' ? '#92400E' : '#1E40AF',
+                            }}>{po.commitment_status}</span>
+                          )}
+                        </div>
+                      ) : <span style={{ color: '#94A3B8', fontSize: '10px' }}>Not set</span>}
+                    </td>
                     <td><span className={`badge ${po.status.toLowerCase().replace(' ', '_')}`}>{po.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
                       <button className="btn btn-secondary" style={{ padding: '4px 8px', fontSize: '11px' }} onClick={() => loadPoDetails(po.id)}>
@@ -381,6 +413,18 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                       onChange={(e) => setNewDateReceived(e.target.value)}
                     />
                   </div>
+
+                  <div className="form-group">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Calendar size={12} /> Committed Dispatch Date
+                      <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 400 }}>(optional)</span>
+                    </label>
+                    <input 
+                      type="date" 
+                      value={newCommittedDate}
+                      onChange={(e) => setNewCommittedDate(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group full-width" style={{ marginBottom: '16px' }}>
@@ -453,10 +497,9 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
         </div>
       )}
 
-      {/* 4. PO Detailed View Drawer / Modal */}
       {detailPoId && poDetail && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px' }}>
+          <div className="modal-content" style={{ maxWidth: '680px' }}>
             <div className="modal-header">
               <h3>PO Specification: {poDetail.id}</h3>
               <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => { setDetailPoId(null); setPoDetail(null); }}>
@@ -476,6 +519,50 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                   </div>
                 )}
               </div>
+
+              {/* Commitment Section */}
+              {poDetail.committed_dispatch_date && (
+                <div style={{ background: '#F0F7FF', border: '1px solid #BFDBFE', borderRadius: '6px', padding: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Clock size={13} color="#3B82F6" />
+                      <span style={{ fontWeight: 700, fontSize: '12px', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Commitment Tracking</span>
+                    </div>
+                    <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px', color: '#D97706', borderColor: '#FCD34D' }}
+                      onClick={() => { setRenegotiatePoId(poDetail.id); setRenegotiateNewDate(''); setRenegotiateReason(''); setRenegotiateError(''); setShowRenegotiateModal(true); }}>
+                      Renegotiate Date
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
+                    <div>Committed Date: <strong style={{ color: poDetail.commitment_status === 'Missed' ? '#DC2626' : '#1E293B' }}>{poDetail.committed_dispatch_date}</strong></div>
+                    <div>Status: <span style={{
+                      padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700,
+                      background: poDetail.commitment_status === 'Honored' ? '#D1FAE5' : poDetail.commitment_status === 'Missed' ? '#FEE2E2' : poDetail.commitment_status === 'Renegotiated' ? '#FEF3C7' : '#EFF6FF',
+                      color: poDetail.commitment_status === 'Honored' ? '#065F46' : poDetail.commitment_status === 'Missed' ? '#991B1B' : poDetail.commitment_status === 'Renegotiated' ? '#92400E' : '#1E40AF',
+                    }}>{poDetail.commitment_status}</span></div>
+                    {poDetail.commitment_health_score !== null && poDetail.commitment_health_score !== undefined && (
+                      <div>Company Health Score: <strong>{Math.round(poDetail.commitment_health_score)}%</strong></div>
+                    )}
+                  </div>
+                  {/* Commitment History Timeline */}
+                  {poDetail.commitment_history && poDetail.commitment_history.length > 0 && (
+                    <div style={{ marginTop: '12px', borderTop: '1px solid #BFDBFE', paddingTop: '10px' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Commitment History</div>
+                      {poDetail.commitment_history.map((h, i) => (
+                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
+                          <div style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '4px', flexShrink: 0,
+                            background: h.status === 'Honored' ? '#10B981' : h.status === 'Missed' ? '#EF4444' : h.status === 'Renegotiated' ? '#F59E0B' : '#3B82F6' }} />
+                          <div style={{ fontSize: '11px' }}>
+                            <span style={{ fontWeight: 600 }}>{h.status}</span>
+                            {h.committed_date && <span style={{ color: '#64748B' }}> — {h.committed_date}</span>}
+                            {h.reason && <div style={{ color: '#94A3B8', marginTop: '1px' }}>{h.reason}</div>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <h4 style={{ fontSize: '12px', fontWeight: 600, color: 'var(--primary-navy)', marginBottom: '8px', textTransform: 'uppercase' }}>Line Item Allocation Matrix</h4>
@@ -548,6 +635,67 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => { setDetailPoId(null); setPoDetail(null); }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Renegotiation Modal */}
+      {showRenegotiateModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
+              <h3>Renegotiate Committed Date</h3>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowRenegotiateModal(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {renegotiateError && (
+                <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '4px', padding: '10px', fontSize: '12px', color: '#DC2626' }}>
+                  <AlertTriangle size={12} style={{ marginRight: '5px' }} />{renegotiateError}
+                </div>
+              )}
+              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '4px', padding: '10px', fontSize: '12px', color: '#92400E' }}>
+                <strong>PO ID:</strong> {renegotiatePoId} — This action will create a permanent audit record in the commitment history.
+              </div>
+              <div className="form-group">
+                <label>New Committed Dispatch Date <span className="required-star">*</span></label>
+                <input type="date" value={renegotiateNewDate} onChange={e => setRenegotiateNewDate(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label>Reason for Renegotiation <span className="required-star">*</span></label>
+                <textarea rows="3" placeholder="e.g. Vehicle unavailability, production delay, customer-requested reschedule..."
+                  value={renegotiateReason} onChange={e => setRenegotiateReason(e.target.value)} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowRenegotiateModal(false)}>Cancel</button>
+              <button className="btn btn-primary" disabled={renegotiating} onClick={() => {
+                if (!renegotiateNewDate) return setRenegotiateError('New committed date is required.');
+                if (!renegotiateReason.trim()) return setRenegotiateError('Reason is required for audit trail.');
+                setRenegotiating(true);
+                fetch(`${API_BASE}/pos/${renegotiatePoId}/renegotiate`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ new_committed_date: renegotiateNewDate, reason: renegotiateReason })
+                })
+                  .then(r => r.json())
+                  .then(d => {
+                    setRenegotiating(false);
+                    if (d.error) { setRenegotiateError(d.error); }
+                    else {
+                      setShowRenegotiateModal(false);
+                      // Reload the PO detail to refresh commitment history
+                      if (detailPoId) { loadPoDetails(detailPoId); }
+                      fetchPOs();
+                      triggerRefresh();
+                    }
+                  })
+                  .catch(e => { setRenegotiating(false); setRenegotiateError(e.message); });
+              }}>
+                {renegotiating ? <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite', marginRight: '5px' }} />Saving...</> : 'Confirm Renegotiation'}
+              </button>
             </div>
           </div>
         </div>

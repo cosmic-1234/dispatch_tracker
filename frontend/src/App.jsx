@@ -15,7 +15,9 @@ import {
   Clock,
   CheckCircle2,
   RefreshCw,
-  Menu
+  Menu,
+  HeartPulse,
+  Globe
 } from 'lucide-react';
 
 // Components
@@ -27,9 +29,20 @@ import ProductionPlan from './components/ProductionPlan';
 import CompanyMaster from './components/CompanyMaster';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
+import CommitmentHealth from './components/CommitmentHealth';
+import CustomerPortal from './components/CustomerPortal';
 import shaktiLogo from './assets/shakti_logo.png';
 
 export default function App() {
+  // Customer portal URL branching
+  const isCustomerPortal = window.location.pathname.startsWith('/customer') ||
+    new URLSearchParams(window.location.search).get('portal') === 'customer';
+
+  if (isCustomerPortal) {
+    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
+  }
+
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(true); // default open for planner visibility
@@ -195,9 +208,17 @@ export default function App() {
             <BarChart3 size={18} />
             <span className="nav-label">Reports</span>
           </a>
+          <a className={`nav-item ${activeModule === 'commitment-health' ? 'active' : ''}`} onClick={() => setActiveModule('commitment-health')}>
+            <HeartPulse size={18} />
+            <span className="nav-label">Commitment Health</span>
+          </a>
           <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')}>
             <SettingsIcon size={18} />
             <span className="nav-label">Portal Settings</span>
+          </a>
+          <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
+            <Globe size={18} />
+            <span className="nav-label">Customer Portal ↗</span>
           </a>
         </nav>
       </aside>
@@ -250,6 +271,21 @@ export default function App() {
                   }
                 </span>
               </div>
+            </div>
+          )}
+
+          {dashboardData && dashboardData.missed_commitments && dashboardData.missed_commitments.length > 0 && (
+            <div className="banner error">
+              <div className="banner-content">
+                <AlertTriangle size={14} />
+                <span>
+                  <strong>COMMITMENT BREACH</strong>: {dashboardData.missed_commitments.length} PO(s) have missed their committed dispatch date —&nbsp;
+                  {dashboardData.missed_commitments.map(m => `${m.po_id} (${m.company_name})`).join(', ')}
+                </span>
+              </div>
+              <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('commitment-health')}>
+                View Health
+              </button>
             </div>
           )}
         </div>
@@ -309,6 +345,13 @@ export default function App() {
             <Settings 
               API_BASE={API_BASE} 
               triggerRefresh={triggerRefresh} 
+            />
+          )}
+          {activeModule === 'commitment-health' && (
+            <CommitmentHealth
+              API_BASE={API_BASE}
+              systemDate={systemDate}
+              onNavigate={(mod) => setActiveModule(mod)}
             />
           )}
         </div>

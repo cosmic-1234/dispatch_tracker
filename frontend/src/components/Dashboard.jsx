@@ -6,8 +6,13 @@ import {
   Layers, 
   CheckCircle,
   Truck,
-  Layers2
+  Layers2,
+  HeartPulse,
+  Clock,
+  Bell,
+  Activity
 } from 'lucide-react';
+
 
 export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
   const [selectedProductChart, setSelectedProductChart] = useState('Acetone');
@@ -31,8 +36,12 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
     inventory_statuses,
     anomalous_pos,
     shortage_alerts,
-    forward_projections
+    forward_projections,
+    relationship_risk_companies,
+    missed_commitments,
+    actionable_po_pool
   } = data;
+
 
   // Render SVG Chart for forward projections
   const renderProjectionChart = (productType) => {
@@ -119,6 +128,47 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
 
   return (
     <>
+      {/* ─── MORNING BRIEF CARD ──────────────────────────────────────────────── */}
+      {((missed_commitments && missed_commitments.length > 0) || (relationship_risk_companies && relationship_risk_companies.length > 0)) && (
+        <div className="card" style={{ borderLeft: '4px solid #EF4444', backgroundColor: '#FFF5F5', marginBottom: '0' }}>
+          <div className="card-header" style={{ borderBottomColor: '#FECACA', padding: '10px 16px', backgroundColor: '#FEF2F2' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#991B1B', fontWeight: 700, fontSize: '12px' }}>
+              <Bell size={14} />
+              <span>MORNING BRIEF — COMMITMENT & RELATIONSHIP ALERTS ({(missed_commitments?.length || 0) + (relationship_risk_companies?.length || 0)})</span>
+            </div>
+            <span style={{ fontSize: '10px', color: '#94A3B8' }}>SCM Date: {system_date}</span>
+          </div>
+          <div className="card-body" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {(missed_commitments || []).map((m, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', padding: '8px 10px', background: '#FEE2E2', borderRadius: '4px', border: '1px solid #FECACA' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Clock size={13} color="#DC2626" />
+                  <span style={{ color: '#991B1B' }}>
+                    <strong>MISSED COMMITMENT:</strong> PO <strong>{m.po_id}</strong> ({m.company_name} — Tier {m.company_tier}) was committed for dispatch by <strong>{m.committed_dispatch_date}</strong> but remains unfulfilled.
+                  </span>
+                </div>
+                <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px', borderColor: '#FCA5A5', color: '#DC2626', flexShrink: 0 }} onClick={() => onNavigate('commitment-health')}>
+                  View Health
+                </button>
+              </div>
+            ))}
+            {(relationship_risk_companies || []).map((c, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', padding: '8px 10px', background: '#FFFBEB', borderRadius: '4px', border: '1px solid #FDE68A' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <HeartPulse size={13} color="#D97706" />
+                  <span style={{ color: '#92400E' }}>
+                    <strong>RELATIONSHIP AT RISK:</strong> <strong>{c.name}</strong> (Tier {c.tier}) has a commitment health score of <strong>{c.commitment_health_score !== null ? Math.round(c.commitment_health_score) + '%' : 'N/A'}</strong> — below the 60% threshold.
+                  </span>
+                </div>
+                <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px', flexShrink: 0 }} onClick={() => onNavigate('commitment-health')}>
+                  View Dashboard
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Active Alerts Bar */}
       {(unconfirmed_snapshots_count > 0 || shortage_alerts.length > 0 || anomalous_pos.length > 0) && (
         <div className="card" style={{ borderColor: '#FDE68A', backgroundColor: '#FFFDF5' }}>
@@ -333,11 +383,27 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
                       <td>{po.order_age_days} days</td>
                       <td className="mono">{po.pending_quantity} MT</td>
                       <td>
-                        <span className="badge" style={{ backgroundColor: po.score >= 100 ? '#D1FAE5' : po.score >= 60 ? '#DBEAFE' : '#F3F4F6', color: po.score >= 100 ? '#065F46' : po.score >= 60 ? '#1E3A8A' : '#374151', fontWeight: 700 }}>
-                          {po.score} pts
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span className="badge" style={{ backgroundColor: po.score >= 100 ? '#D1FAE5' : po.score >= 60 ? '#DBEAFE' : '#F3F4F6', color: po.score >= 100 ? '#065F46' : po.score >= 60 ? '#1E3A8A' : '#374151', fontWeight: 700 }}>
+                            {po.score} pts
+                          </span>
+                          {po.commitment_points > 0 && (
+                            <span style={{ fontSize: '8px', color: '#D97706', fontWeight: 700 }}>⚡ +{po.commitment_points} urgency</span>
+                          )}
+                        </div>
                       </td>
-                      <td><span className={`badge ${po.status.toLowerCase()}`}>{po.status}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span className={`badge ${po.status.toLowerCase()}`}>{po.status}</span>
+                          {po.commitment_status && (
+                            <span style={{
+                              fontSize: '8px', fontWeight: 700, padding: '0px 4px', borderRadius: '2px',
+                              background: po.commitment_status === 'Missed' ? '#FEE2E2' : po.commitment_status === 'Pending' ? '#EFF6FF' : '#FEF3C7',
+                              color: po.commitment_status === 'Missed' ? '#991B1B' : po.commitment_status === 'Pending' ? '#1E40AF' : '#92400E',
+                            }}>{po.commitment_status}</span>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {(!data.actionable_po_pool || data.actionable_po_pool.length === 0) && (
@@ -347,6 +413,84 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        {/* E. Relationship Risk & Recent Activity Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', gridColumn: 'span 12' }}>
+          {/* Relationship Risk Summary */}
+          <div className="card" style={{ gridColumn: 'auto' }}>
+            <div className="card-header">
+              <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <HeartPulse size={15} color="#EF4444" /> Customer Relationship Risk
+              </span>
+              <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px' }} onClick={() => onNavigate('commitment-health')}>
+                Full Dashboard <ArrowRight size={10} style={{ marginLeft: '3px' }} />
+              </button>
+            </div>
+            <div className="card-body" style={{ padding: '12px 16px' }}>
+              {(!relationship_risk_companies || relationship_risk_companies.length === 0) ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontSize: '12px' }}>
+                  <CheckCircle size={20} color="#10B981" style={{ margin: '0 auto 8px', display: 'block' }} />
+                  All customer relationships are within healthy commitment thresholds.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {relationship_risk_companies.map((c, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#FFF5F5', border: '1px solid #FECACA', borderRadius: '4px', fontSize: '12px' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#1E293B' }}>{c.name} <span style={{ fontWeight: 400, color: '#64748B' }}>(Tier {c.tier})</span></div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8', marginTop: '2px' }}>Health Score: {c.commitment_health_score !== null ? Math.round(c.commitment_health_score) + '%' : 'N/A'}</div>
+                      </div>
+                      <div style={{ width: '60px', height: '5px', borderRadius: '3px', background: '#E2E8F0', overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{
+                          width: `${Math.min(100, c.commitment_health_score || 0)}%`,
+                          height: '100%', borderRadius: '3px',
+                          background: (c.commitment_health_score || 0) >= 60 ? '#10B981' : '#EF4444'
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Missed Commitments Summary */}
+          <div className="card" style={{ gridColumn: 'auto' }}>
+            <div className="card-header">
+              <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Clock size={15} color="#F59E0B" /> Open Missed Commitments
+              </span>
+              <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px' }} onClick={() => onNavigate('po')}>
+                View POs <ArrowRight size={10} style={{ marginLeft: '3px' }} />
+              </button>
+            </div>
+            <div className="card-body" style={{ padding: '12px 16px' }}>
+              {(!missed_commitments || missed_commitments.length === 0) ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontSize: '12px' }}>
+                  <CheckCircle size={20} color="#10B981" style={{ margin: '0 auto 8px', display: 'block' }} />
+                  No open POs with missed committed dispatch dates.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {(missed_commitments || []).slice(0, 4).map((m, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '4px', fontSize: '11px' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#1E293B', fontFamily: 'monospace' }}>{m.po_id}</div>
+                        <div style={{ color: '#64748B', marginTop: '1px' }}>{m.company_name} — <span style={{ color: '#EF4444', fontWeight: 600 }}>Due: {m.committed_dispatch_date}</span></div>
+                      </div>
+                      <span style={{ padding: '2px 6px', background: '#FEE2E2', color: '#991B1B', borderRadius: '3px', fontSize: '9px', fontWeight: 700, border: '1px solid #FECACA' }}>
+                        MISSED
+                      </span>
+                    </div>
+                  ))}
+                  {missed_commitments.length > 4 && (
+                    <div style={{ fontSize: '11px', color: '#64748B', textAlign: 'center', marginTop: '4px' }}>+{missed_commitments.length - 4} more — <span style={{ color: '#3B82F6', cursor: 'pointer' }} onClick={() => onNavigate('commitment-health')}>view all</span></div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

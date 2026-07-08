@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS companies (
     contact_person TEXT NOT NULL,
     contact_phone TEXT NOT NULL,
     credit_status TEXT NOT NULL DEFAULT 'Active' CHECK(credit_status IN ('Active', 'On Hold')),
+    portal_login_enabled INTEGER DEFAULT 0,
+    commitment_health_score REAL,
+    relationship_risk_flag INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_by TEXT DEFAULT 'System'
@@ -20,6 +23,8 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
     company_id TEXT NOT NULL,
     date_received DATE NOT NULL,
     status TEXT NOT NULL DEFAULT 'Received' CHECK(status IN ('Received', 'Partially Allocated', 'Fully Allocated', 'Dispatched', 'Closed')),
+    committed_dispatch_date DATE,
+    commitment_status TEXT DEFAULT 'Pending',
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -103,4 +108,56 @@ CREATE TABLE IF NOT EXISTS system_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Planner Override Log
+CREATE TABLE IF NOT EXISTS planner_override_log (
+    override_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    dispatch_id TEXT,
+    po_id TEXT,
+    ai_recommended_qty REAL,
+    planner_actual_qty REAL,
+    override_reason TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    planner_id TEXT
+);
+
+-- 9. PO Commitment History
+CREATE TABLE IF NOT EXISTS po_commitment_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    po_id TEXT NOT NULL,
+    committed_date DATE,
+    status TEXT,
+    reason TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(po_id) REFERENCES purchase_orders(id) ON DELETE CASCADE
+);
+
+-- 10. Customer Portal Users
+CREATE TABLE IF NOT EXISTS customer_portal_users (
+    company_id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(company_id) REFERENCES companies(id)
+);
+
+-- 11. Customer Login Activity
+CREATE TABLE IF NOT EXISTS customer_login_activity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    session_duration INTEGER,
+    FOREIGN KEY(company_id) REFERENCES companies(id)
+);
+
+-- 12. Scenario Snapshots
+CREATE TABLE IF NOT EXISTS scenario_snapshots (
+    scenario_id TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    created_by TEXT DEFAULT 'System',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    base_date DATE NOT NULL,
+    modified_po_allocations TEXT NOT NULL, -- JSON string
+    projected_inventory TEXT NOT NULL -- JSON string
 );
