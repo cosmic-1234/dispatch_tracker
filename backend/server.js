@@ -112,8 +112,9 @@ async function syncPOCommitmentStatuses(systemDate) {
                 [company.id]
             );
 
-            if (commitments.length > 0) {
-                const total = commitments.length;
+            const resolvedCommitments = commitments.filter(c => c.commitment_status === 'Honored' || c.commitment_status === 'Missed');
+            if (resolvedCommitments.length > 0) {
+                const total = resolvedCommitments.length;
                 const honored = commitments.filter(c => c.commitment_status === 'Honored').length;
                 const score = (honored / total) * 100;
                 const riskFlag = score < 60 ? 1 : 0;
