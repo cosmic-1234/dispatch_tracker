@@ -162,6 +162,17 @@ export async function initDb() {
                 await client.query(statement);
             }
 
+            // Run column migrations for PG if existing tables don't have them
+            try {
+                await client.query("ALTER TABLE companies ADD COLUMN IF NOT EXISTS portal_login_enabled INTEGER DEFAULT 0");
+                await client.query("ALTER TABLE companies ADD COLUMN IF NOT EXISTS commitment_health_score REAL");
+                await client.query("ALTER TABLE companies ADD COLUMN IF NOT EXISTS relationship_risk_flag INTEGER DEFAULT 0");
+                await client.query("ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS committed_dispatch_date DATE");
+                await client.query("ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS commitment_status TEXT DEFAULT 'Pending'");
+            } catch (err) {
+                console.warn('PostgreSQL column migration warning:', err.message);
+            }
+
             const res = await client.query('SELECT COUNT(*) as count FROM companies');
             const count = parseInt(res.rows[0].count);
             if (count === 0) {
@@ -187,6 +198,23 @@ export async function initDb() {
         for (const statement of statements) {
             await db.run(statement);
         }
+
+        // Run column migrations for SQLite if existing tables don't have them
+        try {
+            await db.run("ALTER TABLE companies ADD COLUMN portal_login_enabled INTEGER DEFAULT 0");
+        } catch (e) {}
+        try {
+            await db.run("ALTER TABLE companies ADD COLUMN commitment_health_score REAL");
+        } catch (e) {}
+        try {
+            await db.run("ALTER TABLE companies ADD COLUMN relationship_risk_flag INTEGER DEFAULT 0");
+        } catch (e) {}
+        try {
+            await db.run("ALTER TABLE purchase_orders ADD COLUMN committed_dispatch_date DATE");
+        } catch (e) {}
+        try {
+            await db.run("ALTER TABLE purchase_orders ADD COLUMN commitment_status TEXT DEFAULT 'Pending'");
+        } catch (e) {}
 
         const row = await db.get('SELECT COUNT(*) as count FROM companies');
         if (row.count === 0) {

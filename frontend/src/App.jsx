@@ -14,7 +14,10 @@ import {
   ChevronRight,
   Clock,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Menu,
+  HeartPulse,
+  Globe
 } from 'lucide-react';
 
 // Components
@@ -26,8 +29,32 @@ import ProductionPlan from './components/ProductionPlan';
 import CompanyMaster from './components/CompanyMaster';
 import Reports from './components/Reports';
 import Settings from './components/Settings';
+import CommitmentHealth from './components/CommitmentHealth';
+import CustomerPortal from './components/CustomerPortal';
+import shaktiLogo from './assets/shakti_logo.png';
+
+// Utility helper to format dates from yyyy-mm-dd to dd-mm-yyyy
+export function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const str = String(dateStr);
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})([\sT](.*))?$/);
+  if (match) {
+    const timePart = match[5] ? ' ' + match[5].slice(0, 5) : '';
+    return `${match[3]}-${match[2]}-${match[1]}${timePart}`;
+  }
+  return str;
+}
 
 export default function App() {
+  // Customer portal URL branching
+  const isCustomerPortal = window.location.pathname.startsWith('/customer') ||
+    new URLSearchParams(window.location.search).get('portal') === 'customer';
+
+  if (isCustomerPortal) {
+    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
+  }
+
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(true); // default open for planner visibility
@@ -143,9 +170,25 @@ export default function App() {
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <Truck size={20} color="#1C6BF4" />
-          <h2>Solvent SCM</h2>
+        <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center', height: sidebarCollapsed ? 'auto' : 'var(--header-height)', padding: sidebarCollapsed ? '12px 0' : '0 16px', flexDirection: sidebarCollapsed ? 'column' : 'row', gap: sidebarCollapsed ? '8px' : '0' }}>
+          {!sidebarCollapsed ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                <img src={shaktiLogo} alt="Shakti" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
+                <h2>SHAKTI SCM</h2>
+              </div>
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
+                <Menu size={16} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Expand Menu">
+                <Menu size={16} />
+              </button>
+              <img src={shaktiLogo} alt="Shakti" style={{ height: '20px', width: 'auto', objectFit: 'contain', cursor: 'pointer' }} onClick={() => setSidebarCollapsed(false)} />
+            </>
+          )}
         </div>
         
         <nav className="sidebar-nav">
@@ -177,28 +220,31 @@ export default function App() {
             <BarChart3 size={18} />
             <span className="nav-label">Reports</span>
           </a>
+          <a className={`nav-item ${activeModule === 'commitment-health' ? 'active' : ''}`} onClick={() => setActiveModule('commitment-health')}>
+            <HeartPulse size={18} />
+            <span className="nav-label">Commitment Health</span>
+          </a>
           <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')}>
             <SettingsIcon size={18} />
             <span className="nav-label">Portal Settings</span>
           </a>
+          <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
+            <Globe size={18} />
+            <span className="nav-label">Customer Portal ↗</span>
+          </a>
         </nav>
-
-        <div className="sidebar-footer">
-          <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
-            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
       </aside>
 
       {/* 2. Main Workspace */}
       <div className="main-wrapper">
         {/* Header Bar */}
         <header className="top-header">
-          <div className="header-title">
-            <h1>SOLVENT DISTRIBUTION PLANNER PORTAL</h1>
-            <span className="badge" style={{ backgroundColor: '#EEF2F6', border: '1px solid #E2E8F0', textTransform: 'none', display: 'flex', gap: '6px' }}>
-              <Clock size={12} color="#64748B" />
-              <span>Simulated SCM System Date: <strong>{systemDate}</strong></span>
+          <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
+            <h1>SHAKTI SOLVENT PLANNING PORTAL</h1>
+            <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
+              <Clock size={12} color="#515559" />
+              <span>Simulated SCM System Date: <strong>{formatDate(systemDate)}</strong></span>
             </span>
           </div>
 
@@ -219,7 +265,7 @@ export default function App() {
             <div className="banner warning">
               <div className="banner-content">
                 <AlertTriangle size={14} />
-                <span>Unconfirmed End-of-Day Inventory Snapshots exist for planning day: <strong>{systemDate}</strong>. Confirm snapshot to clear safety alerts.</span>
+                <span>Unconfirmed End-of-Day Inventory Snapshots exist for planning day: <strong>{formatDate(systemDate)}</strong>. Confirm snapshot to clear safety alerts.</span>
               </div>
               <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('inventory')}>
                 Review & Confirm
@@ -237,6 +283,21 @@ export default function App() {
                   }
                 </span>
               </div>
+            </div>
+          )}
+
+          {dashboardData && dashboardData.missed_commitments && dashboardData.missed_commitments.length > 0 && (
+            <div className="banner error">
+              <div className="banner-content">
+                <AlertTriangle size={14} />
+                <span>
+                  <strong>COMMITMENT BREACH</strong>: {dashboardData.missed_commitments.length} PO(s) have missed their committed dispatch date —&nbsp;
+                  {dashboardData.missed_commitments.map(m => `${m.po_id} (${m.company_name})`).join(', ')}
+                </span>
+              </div>
+              <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('commitment-health')}>
+                View Health
+              </button>
             </div>
           )}
         </div>
@@ -296,6 +357,13 @@ export default function App() {
             <Settings 
               API_BASE={API_BASE} 
               triggerRefresh={triggerRefresh} 
+            />
+          )}
+          {activeModule === 'commitment-health' && (
+            <CommitmentHealth
+              API_BASE={API_BASE}
+              systemDate={systemDate}
+              onNavigate={(mod) => setActiveModule(mod)}
             />
           )}
         </div>

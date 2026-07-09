@@ -28,6 +28,117 @@ async function getSystemDate() {
     return row ? row.value : '2026-06-29';
 }
 
+// Helper: Sync PO Commitment Statuses and Company Health Scores based on simulated date
+async function syncPOCommitmentStatuses(systemDate) {
+    try {
+        const pos = await queryAll(
+            `SELECT id, status, committed_dispatch_date, commitment_status 
+             FROM purchase_orders 
+             WHERE committed_dispatch_date IS NOT NULL`
+        );
+
+        for (const po of pos) {
+            const dispatches = await queryAll(
+                `SELECT dl.actual_dispatch_date, dl.status as dispatch_status
+                 FROM dispatch_allocations da
+                 JOIN dispatch_log dl ON da.dispatch_id = dl.id
+                 WHERE da.po_id = ?`,
+                [po.id]
+            );
+
+            const isFullyDispatched = po.status === 'Dispatched' || po.status === 'Closed';
+            const actualDispatchDates = dispatches
+                .filter(d => d.dispatch_status === 'Executed' && d.actual_dispatch_date)
+                .map(d => d.actual_dispatch_date);
+            
+            const maxDispatchDate = actualDispatchDates.length > 0 
+                ? actualDispatchDates.reduce((max, cur) => cur > max ? cur : max, actualDispatchDates[0]) 
+                : null;
+
+            let newStatus = po.commitment_status || 'Pending';
+
+            if (isFullyDispatched) {
+                if (maxDispatchDate) {
+                    if (maxDispatchDate <= po.committed_dispatch_date) {
+                        newStatus = 'Honored';
+                    } else {
+                        newStatus = 'Missed';
+                    }
+                } else {
+                    // Fully dispatched without an execution date (fallback to system date)
+                    newStatus = systemDate <= po.committed_dispatch_date ? 'Honored' : 'Missed';
+                }
+            } else {
+                if (systemDate > po.committed_dispatch_date) {
+                    newStatus = 'Missed';
+                } else if (po.commitment_status !== 'Renegotiated') {
+                    newStatus = 'Pending';
+                }
+            }
+
+            if (newStatus !== po.commitment_status) {
+                await queryRun(
+                    "UPDATE purchase_orders SET commitment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                    [newStatus, po.id]
+                );
+
+                // Insert into history
+                const countRow = await queryGet(
+                    "SELECT COUNT(*) as count FROM po_commitment_history WHERE po_id = ? AND status = ?",
+                    [po.id, newStatus]
+                );
+                if (!countRow || countRow.count === 0) {
+                    await queryRun(
+                        `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                         VALUES (?, ?, ?, ?)`,
+                        [
+                            po.id, 
+                            po.committed_dispatch_date, 
+                            newStatus, 
+                            newStatus === 'Missed' ? 'System auto-detected missed commitment date' : 'System auto-detected order fulfilled'
+                        ]
+                    );
+                }
+            }
+        }
+
+        // Update company commitment health scores
+        const companies = await queryAll("SELECT id FROM companies");
+        for (const company of companies) {
+            const commitments = await queryAll(
+                `SELECT id, commitment_status 
+                 FROM purchase_orders 
+                 WHERE company_id = ? AND committed_dispatch_date IS NOT NULL`,
+                [company.id]
+            );
+
+            const resolvedCommitments = commitments.filter(c => c.commitment_status === 'Honored' || c.commitment_status === 'Missed');
+            if (resolvedCommitments.length > 0) {
+                const total = resolvedCommitments.length;
+                const honored = commitments.filter(c => c.commitment_status === 'Honored').length;
+                const score = (honored / total) * 100;
+                const riskFlag = score < 60 ? 1 : 0;
+
+                await queryRun(
+                    `UPDATE companies 
+                     SET commitment_health_score = ?, relationship_risk_flag = ?, updated_at = CURRENT_TIMESTAMP 
+                     WHERE id = ?`,
+                    [score, riskFlag, company.id]
+                );
+            } else {
+                await queryRun(
+                    `UPDATE companies 
+                     SET commitment_health_score = NULL, relationship_risk_flag = 0, updated_at = CURRENT_TIMESTAMP 
+                     WHERE id = ?`,
+                    [company.id]
+                );
+            }
+        }
+    } catch (e) {
+        console.error("Error in syncPOCommitmentStatuses:", e);
+    }
+}
+
 // Helper: Get configurable thresholds
 async function getInventoryThresholds() {
     const rows = await queryAll("SELECT key, value FROM system_settings WHERE key LIKE 'min_threshold_%'");
@@ -178,9 +289,10 @@ app.put('/api/companies/:id', async (req, res) => {
 app.get('/api/pos', async (req, res) => {
     try {
         const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
         
         const pos = await queryAll(
-            `SELECT po.*, c.name as company_name, c.tier as company_tier, c.credit_status as company_credit_status
+            `SELECT po.*, c.name as company_name, c.tier as company_tier, c.credit_status as company_credit_status, c.relationship_risk_flag
              FROM purchase_orders po
              JOIN companies c ON po.company_id = c.id
              ORDER BY po.date_received DESC`
@@ -232,9 +344,10 @@ app.get('/api/pos/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
 
         const po = await queryGet(
-            `SELECT po.*, c.name as company_name, c.tier as company_tier, c.credit_status as company_credit_status
+            `SELECT po.*, c.name as company_name, c.tier as company_tier, c.credit_status as company_credit_status, c.commitment_health_score
              FROM purchase_orders po
              JOIN companies c ON po.company_id = c.id
              WHERE po.id = ?`,
@@ -265,10 +378,17 @@ app.get('/api/pos/:id', async (req, res) => {
             [id]
         );
 
+        // Get commitment history
+        const commitmentHistory = await queryAll(
+            "SELECT * FROM po_commitment_history WHERE po_id = ? ORDER BY timestamp ASC",
+            [id]
+        );
+
         res.json({
             ...po,
             items: itemDetails,
-            allocations
+            allocations,
+            commitment_history: commitmentHistory
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -277,7 +397,7 @@ app.get('/api/pos/:id', async (req, res) => {
 
 app.post('/api/pos', async (req, res) => {
     try {
-        const { id, company_id, date_received, notes, items, created_by } = req.body;
+        const { id, company_id, date_received, committed_dispatch_date, notes, items, created_by } = req.body;
 
         if (!id || !company_id || !date_received || !items || items.length === 0) {
             return res.status(400).json({ error: 'PO ID, Company, Date Received, and Line Items are required.' });
@@ -292,12 +412,23 @@ app.post('/api/pos', async (req, res) => {
             return res.status(400).json({ error: 'Company must have a tier assigned before creating purchase orders.' });
         }
 
+        const systemDate = await getSystemDate();
+
         await runInTransaction(async (tx) => {
+            const defaultStatus = committed_dispatch_date ? 'Pending' : null;
             await tx.run(
-                `INSERT INTO purchase_orders (id, company_id, date_received, status, notes, created_by)
-                 VALUES (?, ?, ?, 'Received', ?, ?)`,
-                [id, company_id, date_received, notes || '', created_by || 'System']
+                `INSERT INTO purchase_orders (id, company_id, date_received, committed_dispatch_date, commitment_status, status, notes, created_by)
+                 VALUES (?, ?, ?, ?, ?, 'Received', ?, ?)`,
+                [id, company_id, date_received, committed_dispatch_date || null, defaultStatus, notes || '', created_by || 'System']
             );
+
+            if (committed_dispatch_date) {
+                await tx.run(
+                    `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                     VALUES (?, ?, 'Pending', 'Initial commitment set on order creation')`,
+                    [id, committed_dispatch_date]
+                );
+            }
 
             for (const item of items) {
                 if (isNaN(item.quantity) || parseFloat(item.quantity) <= 0) {
@@ -311,7 +442,51 @@ app.post('/api/pos', async (req, res) => {
             }
         });
 
+        await syncPOCommitmentStatuses(systemDate);
+
         res.json({ success: true, message: 'Purchase Order created successfully.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/pos/:id/renegotiate', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { new_committed_date, reason } = req.body;
+        
+        if (!new_committed_date) {
+            return res.status(400).json({ error: 'New committed date is required.' });
+        }
+
+        const po = await queryGet("SELECT * FROM purchase_orders WHERE id = ?", [id]);
+        if (!po) {
+            return res.status(404).json({ error: 'Purchase Order not found.' });
+        }
+
+        const systemDate = await getSystemDate();
+
+        await runInTransaction(async (tx) => {
+            // Update PO
+            await tx.run(
+                `UPDATE purchase_orders 
+                 SET committed_dispatch_date = ?, commitment_status = 'Renegotiated', updated_at = CURRENT_TIMESTAMP 
+                 WHERE id = ?`,
+                [new_committed_date, id]
+            );
+
+            // Log to commitment history
+            await tx.run(
+                `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                 VALUES (?, ?, 'Renegotiated', ?)`,
+                [id, new_committed_date, reason || 'Renegotiated by planner']
+            );
+        });
+
+        // Trigger sync to update company scores
+        await syncPOCommitmentStatuses(systemDate);
+
+        res.json({ success: true, message: 'PO commitment date renegotiated successfully.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -337,7 +512,7 @@ app.get('/api/optimizer', async (req, res) => {
 
         // 2. Fetch all PO line items in Received or Partially Allocated status
         const pendingItems = await queryAll(
-            `SELECT li.*, po.date_received, c.id as company_id, c.name as company_name, c.tier as company_tier, c.credit_status
+            `SELECT li.*, po.date_received, po.committed_dispatch_date, po.commitment_status, c.id as company_id, c.name as company_name, c.tier as company_tier, c.credit_status
              FROM po_line_items li
              JOIN purchase_orders po ON li.po_id = po.id
              JOIN companies c ON po.company_id = c.id
@@ -366,7 +541,17 @@ app.get('/api/optimizer', async (req, res) => {
             const hasStockPenalty = availableStock < pendingQty;
             const stockPenalty = hasStockPenalty ? -30 : 0;
             
-            const score = basePoints + agePoints + stockPenalty;
+            // Commitment urgency points
+            let commitmentPoints = 0;
+            if (item.committed_dispatch_date) {
+                if (item.commitment_status === 'Missed' || systemDate > item.committed_dispatch_date) {
+                    commitmentPoints = 35;
+                } else if (systemDate === item.committed_dispatch_date) {
+                    commitmentPoints = 25;
+                }
+            }
+            
+            const score = basePoints + agePoints + stockPenalty + commitmentPoints;
             
             scoredItems.push({
                 ...item,
@@ -375,6 +560,7 @@ app.get('/api/optimizer', async (req, res) => {
                 base_points: basePoints,
                 age_points: agePoints,
                 stock_penalty: stockPenalty,
+                commitment_points: commitmentPoints,
                 score: score,
                 available_stock: availableStock
             });
@@ -887,6 +1073,7 @@ app.post('/api/production', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
     try {
         const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
         const thresholds = await getInventoryThresholds();
 
         // 1. Unconfirmed snapshots banner flag
@@ -1033,9 +1220,9 @@ app.get('/api/dashboard', async (req, res) => {
             forwardProjections[prod] = projList;
         }
 
-        // Get AI recommendation list
+        // Get AI recommendation list (with commitment urgency scoring)
         const pendingItems = await queryAll(
-            `SELECT li.*, po.date_received, c.name as company_name, c.tier as company_tier
+            `SELECT li.*, po.date_received, po.committed_dispatch_date, po.commitment_status, c.name as company_name, c.tier as company_tier
              FROM po_line_items li
              JOIN purchase_orders po ON li.po_id = po.id
              JOIN companies c ON po.company_id = c.id
@@ -1052,6 +1239,15 @@ app.get('/api/dashboard', async (req, res) => {
             let agePoints = Math.min(40, ageDays * 2);
             let availableStock = currentStocks[item.product_type] || 0.0;
             let stockPenalty = availableStock < pendingQty ? -30 : 0;
+
+            let commitmentPoints = 0;
+            if (item.committed_dispatch_date) {
+                if (item.commitment_status === 'Missed' || systemDate > item.committed_dispatch_date) {
+                    commitmentPoints = 35;
+                } else if (systemDate === item.committed_dispatch_date) {
+                    commitmentPoints = 25;
+                }
+            }
             
             recommPool.push({
                 po_id: item.po_id,
@@ -1060,11 +1256,28 @@ app.get('/api/dashboard', async (req, res) => {
                 product_type: item.product_type,
                 order_age_days: ageDays,
                 pending_quantity: pendingQty,
-                score: basePoints + agePoints + stockPenalty,
+                committed_dispatch_date: item.committed_dispatch_date,
+                commitment_status: item.commitment_status,
+                commitment_points: commitmentPoints,
+                score: basePoints + agePoints + stockPenalty + commitmentPoints,
                 status: item.allocated_quantity > 0 ? 'Partially Allocated' : 'Received'
             });
         }
         recommPool.sort((a, b) => b.score - a.score);
+
+        // Relationship risk companies
+        const riskCompanies = await queryAll(
+            `SELECT id, name, tier, commitment_health_score, relationship_risk_flag
+             FROM companies WHERE relationship_risk_flag = 1`
+        );
+
+        // Missed commitments today
+        const missedToday = await queryAll(
+            `SELECT po.id, po.committed_dispatch_date, po.commitment_status, c.name as company_name, c.tier as company_tier
+             FROM purchase_orders po
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.commitment_status = 'Missed' AND po.status NOT IN ('Dispatched', 'Closed')`
+        );
 
         res.json({
             system_date: systemDate,
@@ -1074,7 +1287,9 @@ app.get('/api/dashboard', async (req, res) => {
             anomalous_pos: anomalousPOs,
             shortage_alerts: shortageAlerts,
             forward_projections: forwardProjections,
-            actionable_po_pool: recommPool
+            actionable_po_pool: recommPool,
+            relationship_risk_companies: riskCompanies,
+            missed_commitments: missedToday
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1082,7 +1297,347 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 // ==========================================
-// 8. Reports Endpoints
+// 8. Morning Brief Endpoint
+// ==========================================
+app.get('/api/dashboard/morning-brief', async (req, res) => {
+    try {
+        const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
+
+        const criticalAlerts = [];
+
+        // a) Missed commitments
+        const missed = await queryAll(
+            `SELECT po.id, po.committed_dispatch_date, c.name as company_name, c.tier
+             FROM purchase_orders po
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.commitment_status = 'Missed' AND po.status NOT IN ('Dispatched', 'Closed')`
+        );
+        missed.forEach(m => {
+            criticalAlerts.push({ type: 'missed_commitment', po_id: m.id, company_name: m.company_name, tier: m.tier, date: m.committed_dispatch_date });
+        });
+
+        // b) Critical stock below threshold
+        const thresholds = await getInventoryThresholds();
+        const stockRows = await queryAll("SELECT product_type, closing_stock FROM inventory_snapshots WHERE date = ?", [systemDate]);
+        const stockMap = {};
+        stockRows.forEach(r => { stockMap[r.product_type] = r.closing_stock; });
+        ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].forEach(prod => {
+            const stock = stockMap[prod] || 0;
+            const minT = thresholds[prod] || 0;
+            if (stock < minT) {
+                criticalAlerts.push({ type: 'stock_critical', product: prod, stock, threshold: minT });
+            }
+        });
+
+        // c) Relationship risk companies
+        const riskCos = await queryAll(
+            "SELECT name, tier, commitment_health_score FROM companies WHERE relationship_risk_flag = 1"
+        );
+        riskCos.forEach(c => {
+            criticalAlerts.push({ type: 'relationship_risk', company_name: c.name, tier: c.tier, health_score: c.commitment_health_score });
+        });
+
+        // d) Unconfirmed snapshot banners
+        const unconfirmedCount = await getUnconfirmedSnapshotsCount(systemDate);
+        if (unconfirmedCount > 0) {
+            criticalAlerts.push({ type: 'unconfirmed_snapshots', count: unconfirmedCount });
+        }
+
+        // Top 5 dispatch recommendations
+        const topRecs = await queryAll(
+            `SELECT li.po_id, po.committed_dispatch_date, po.commitment_status, c.name as company_name, c.tier as company_tier, li.product_type,
+             (li.quantity - li.allocated_quantity) as pending_qty
+             FROM po_line_items li
+             JOIN purchase_orders po ON li.po_id = po.id
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.status IN ('Received', 'Partially Allocated') AND (li.quantity - li.allocated_quantity) > 0
+             LIMIT 5`
+        );
+
+        // Recent planner activity (last 10 dispatches)
+        const recentActivity = await queryAll(
+            `SELECT id, product_type, quantity, vehicle_id, planned_dispatch_date, status, created_by, created_at
+             FROM dispatch_log ORDER BY created_at DESC LIMIT 10`
+        );
+
+        // Flat arrays for easy Dashboard component consumption
+        const missedCommitments = missed.map(m => ({
+            po_id: m.id,
+            company_name: m.company_name,
+            company_tier: m.tier,
+            committed_dispatch_date: m.committed_dispatch_date
+        }));
+        const riskCompanies = riskCos.map(c => ({
+            name: c.name,
+            tier: c.tier,
+            commitment_health_score: c.commitment_health_score
+        }));
+        const shortageAlerts = criticalAlerts.filter(a => a.type === 'stock_critical').map(a => ({
+            product_type: a.product,
+            stock: a.stock,
+            min_threshold: a.threshold
+        }));
+
+        res.json({
+            system_date: systemDate,
+            critical_alerts: criticalAlerts,
+            top_recommendations: topRecs,
+            recent_activity: recentActivity,
+            // Flat convenience arrays
+            missed_commitments: missedCommitments,
+            relationship_risk_companies: riskCompanies,
+            shortage_alerts: shortageAlerts
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9. What-If Scenario Simulator Endpoints
+// ==========================================
+app.get('/api/scenarios', async (req, res) => {
+    try {
+        const rows = await queryAll("SELECT * FROM scenario_snapshots ORDER BY created_at DESC");
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/scenarios', async (req, res) => {
+    try {
+        const { name, snapshot_json, ai_narration, created_by } = req.body;
+        if (!name || !snapshot_json) {
+            return res.status(400).json({ error: 'Scenario name and snapshot data are required.' });
+        }
+        const result = await queryRun(
+            `INSERT INTO scenario_snapshots (name, snapshot_json, ai_narration, created_by) VALUES (?, ?, ?, ?)`,
+            [name, typeof snapshot_json === 'string' ? snapshot_json : JSON.stringify(snapshot_json),
+             ai_narration || null, created_by || 'Planner']
+        );
+        res.json({ success: true, id: result.lastID || result.lastId });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/scenarios/:id', async (req, res) => {
+    try {
+        const row = await queryGet("SELECT * FROM scenario_snapshots WHERE id = ?", [req.params.id]);
+        if (!row) return res.status(404).json({ error: 'Scenario not found.' });
+        res.json({ ...row, snapshot_json: JSON.parse(row.snapshot_json) });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/scenarios/:id', async (req, res) => {
+    try {
+        await queryRun("DELETE FROM scenario_snapshots WHERE id = ?", [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 10. Customer Portal Endpoints
+// ==========================================
+
+// Customer login
+app.post('/api/customer/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ success: false, error: 'Username and password required.' });
+        }
+        const user = await queryGet(
+            "SELECT * FROM customer_portal_users WHERE username = ? AND is_active = 1",
+            [username]
+        );
+        if (!user) {
+            return res.json({ success: false, error: 'Invalid credentials.' });
+        }
+
+        // Simple plaintext match (production would use bcrypt)
+        if (user.password !== password) {
+            return res.json({ success: false, error: 'Invalid credentials.' });
+        }
+
+        // Log login activity
+        try {
+            await queryRun(
+                "INSERT INTO customer_login_activity (company_id) VALUES (?)",
+                [user.company_id]
+            );
+        } catch (logErr) {
+            // Non-critical — log and continue
+            console.warn('Login activity log failed:', logErr.message);
+        }
+
+        // Get company info
+        const company = await queryGet("SELECT name, tier FROM companies WHERE id = ?", [user.company_id]);
+
+        // Return user info (exclude password)
+        const { password: _pwd, ...safeUser } = user;
+        res.json({
+            success: true,
+            user: {
+                ...safeUser,
+                company_name: company?.name || null,
+                company_tier: company?.tier || null,
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+// Get orders for a specific customer company
+app.get('/api/customer/orders/:company_id', async (req, res) => {
+    try {
+        const { company_id } = req.params;
+        const pos = await queryAll(
+            `SELECT po.id, po.date_received, po.status, po.committed_dispatch_date, po.commitment_status, po.notes,
+             c.name as company_name
+             FROM purchase_orders po
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.company_id = ?
+             ORDER BY po.date_received DESC`,
+            [company_id]
+        );
+
+        const result = [];
+        for (const po of pos) {
+            const items = await queryAll("SELECT product_type, quantity, allocated_quantity FROM po_line_items WHERE po_id = ?", [po.id]);
+            const dispatches = await queryAll(
+                `SELECT dl.vehicle_id, dl.planned_dispatch_date, dl.actual_dispatch_date, dl.status, da.quantity
+                 FROM dispatch_allocations da
+                 JOIN dispatch_log dl ON da.dispatch_id = dl.id
+                 WHERE da.po_id = ?`,
+                [po.id]
+            );
+            result.push({ ...po, items, dispatches });
+        }
+
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get single order detail for customer
+app.get('/api/customer/orders/:company_id/:po_id', async (req, res) => {
+    try {
+        const { company_id, po_id } = req.params;
+        const po = await queryGet(
+            `SELECT po.*, c.name as company_name
+             FROM purchase_orders po
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.id = ? AND po.company_id = ?`,
+            [po_id, company_id]
+        );
+        if (!po) return res.status(404).json({ error: 'Order not found.' });
+
+        const items = await queryAll("SELECT * FROM po_line_items WHERE po_id = ?", [po_id]);
+        const dispatches = await queryAll(
+            `SELECT dl.vehicle_id, dl.planned_dispatch_date, dl.actual_dispatch_date, dl.status, da.quantity, dl.product_type
+             FROM dispatch_allocations da
+             JOIN dispatch_log dl ON da.dispatch_id = dl.id
+             WHERE da.po_id = ?`,
+            [po_id]
+        );
+        const history = await queryAll(
+            "SELECT * FROM po_commitment_history WHERE po_id = ? ORDER BY timestamp ASC",
+            [po_id]
+        );
+
+        res.json({ ...po, items, dispatches, commitment_history: history });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get customer portal users for a company (admin use)
+app.get('/api/customer/users/:company_id', async (req, res) => {
+    try {
+        const rows = await queryAll(
+            "SELECT id, username, full_name, email, is_active, created_at FROM customer_portal_users WHERE company_id = ?",
+            [req.params.company_id]
+        );
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create customer portal user
+app.post('/api/customer/users', async (req, res) => {
+    try {
+        const { company_id, username, password, full_name, email } = req.body;
+        if (!company_id || !username || !password) {
+            return res.status(400).json({ error: 'company_id, username, and password are required.' });
+        }
+        // Enable portal for the company
+        await queryRun(
+            "UPDATE companies SET portal_login_enabled = 1 WHERE id = ?",
+            [company_id]
+        );
+        await queryRun(
+            "INSERT INTO customer_portal_users (company_id, username, password_hash, full_name, email) VALUES (?, ?, ?, ?, ?)",
+            [company_id, username, password, full_name || '', email || '']
+        );
+        res.json({ success: true, message: 'Portal user created.' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 11. Commitment Health Dashboard Endpoint
+// ==========================================
+app.get('/api/commitment-health', async (req, res) => {
+    try {
+        const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
+
+        const companies = await queryAll(
+            `SELECT c.id, c.name, c.tier, c.commitment_health_score, c.relationship_risk_flag,
+             COUNT(po.id) as total_commitments,
+             SUM(CASE WHEN po.commitment_status = 'Honored' THEN 1 ELSE 0 END) as honored,
+             SUM(CASE WHEN po.commitment_status = 'Missed' THEN 1 ELSE 0 END) as missed,
+             SUM(CASE WHEN po.commitment_status = 'Renegotiated' THEN 1 ELSE 0 END) as renegotiated,
+             SUM(CASE WHEN po.commitment_status = 'Pending' THEN 1 ELSE 0 END) as pending
+             FROM companies c
+             LEFT JOIN purchase_orders po ON po.company_id = c.id AND po.committed_dispatch_date IS NOT NULL
+             GROUP BY c.id
+             ORDER BY c.relationship_risk_flag DESC, c.commitment_health_score ASC`
+        );
+
+        const overallMissed = await queryAll(
+            `SELECT po.id, po.committed_dispatch_date, po.commitment_status, c.name as company_name, c.tier,
+             c.commitment_health_score
+             FROM purchase_orders po
+             JOIN companies c ON po.company_id = c.id
+             WHERE po.commitment_status = 'Missed'
+             ORDER BY po.committed_dispatch_date ASC`
+        );
+
+        res.json({
+            system_date: systemDate,
+            companies,
+            missed_pos: overallMissed
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 12. Reports Endpoints
 // ==========================================
 app.get('/api/reports', async (req, res) => {
     try {
