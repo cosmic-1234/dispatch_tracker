@@ -1360,11 +1360,33 @@ app.get('/api/dashboard/morning-brief', async (req, res) => {
              FROM dispatch_log ORDER BY created_at DESC LIMIT 10`
         );
 
+        // Flat arrays for easy Dashboard component consumption
+        const missedCommitments = missed.map(m => ({
+            po_id: m.id,
+            company_name: m.company_name,
+            company_tier: m.tier,
+            committed_dispatch_date: m.committed_dispatch_date
+        }));
+        const riskCompanies = riskCos.map(c => ({
+            name: c.name,
+            tier: c.tier,
+            commitment_health_score: c.commitment_health_score
+        }));
+        const shortageAlerts = criticalAlerts.filter(a => a.type === 'stock_critical').map(a => ({
+            product_type: a.product,
+            stock: a.stock,
+            min_threshold: a.threshold
+        }));
+
         res.json({
             system_date: systemDate,
             critical_alerts: criticalAlerts,
             top_recommendations: topRecs,
-            recent_activity: recentActivity
+            recent_activity: recentActivity,
+            // Flat convenience arrays
+            missed_commitments: missedCommitments,
+            relationship_risk_companies: riskCompanies,
+            shortage_alerts: shortageAlerts
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1428,32 +1450,50 @@ app.post('/api/customer/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password required.' });
+            return res.status(400).json({ success: false, error: 'Username and password required.' });
         }
         const user = await queryGet(
             "SELECT * FROM customer_portal_users WHERE username = ? AND is_active = 1",
             [username]
         );
-        if (!user) return res.status(401).json({ error: 'Invalid credentials.' });
+        if (!user) {
+            return res.json({ success: false, error: 'Invalid credentials.' });
+        }
 
         // Simple plaintext match (production would use bcrypt)
-        if (user.password_hash !== password) {
-            return res.status(401).json({ error: 'Invalid credentials.' });
+        if (user.password !== password) {
+            return res.json({ success: false, error: 'Invalid credentials.' });
         }
 
         // Log login activity
-        await queryRun(
-            "INSERT INTO customer_login_activity (user_id, ip_address) VALUES (?, ?)",
-            [user.id, req.ip || '127.0.0.1']
-        );
+        try {
+            await queryRun(
+                "INSERT INTO customer_login_activity (company_id) VALUES (?)",
+                [user.company_id]
+            );
+        } catch (logErr) {
+            // Non-critical — log and continue
+            console.warn('Login activity log failed:', logErr.message);
+        }
+
+        // Get company info
+        const company = await queryGet("SELECT name, tier FROM companies WHERE id = ?", [user.company_id]);
 
         // Return user info (exclude password)
-        const { password_hash, ...safeUser } = user;
-        res.json({ success: true, user: safeUser });
+        const { password: _pwd, ...safeUser } = user;
+        res.json({
+            success: true,
+            user: {
+                ...safeUser,
+                company_name: company?.name || null,
+                company_tier: company?.tier || null,
+            }
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
+
 
 // Get orders for a specific customer company
 app.get('/api/customer/orders/:company_id', async (req, res) => {

@@ -135,9 +135,12 @@ CREATE TABLE IF NOT EXISTS po_commitment_history (
 
 -- 10. Customer Portal Users
 CREATE TABLE IF NOT EXISTS customer_portal_users (
-    company_id TEXT PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    full_name TEXT,
+    is_active INTEGER DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(company_id) REFERENCES companies(id)
 );
@@ -151,13 +154,12 @@ CREATE TABLE IF NOT EXISTS customer_login_activity (
     FOREIGN KEY(company_id) REFERENCES companies(id)
 );
 
--- 12. Scenario Snapshots
+-- 12. Scenario Snapshots (What-If Simulator)
 CREATE TABLE IF NOT EXISTS scenario_snapshots (
-    scenario_id TEXT PRIMARY KEY,
-    label TEXT NOT NULL,
-    created_by TEXT DEFAULT 'System',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    base_date DATE NOT NULL,
-    modified_po_allocations TEXT NOT NULL, -- JSON string
-    projected_inventory TEXT NOT NULL -- JSON string
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    snapshot_json TEXT NOT NULL,
+    ai_narration TEXT,
+    created_by TEXT DEFAULT 'Planner',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
