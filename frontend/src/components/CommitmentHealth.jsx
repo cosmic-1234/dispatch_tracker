@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { HeartPulse, AlertTriangle, CheckCircle2, Clock, RefreshCw, Minus, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatDate } from '../App';
+
+// ... (other components)
+
 
 const STATUS_COLORS = {
   Honored: { bg: '#D1FAE5', color: '#065F46', border: '#A7F3D0' },
@@ -72,7 +76,7 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
           <HeartPulse size={20} color="#EF4444" />
           <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1E293B' }}>Commitment Health Dashboard</h2>
           <span style={{ fontSize: '11px', color: '#64748B', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '2px 8px' }}>
-            SCM Date: {data?.system_date || systemDate}
+            SCM Date: {formatDate(data?.system_date || systemDate)}
           </span>
         </div>
         <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={loadData}>
@@ -151,7 +155,7 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
                   <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600, color: '#1E293B' }}>{po.id}</td>
                   <td style={{ padding: '10px 12px', color: '#334155' }}>{po.company_name}</td>
                   <td style={{ padding: '10px 12px' }}><span style={{ fontWeight: 700, color: po.tier === 'A' ? '#059669' : po.tier === 'B' ? '#2563EB' : '#64748B' }}>{po.tier}</span></td>
-                  <td style={{ padding: '10px 12px', color: '#EF4444', fontWeight: 600 }}>{po.committed_dispatch_date}</td>
+                  <td style={{ padding: '10px 12px', color: '#EF4444', fontWeight: 600 }}>{formatDate(po.committed_dispatch_date)}</td>
                   <td style={{ padding: '10px 12px' }}><StatusChip status={po.commitment_status} /></td>
                   <td style={{ padding: '10px 12px' }}><HealthScore score={po.commitment_health_score} /></td>
                 </tr>

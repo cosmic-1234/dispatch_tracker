@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Eye, Filter, ArrowUpDown, X, PlusCircle, Trash2, Calendar, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
-
+import { formatDate } from '../App';
 
 export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [pos, setPos] = useState([]);
@@ -318,12 +318,12 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                     </td>
                     <td className="mono" style={{ fontWeight: 500 }}>{po.total_qty.toFixed(1)} MT</td>
                     <td className="mono" style={{ fontWeight: 500, color: pending > 0 ? '#1C6BF4' : 'inherit' }}>{pending.toFixed(1)} MT</td>
-                    <td>{po.date_received}</td>
+                    <td>{formatDate(po.date_received)}</td>
                     <td>{po.order_age} day(s)</td>
                     <td>
                       {po.committed_dispatch_date ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <span style={{ fontSize: '11px' }}>{po.committed_dispatch_date}</span>
+                          <span style={{ fontSize: '11px' }}>{formatDate(po.committed_dispatch_date)}</span>
                           {po.commitment_status && (
                             <span style={{
                               fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px',
@@ -511,7 +511,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                 <div>Company Name: <strong>{poDetail.company_name}</strong></div>
                 <div>Customer Priority: <span className={`tier-badge ${poDetail.company_tier}`}>Tier {poDetail.company_tier}</span></div>
                 <div>Credit Verification: <strong style={{ color: poDetail.company_credit_status === 'Active' ? 'green' : 'red' }}>{poDetail.company_credit_status}</strong></div>
-                <div>Received Date: <strong>{poDetail.date_received}</strong></div>
+                <div>Received Date: <strong>{formatDate(poDetail.date_received)}</strong></div>
                 <div style={{ gridColumn: 'span 2' }}>System Audit Status: <span className={`badge ${poDetail.status.toLowerCase().replace(' ', '_')}`}>{poDetail.status}</span></div>
                 {poDetail.notes && (
                   <div style={{ gridColumn: 'span 2', borderTop: '1px solid #E2E8F0', paddingTop: '8px', marginTop: '4px' }}>
@@ -534,7 +534,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                     </button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
-                    <div>Committed Date: <strong style={{ color: poDetail.commitment_status === 'Missed' ? '#DC2626' : '#1E293B' }}>{poDetail.committed_dispatch_date}</strong></div>
+                    <div>Committed Date: <strong style={{ color: poDetail.commitment_status === 'Missed' ? '#DC2626' : '#1E293B' }}>{formatDate(poDetail.committed_dispatch_date)}</strong></div>
                     <div>Status: <span style={{
                       padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700,
                       background: poDetail.commitment_status === 'Honored' ? '#D1FAE5' : poDetail.commitment_status === 'Missed' ? '#FEE2E2' : poDetail.commitment_status === 'Renegotiated' ? '#FEF3C7' : '#EFF6FF',
@@ -554,7 +554,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                             background: h.status === 'Honored' ? '#10B981' : h.status === 'Missed' ? '#EF4444' : h.status === 'Renegotiated' ? '#F59E0B' : '#3B82F6' }} />
                           <div style={{ fontSize: '11px' }}>
                             <span style={{ fontWeight: 600 }}>{h.status}</span>
-                            {h.committed_date && <span style={{ color: '#64748B' }}> — {h.committed_date}</span>}
+                            {h.committed_date && <span style={{ color: '#64748B' }}> — {formatDate(h.committed_date)}</span>}
                             {h.reason && <div style={{ color: '#94A3B8', marginTop: '1px' }}>{h.reason}</div>}
                           </div>
                         </div>
@@ -619,7 +619,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                           <td className="mono">{alloc.vehicle_id}</td>
                           <td>{poDetail.items.find(i => i.id === alloc.po_line_item_id)?.product_type || 'Unknown'}</td>
                           <td className="mono">{alloc.quantity} MT</td>
-                          <td>{alloc.actual_dispatch_date || alloc.planned_dispatch_date}</td>
+                          <td>{formatDate(alloc.actual_dispatch_date || alloc.planned_dispatch_date)}</td>
                           <td><span className={`badge ${alloc.dispatch_status.toLowerCase()}`}>{alloc.dispatch_status}</span></td>
                         </tr>
                       ))}

@@ -12,7 +12,7 @@ import {
   Bell,
   Activity
 } from 'lucide-react';
-
+import { formatDate } from '../App';
 
 export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
   const [selectedProductChart, setSelectedProductChart] = useState('Acetone');
@@ -136,7 +136,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
               <Bell size={14} />
               <span>MORNING BRIEF — COMMITMENT & RELATIONSHIP ALERTS ({(missed_commitments?.length || 0) + (relationship_risk_companies?.length || 0)})</span>
             </div>
-            <span style={{ fontSize: '10px', color: '#94A3B8' }}>SCM Date: {system_date}</span>
+            <span style={{ fontSize: '10px', color: '#94A3B8' }}>SCM Date: {formatDate(system_date)}</span>
           </div>
           <div className="card-body" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {(missed_commitments || []).map((m, i) => (
@@ -144,7 +144,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Clock size={13} color="#DC2626" />
                   <span style={{ color: '#991B1B' }}>
-                    <strong>MISSED COMMITMENT:</strong> PO <strong>{m.po_id}</strong> ({m.company_name} — Tier {m.company_tier}) was committed for dispatch by <strong>{m.committed_dispatch_date}</strong> but remains unfulfilled.
+                    <strong>MISSED COMMITMENT:</strong> PO <strong>{m.po_id}</strong> ({m.company_name} — Tier {m.company_tier}) was committed for dispatch by <strong>{formatDate(m.committed_dispatch_date)}</strong> but remains unfulfilled.
                   </span>
                 </div>
                 <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '10px', borderColor: '#FCA5A5', color: '#DC2626', flexShrink: 0 }} onClick={() => onNavigate('commitment-health')}>
@@ -189,7 +189,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
             {shortage_alerts.map((alert, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', borderTop: '1px solid #FEF3C7', paddingTop: '8px' }}>
                 <span style={{ color: '#B91C1C' }}>
-                  🚨 <strong>Critical Stockout Risk:</strong> projected closing stock for <strong>{alert.product_type}</strong> falls to <strong>{alert.projected_stock} MT</strong> on <strong>{alert.projected_date}</strong> (in {alert.days_out} days), breaching the safety threshold of {alert.min_threshold} MT. 
+                  🚨 <strong>Critical Stockout Risk:</strong> projected closing stock for <strong>{alert.product_type}</strong> falls to <strong>{alert.projected_stock} MT</strong> on <strong>{formatDate(alert.projected_date)}</strong> (in {alert.days_out} days), breaching the safety threshold of {alert.min_threshold} MT. 
                   {alert.production_ratio_alert && ` Note: Production performance ratio is low (${(alert.production_ratio_alert * 100).toFixed(0)}%).`}
                 </span>
                 <button className="btn btn-secondary" style={{ padding: '3px 8px', fontSize: '11px' }} onClick={() => onNavigate('dispatch')}>Adjust Allocations</button>
@@ -213,7 +213,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
         <div className="inventory-bar-container card">
           <div className="card-header">
             <span className="card-title">Current Safety Stock Levels</span>
-            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>System Date: {system_date}</span>
+            <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>System Date: {formatDate(system_date)}</span>
           </div>
           <div className="card-body" style={{ padding: '12px' }}>
             <div className="inventory-bar-flex">
@@ -479,7 +479,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '4px', fontSize: '11px' }}>
                       <div>
                         <div style={{ fontWeight: 700, color: '#1E293B', fontFamily: 'monospace' }}>{m.po_id}</div>
-                        <div style={{ color: '#64748B', marginTop: '1px' }}>{m.company_name} — <span style={{ color: '#EF4444', fontWeight: 600 }}>Due: {m.committed_dispatch_date}</span></div>
+                        <div style={{ color: '#64748B', marginTop: '1px' }}>{m.company_name} — <span style={{ color: '#EF4444', fontWeight: 600 }}>Due: {formatDate(m.committed_dispatch_date)}</span></div>
                       </div>
                       <span style={{ padding: '2px 6px', background: '#FEE2E2', color: '#991B1B', borderRadius: '3px', fontSize: '9px', fontWeight: 700, border: '1px solid #FECACA' }}>
                         MISSED

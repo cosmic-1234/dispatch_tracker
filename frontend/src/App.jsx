@@ -33,6 +33,18 @@ import CommitmentHealth from './components/CommitmentHealth';
 import CustomerPortal from './components/CustomerPortal';
 import shaktiLogo from './assets/shakti_logo.png';
 
+// Utility helper to format dates from yyyy-mm-dd to dd-mm-yyyy
+export function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const str = String(dateStr);
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})([\sT](.*))?$/);
+  if (match) {
+    const timePart = match[5] ? ' ' + match[5].slice(0, 5) : '';
+    return `${match[3]}-${match[2]}-${match[1]}${timePart}`;
+  }
+  return str;
+}
+
 export default function App() {
   // Customer portal URL branching
   const isCustomerPortal = window.location.pathname.startsWith('/customer') ||
@@ -232,7 +244,7 @@ export default function App() {
             <h1>SHAKTI SOLVENT PLANNING PORTAL</h1>
             <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
               <Clock size={12} color="#515559" />
-              <span>Simulated SCM System Date: <strong>{systemDate}</strong></span>
+              <span>Simulated SCM System Date: <strong>{formatDate(systemDate)}</strong></span>
             </span>
           </div>
 
@@ -253,7 +265,7 @@ export default function App() {
             <div className="banner warning">
               <div className="banner-content">
                 <AlertTriangle size={14} />
-                <span>Unconfirmed End-of-Day Inventory Snapshots exist for planning day: <strong>{systemDate}</strong>. Confirm snapshot to clear safety alerts.</span>
+                <span>Unconfirmed End-of-Day Inventory Snapshots exist for planning day: <strong>{formatDate(systemDate)}</strong>. Confirm snapshot to clear safety alerts.</span>
               </div>
               <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('inventory')}>
                 Review & Confirm

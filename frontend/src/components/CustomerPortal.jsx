@@ -17,6 +17,18 @@ import {
 } from 'lucide-react';
 import shaktiLogo from '../assets/shakti_logo.png';
 
+// Utility helper to format dates from yyyy-mm-dd to dd-mm-yyyy
+export function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const str = String(dateStr);
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})([\sT](.*))?$/);
+  if (match) {
+    const timePart = match[5] ? ' ' + match[5].slice(0, 5) : '';
+    return `${match[3]}-${match[2]}-${match[1]}${timePart}`;
+  }
+  return str;
+}
+
 // public-facing statuses translation
 const STATUS_TRANSLATIONS = {
   Received: "Awaiting allocation",
@@ -269,12 +281,12 @@ function OrderListTab({ orders, loading, onSelectOrder }) {
                         ))}
                       </div>
                     </td>
-                    <td>{po.date_received}</td>
+                    <td>{formatDate(po.date_received)}</td>
                     <td className="mono">{totalQty.toFixed(1)} MT</td>
                     <td className="mono" style={{ color: '#16A34A', fontWeight: 600 }}>{allocatedQty.toFixed(1)} MT</td>
                     <td className="mono" style={{ color: pendingQty > 0 ? '#0A6ED1' : 'inherit' }}>{pendingQty.toFixed(1)} MT</td>
                     <td className="mono" style={{ fontWeight: 500, color: po.commitment_status === 'Missed' ? '#BB0000' : 'inherit' }}>
-                      {po.committed_dispatch_date ? po.committed_dispatch_date : '—'}
+                      {po.committed_dispatch_date ? formatDate(po.committed_dispatch_date) : '—'}
                     </td>
                     <td>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -401,7 +413,7 @@ function DispatchHistoryTab({ orders, loading }) {
             <tbody>
               {filtered.map((d, idx) => (
                 <tr key={idx}>
-                  <td className="mono" style={{ fontWeight: 500 }}>{d.actual_dispatch_date || d.planned_dispatch_date}</td>
+                  <td className="mono" style={{ fontWeight: 500 }}>{formatDate(d.actual_dispatch_date || d.planned_dispatch_date)}</td>
                   <td className="mono">{d.po_id}</td>
                   <td><strong>{d.product_type}</strong></td>
                   <td className="mono" style={{ fontWeight: 600 }}>{parseFloat(d.quantity).toFixed(1)} MT</td>
@@ -446,7 +458,7 @@ function NotificationsTab({ orders, loading }) {
         notifications.push({
           po_id: po.id,
           timestamp: d.actual_dispatch_date + ' 10:00:00', // mock time for ordering
-          text: `Your order ${po.id} for ${parseFloat(d.quantity).toFixed(1)} MT ${d.product_type || 'material'} has been dispatched.`,
+          text: `Your order ${po.id} for ${parseFloat(d.quantity).toFixed(1)} MT ${d.product_type || 'material'} has been dispatched on ${formatDate(d.actual_dispatch_date)}.`,
           type: 'dispatch',
           date: d.actual_dispatch_date
         });
@@ -459,7 +471,7 @@ function NotificationsTab({ orders, loading }) {
         notifications.push({
           po_id: po.id,
           timestamp: h.timestamp || (po.date_received + ' 12:00:00'),
-          text: `Your expected dispatch date for order ${po.id} has been updated to ${h.committed_date}.`,
+          text: `Your expected dispatch date for order ${po.id} has been updated to ${formatDate(h.committed_date)}.`,
           type: 'update',
           date: h.committed_date
         });
@@ -503,7 +515,7 @@ function NotificationsTab({ orders, loading }) {
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{n.text}</p>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '6px', fontSize: '10px', color: 'var(--text-muted)' }}>
                   <span>PO Reference: <strong className="mono">{n.po_id}</strong></span>
-                  <span>Logged: {n.timestamp.slice(0, 16).replace('T', ' ')}</span>
+                  <span>Logged: {formatDate(n.timestamp)}</span>
                 </div>
               </div>
             </div>
@@ -550,7 +562,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '12px' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--primary-navy)' }}>Order Spec: <span className="mono">{po.id}</span></h3>
-            <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '11px' }}>Received Date: <strong>{po.date_received}</strong></p>
+            <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: '11px' }}>Received Date: <strong>{formatDate(po.date_received)}</strong></p>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
             <StatusChip status={po.status} />
@@ -563,7 +575,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
             display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
             <Clock size={14} color="#0A6ED1" />
             <span style={{ color: 'var(--text-secondary)' }}>Committed Dispatch Date:</span>
-            <strong style={{ color: po.commitment_status === 'Missed' ? '#BB0000' : 'var(--text-primary)' }}>{po.committed_dispatch_date}</strong>
+            <strong style={{ color: po.commitment_status === 'Missed' ? '#BB0000' : 'var(--text-primary)' }}>{formatDate(po.committed_dispatch_date)}</strong>
           </div>
         )}
         {po.notes && (
@@ -628,8 +640,8 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
                   <td className="mono" style={{ fontWeight: 600 }}>{d.vehicle_id}</td>
                   <td><strong>{d.product_type || '—'}</strong></td>
                   <td className="mono">{parseFloat(d.quantity).toFixed(1)} MT</td>
-                  <td>{d.planned_dispatch_date}</td>
-                  <td style={{ color: d.actual_dispatch_date ? '#16A34A' : 'var(--text-muted)' }}>{d.actual_dispatch_date || 'Pending'}</td>
+                  <td>{formatDate(d.planned_dispatch_date)}</td>
+                  <td style={{ color: d.actual_dispatch_date ? '#16A34A' : 'var(--text-muted)' }}>{d.actual_dispatch_date ? formatDate(d.actual_dispatch_date) : 'Pending'}</td>
                   <td>
                     <span className={`badge ${d.status === 'Executed' ? 'executed' : d.status === 'Planned' ? 'planned' : 'closed'}`}>
                       {d.status}
@@ -661,10 +673,10 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                     <CommitmentChip status={h.status} />
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{h.timestamp ? h.timestamp.slice(0, 16).replace('T', ' ') : ''}</span>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{h.timestamp ? formatDate(h.timestamp) : ''}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)' }}>{h.reason}</p>
-                  {h.committed_date && <p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--text-muted)' }}>Committed dispatch target date: {h.committed_date}</p>}
+                  {h.committed_date && <p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--text-muted)' }}>Committed dispatch target date: {formatDate(h.committed_date)}</p>}
                 </div>
               </div>
             ))}
@@ -733,7 +745,7 @@ export default function CustomerPortal({ API_BASE }) {
             <h1 style={{ textTransform: 'uppercase' }}>SHAKTI CUSTOMER PORTAL</h1>
             <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
               <Clock size={12} color="#515559" />
-              <span>Simulated Date: <strong>{systemDate}</strong></span>
+              <span>Simulated Date: <strong>{formatDate(systemDate)}</strong></span>
             </span>
           </div>
 
