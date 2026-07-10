@@ -1565,7 +1565,7 @@ app.get('/api/customer/orders/:company_id/:po_id', async (req, res) => {
 app.get('/api/customer/users/:company_id', async (req, res) => {
     try {
         const rows = await queryAll(
-            "SELECT id, username, full_name, email, is_active, created_at FROM customer_portal_users WHERE company_id = ?",
+            "SELECT id, username, full_name, is_active, created_at FROM customer_portal_users WHERE company_id = ?",
             [req.params.company_id]
         );
         res.json(rows);
@@ -1587,8 +1587,8 @@ app.post('/api/customer/users', async (req, res) => {
             [company_id]
         );
         await queryRun(
-            "INSERT INTO customer_portal_users (company_id, username, password_hash, full_name, email) VALUES (?, ?, ?, ?, ?)",
-            [company_id, username, password, full_name || '', email || '']
+            "INSERT INTO customer_portal_users (company_id, username, password, full_name) VALUES (?, ?, ?, ?)",
+            [company_id, username, password, full_name || '']
         );
         res.json({ success: true, message: 'Portal user created.' });
     } catch (err) {

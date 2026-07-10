@@ -264,7 +264,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
       </div>
 
       {/* 2. Main PO Data Grid */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
         <div className="table-wrapper" style={{ flex: 1, overflowY: 'auto' }}>
           <table className="sap-table">
             <thead>

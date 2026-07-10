@@ -101,32 +101,34 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
 
       {/* At-Risk Companies Section */}
       {riskCompanies.length > 0 && (
-        <div style={{ background: '#FFF5F5', border: '1px solid #FECACA', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ background: '#FEE2E2', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #FECACA' }}>
-            <AlertTriangle size={14} color="#DC2626" />
-            <span style={{ fontWeight: 700, fontSize: '12px', color: '#991B1B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Relationship Risk — {riskCompanies.length} Company(s) Flagged
-            </span>
+        <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column', borderLeft: '4px solid #DC2626' }}>
+          <div className="card-header" style={{ background: '#FEF2F2', borderBottomColor: '#FECACA' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={14} color="#DC2626" />
+              <span className="card-title" style={{ color: '#991B1B' }}>
+                Relationship Risk — {riskCompanies.length} Company(s) Flagged
+              </span>
+            </div>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table className="sap-table">
             <thead>
-              <tr style={{ background: '#FEF2F2' }}>
+              <tr>
                 {['Company', 'Tier', 'Health Score', 'Total', 'Honored', 'Missed', 'Renegotiated', 'Pending'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#7F1D1D', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #FECACA' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {riskCompanies.map(c => (
-                <tr key={c.id} style={{ borderBottom: '1px solid #FEE2E2' }}>
-                  <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1E293B' }}>{c.name}</td>
-                  <td style={{ padding: '10px 12px' }}><span style={{ fontWeight: 700, color: c.tier === 'A' ? '#059669' : c.tier === 'B' ? '#2563EB' : '#64748B' }}>{c.tier}</span></td>
-                  <td style={{ padding: '10px 12px' }}><HealthScore score={c.commitment_health_score} /></td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>{c.total_commitments || 0}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', color: '#059669', fontWeight: 600 }}>{c.honored || 0}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', color: '#DC2626', fontWeight: 700 }}>{c.missed || 0}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', color: '#D97706', fontWeight: 600 }}>{c.renegotiated || 0}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'center', color: '#3B82F6', fontWeight: 600 }}>{c.pending || 0}</td>
+                <tr key={c.id}>
+                  <td style={{ fontWeight: 600 }}>{c.name}</td>
+                  <td><span className={`tier-badge ${c.tier}`}>{c.tier}</span></td>
+                  <td><HealthScore score={c.commitment_health_score} /></td>
+                  <td className="mono">{c.total_commitments || 0}</td>
+                  <td className="mono" style={{ color: '#166534', fontWeight: 600 }}>{c.honored || 0}</td>
+                  <td className="mono" style={{ color: '#991B1B', fontWeight: 700 }}>{c.missed || 0}</td>
+                  <td className="mono" style={{ color: '#92400E', fontWeight: 600 }}>{c.renegotiated || 0}</td>
+                  <td className="mono" style={{ color: '#1C6BF4', fontWeight: 600 }}>{c.pending || 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -136,28 +138,30 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
 
       {/* Missed POs Table */}
       {data?.missed_pos?.length > 0 && (
-        <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertTriangle size={13} color="#EF4444" />
-            <span style={{ fontWeight: 700, fontSize: '12px', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overdue Commitments — Open POs</span>
+        <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div className="card-header" style={{ background: '#F8FAFC' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={13} color="#EF4444" />
+              <span className="card-title">Overdue Commitments — Open POs</span>
+            </div>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+          <table className="sap-table">
             <thead>
-              <tr style={{ background: '#F8FAFC' }}>
+              <tr>
                 {['PO ID', 'Company', 'Tier', 'Committed Date', 'Status', 'Health Score'].map(h => (
-                  <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#475569', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #E2E8F0' }}>{h}</th>
+                  <th key={h}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {data.missed_pos.map(po => (
-                <tr key={po.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                  <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600, color: '#1E293B' }}>{po.id}</td>
-                  <td style={{ padding: '10px 12px', color: '#334155' }}>{po.company_name}</td>
-                  <td style={{ padding: '10px 12px' }}><span style={{ fontWeight: 700, color: po.tier === 'A' ? '#059669' : po.tier === 'B' ? '#2563EB' : '#64748B' }}>{po.tier}</span></td>
-                  <td style={{ padding: '10px 12px', color: '#EF4444', fontWeight: 600 }}>{formatDate(po.committed_dispatch_date)}</td>
-                  <td style={{ padding: '10px 12px' }}><StatusChip status={po.commitment_status} /></td>
-                  <td style={{ padding: '10px 12px' }}><HealthScore score={po.commitment_health_score} /></td>
+                <tr key={po.id}>
+                  <td className="mono" style={{ fontWeight: 600, textAlign: 'left' }}>{po.id}</td>
+                  <td>{po.company_name}</td>
+                  <td><span className={`tier-badge ${po.tier}`}>{po.tier}</span></td>
+                  <td className="mono" style={{ color: '#DC2626', fontWeight: 600, textAlign: 'left' }}>{formatDate(po.committed_dispatch_date)}</td>
+                  <td><StatusChip status={po.commitment_status} /></td>
+                  <td><HealthScore score={po.commitment_health_score} /></td>
                 </tr>
               ))}
             </tbody>
@@ -166,34 +170,34 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
       )}
 
       {/* All Companies Table */}
-      <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden' }}>
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC' }}>
-          <span style={{ fontWeight: 700, fontSize: '12px', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>All Companies — Commitment Overview</span>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card-header" style={{ background: '#F8FAFC' }}>
+          <span className="card-title">All Companies — Commitment Overview</span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+        <table className="sap-table">
           <thead>
-            <tr style={{ background: '#F8FAFC' }}>
+            <tr>
               {['Company', 'Tier', 'Health Score', 'Risk', 'Total', 'Honored', 'Missed', 'Renegotiated', 'Pending'].map(h => (
-                <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#475569', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #E2E8F0' }}>{h}</th>
+                <th key={h}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {(data?.companies || []).map(c => (
-              <tr key={c.id} style={{ borderBottom: '1px solid #F1F5F9', background: c.relationship_risk_flag ? '#FFFBEB' : 'white' }}>
-                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#1E293B' }}>{c.name}</td>
-                <td style={{ padding: '10px 12px' }}><span style={{ fontWeight: 700, color: c.tier === 'A' ? '#059669' : c.tier === 'B' ? '#2563EB' : '#64748B' }}>{c.tier}</span></td>
-                <td style={{ padding: '10px 12px' }}><HealthScore score={c.commitment_health_score} /></td>
-                <td style={{ padding: '10px 12px' }}>
+              <tr key={c.id} className={c.relationship_risk_flag ? 'relationship-risk-row' : ''}>
+                <td style={{ fontWeight: 600 }}>{c.name}</td>
+                <td><span className={`tier-badge ${c.tier}`}>{c.tier}</span></td>
+                <td><HealthScore score={c.commitment_health_score} /></td>
+                <td>
                   {c.relationship_risk_flag
-                    ? <span style={{ color: '#DC2626', fontWeight: 700, fontSize: '10px' }}>⚠ AT RISK</span>
-                    : <span style={{ color: '#10B981', fontSize: '10px' }}>✓ OK</span>}
+                    ? <span className="badge cancelled" style={{ fontSize: '10px' }}>⚠ AT RISK</span>
+                    : <span className="badge dispatched" style={{ fontSize: '10px' }}>✓ OK</span>}
                 </td>
-                <td style={{ padding: '10px 12px', textAlign: 'center' }}>{c.total_commitments || 0}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', color: '#059669', fontWeight: 600 }}>{c.honored || 0}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', color: '#DC2626', fontWeight: 700 }}>{c.missed || 0}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', color: '#D97706', fontWeight: 600 }}>{c.renegotiated || 0}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', color: '#3B82F6', fontWeight: 600 }}>{c.pending || 0}</td>
+                <td className="mono">{c.total_commitments || 0}</td>
+                <td className="mono" style={{ color: '#166534', fontWeight: 600 }}>{c.honored || 0}</td>
+                <td className="mono" style={{ color: '#991B1B', fontWeight: 700 }}>{c.missed || 0}</td>
+                <td className="mono" style={{ color: '#92400E', fontWeight: 600 }}>{c.renegotiated || 0}</td>
+                <td className="mono" style={{ color: '#1C6BF4', fontWeight: 600 }}>{c.pending || 0}</td>
               </tr>
             ))}
           </tbody>
