@@ -170,69 +170,85 @@ export default function App() {
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header" style={{ display: 'flex', justifyContent: sidebarCollapsed ? 'center' : 'space-between', alignItems: 'center', height: sidebarCollapsed ? 'auto' : 'var(--header-height)', padding: sidebarCollapsed ? '12px 0' : '0 16px', flexDirection: sidebarCollapsed ? 'column' : 'row', gap: sidebarCollapsed ? '8px' : '0' }}>
+        <div className="sidebar-header">
           {!sidebarCollapsed ? (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                 <img src={shaktiLogo} alt="Shakti" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
                 <h2>SHAKTI SCM</h2>
               </div>
-              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Collapse Menu">
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} title="Collapse Menu">
                 <Menu size={16} />
               </button>
             </>
           ) : (
             <>
-              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }} title="Expand Menu">
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} title="Expand Menu">
                 <Menu size={16} />
               </button>
-              <img src={shaktiLogo} alt="Shakti" style={{ height: '20px', width: 'auto', objectFit: 'contain', cursor: 'pointer' }} onClick={() => setSidebarCollapsed(false)} />
             </>
           )}
         </div>
         
         <nav className="sidebar-nav">
+          {!sidebarCollapsed && <div className="sidebar-section-label">OPERATIONS</div>}
           <a className={`nav-item ${activeModule === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveModule('dashboard')}>
-            <LayoutDashboard size={18} />
+            <LayoutDashboard size={20} />
             <span className="nav-label">Dashboard</span>
           </a>
           <a className={`nav-item ${activeModule === 'po' ? 'active' : ''}`} onClick={() => setActiveModule('po')}>
-            <FileText size={18} />
+            <FileText size={20} />
             <span className="nav-label">PO Management</span>
           </a>
           <a className={`nav-item ${activeModule === 'dispatch' ? 'active' : ''}`} onClick={() => setActiveModule('dispatch')}>
-            <Truck size={18} />
+            <Truck size={20} />
             <span className="nav-label">Dispatch Planning</span>
           </a>
           <a className={`nav-item ${activeModule === 'inventory' ? 'active' : ''}`} onClick={() => setActiveModule('inventory')}>
-            <Boxes size={18} />
+            <Boxes size={20} />
             <span className="nav-label">Inventory Management</span>
           </a>
           <a className={`nav-item ${activeModule === 'production' ? 'active' : ''}`} onClick={() => setActiveModule('production')}>
-            <Calendar size={18} />
+            <Calendar size={20} />
             <span className="nav-label">Production Plan</span>
           </a>
-          <a className={`nav-item ${activeModule === 'companies' ? 'active' : ''}`} onClick={() => setActiveModule('companies')}>
-            <Users size={18} />
-            <span className="nav-label">Company Master</span>
-          </a>
-          <a className={`nav-item ${activeModule === 'reports' ? 'active' : ''}`} onClick={() => setActiveModule('reports')}>
-            <BarChart3 size={18} />
-            <span className="nav-label">Reports</span>
-          </a>
+
+          <div className="sidebar-separator"></div>
+          {!sidebarCollapsed && <div className="sidebar-section-label">INTELLIGENCE</div>}
           <a className={`nav-item ${activeModule === 'commitment-health' ? 'active' : ''}`} onClick={() => setActiveModule('commitment-health')}>
-            <HeartPulse size={18} />
+            <HeartPulse size={20} />
             <span className="nav-label">Commitment Health</span>
           </a>
+          <a className={`nav-item ${activeModule === 'reports' ? 'active' : ''}`} onClick={() => setActiveModule('reports')}>
+            <BarChart3 size={20} />
+            <span className="nav-label">Reports</span>
+          </a>
+
+          <div className="sidebar-separator"></div>
+          {!sidebarCollapsed && <div className="sidebar-section-label">ADMINISTRATION</div>}
+          <a className={`nav-item ${activeModule === 'companies' ? 'active' : ''}`} onClick={() => setActiveModule('companies')}>
+            <Users size={20} />
+            <span className="nav-label">Company Master</span>
+          </a>
           <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')}>
-            <SettingsIcon size={18} />
+            <SettingsIcon size={20} />
             <span className="nav-label">Portal Settings</span>
           </a>
           <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
-            <Globe size={18} />
+            <Globe size={20} />
             <span className="nav-label">Customer Portal ↗</span>
           </a>
         </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-avatar-wrapper">
+            <div className="sidebar-avatar">AD</div>
+            {!sidebarCollapsed && <span className="sidebar-user-name">SCM Director</span>}
+          </div>
+          <button className="sidebar-bottom-toggle" onClick={() => setSidebarCollapsed(!sidebarCollapsed)} title={sidebarCollapsed ? "Expand Menu" : "Collapse Menu"}>
+            {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
       </aside>
 
       {/* 2. Main Workspace */}

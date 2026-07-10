@@ -12,6 +12,7 @@ import {
   CheckCircle2, 
   Download,
   Menu,
+  ChevronLeft,
   ChevronRight,
   Package
 } from 'lucide-react';
@@ -155,22 +156,27 @@ function LoginScreen({ API_BASE, onLogin }) {
 
 // ─── CUSTOMER SIDEBAR ────────────────────────────────────────────────────────
 function CustomerSidebar({ user, activeModule, setActiveModule, onLogout, collapsed, setCollapsed }) {
+  const getInitials = (name) => {
+    if (!name) return 'C';
+    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  };
+
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header" style={{ display: 'flex', justifyContent: collapsed ? 'center' : 'space-between', alignItems: 'center', height: 'var(--header-height)', padding: collapsed ? '12px 0' : '0 16px' }}>
+      <div className="sidebar-header">
         {!collapsed ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
               <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
               <h2>SHAKTI SCM</h2>
             </div>
-            <button className="sidebar-collapse-btn" onClick={() => setCollapsed(true)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+            <button className="sidebar-collapse-btn" onClick={() => setCollapsed(true)} title="Collapse Menu">
               <Menu size={16} />
             </button>
           </>
         ) : (
           <>
-            <button className="sidebar-collapse-btn" onClick={() => setCollapsed(false)} style={{ color: '#FFFFFF', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+            <button className="sidebar-collapse-btn" onClick={() => setCollapsed(false)} title="Expand Menu">
               <Menu size={16} />
             </button>
           </>
@@ -178,25 +184,46 @@ function CustomerSidebar({ user, activeModule, setActiveModule, onLogout, collap
       </div>
 
       <nav className="sidebar-nav">
+        {!collapsed && <div className="sidebar-section-label">CUSTOMER PORTAL</div>}
         <a className={`nav-item ${activeModule === 'orders' ? 'active' : ''}`} onClick={() => setActiveModule('orders')}>
-          <LayoutDashboard size={18} />
+          <LayoutDashboard size={20} />
           <span className="nav-label">My Orders</span>
         </a>
         <a className={`nav-item ${activeModule === 'history' ? 'active' : ''}`} onClick={() => setActiveModule('history')}>
-          <Truck size={18} />
+          <Truck size={20} />
           <span className="nav-label">Dispatch History</span>
         </a>
         <a className={`nav-item ${activeModule === 'notifications' ? 'active' : ''}`} onClick={() => setActiveModule('notifications')}>
-          <Bell size={18} />
+          <Bell size={20} />
           <span className="nav-label">Notifications</span>
         </a>
-        <div style={{ borderTop: '1px solid var(--border-color)', marginTop: 'auto', padding: '8px 0' }}>
-          <a className="nav-item" onClick={onLogout} style={{ color: '#B91C1C' }}>
-            <LogOut size={18} />
-            <span className="nav-label">Sign Out</span>
-          </a>
-        </div>
       </nav>
+
+      <div className="sidebar-footer">
+        <div className="sidebar-avatar-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="sidebar-avatar">{getInitials(user.full_name || user.username)}</div>
+          {!collapsed && (
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <span className="sidebar-user-name" style={{ fontSize: '11px', color: '#FFFFFF', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.full_name || user.username}
+              </span>
+              <span style={{ fontSize: '10px', color: '#8AAAC8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.company_name}
+              </span>
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {!collapsed && (
+            <button className="sidebar-logout-btn" onClick={onLogout} title="Sign Out">
+              <LogOut size={16} />
+            </button>
+          )}
+          <button className="sidebar-bottom-toggle" onClick={() => setCollapsed(!collapsed)} title={collapsed ? "Expand Menu" : "Collapse Menu"}>
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          </button>
+        </div>
+      </div>
     </aside>
   );
 }
@@ -248,7 +275,7 @@ function OrderListTab({ orders, loading, onSelectOrder }) {
       </div>
 
       {/* Grid Table */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="table-wrapper">
           <table className="sap-table">
             <thead>
@@ -397,7 +424,7 @@ function DispatchHistoryTab({ orders, loading }) {
         </div>
       </div>
 
-      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="table-wrapper">
           <table className="sap-table">
             <thead>
@@ -586,7 +613,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
       </div>
 
       {/* Line Items Matrix */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="card-header" style={{ padding: '10px 16px' }}>
           <span className="card-title" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order Line Items</span>
         </div>
@@ -618,7 +645,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
       </div>
 
       {/* Linked Dispatches */}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="card-header" style={{ padding: '10px 16px' }}>
           <span className="card-title" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Scheduled Dispatches</span>
         </div>
@@ -661,7 +688,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
 
       {/* Commitment History */}
       {po.committed_dispatch_date && (po.commitment_history || []).length > 0 && (
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
           <div className="card-header" style={{ padding: '10px 16px' }}>
             <span className="card-title" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Commitment History Audit Trail</span>
           </div>
