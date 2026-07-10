@@ -173,7 +173,16 @@ export async function initDb() {
                 console.warn('PostgreSQL column migration warning:', err.message);
             }
 
-            // Seed customer portal users in PG if empty
+            const res = await client.query('SELECT COUNT(*) as count FROM companies');
+            const count = parseInt(res.rows[0].count);
+            if (count === 0) {
+                console.log('Seeding PostgreSQL database with realistic chemical solvent enterprise data...');
+                await seedDatabase(client, true);
+            } else {
+                console.log('PostgreSQL database already initialized.');
+            }
+
+            // Seed customer portal users in PG if empty (MUST BE AFTER companies are seeded)
             try {
                 const userCountRes = await client.query('SELECT COUNT(*) as count FROM customer_portal_users');
                 const userCount = parseInt(userCountRes.rows[0].count);
@@ -191,15 +200,6 @@ export async function initDb() {
                 }
             } catch (err) {
                 console.warn('PostgreSQL customer portal user seeding warning:', err.message);
-            }
-
-            const res = await client.query('SELECT COUNT(*) as count FROM companies');
-            const count = parseInt(res.rows[0].count);
-            if (count === 0) {
-                console.log('Seeding PostgreSQL database with realistic chemical solvent enterprise data...');
-                await seedDatabase(client, true);
-            } else {
-                console.log('PostgreSQL database already initialized.');
             }
         } finally {
             client.release();
@@ -236,7 +236,15 @@ export async function initDb() {
             await db.run("ALTER TABLE purchase_orders ADD COLUMN commitment_status TEXT DEFAULT 'Pending'");
         } catch (e) {}
 
-        // Seed customer portal users in SQLite if empty
+        const row = await db.get('SELECT COUNT(*) as count FROM companies');
+        if (row.count === 0) {
+            console.log('Seeding SQLite database with realistic chemical solvent enterprise data...');
+            await seedDatabase(db, false);
+        } else {
+            console.log('SQLite Database already initialized.');
+        }
+
+        // Seed customer portal users in SQLite if empty (MUST BE AFTER companies are seeded)
         try {
             const userCountRow = await db.get('SELECT COUNT(*) as count FROM customer_portal_users');
             if (userCountRow.count === 0) {
@@ -253,14 +261,6 @@ export async function initDb() {
             }
         } catch (e) {
             console.warn('SQLite customer portal user seeding warning:', e.message);
-        }
-
-        const row = await db.get('SELECT COUNT(*) as count FROM companies');
-        if (row.count === 0) {
-            console.log('Seeding SQLite database with realistic chemical solvent enterprise data...');
-            await seedDatabase(db, false);
-        } else {
-            console.log('SQLite Database already initialized.');
         }
     }
 }
