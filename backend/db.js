@@ -173,6 +173,26 @@ export async function initDb() {
                 console.warn('PostgreSQL column migration warning:', err.message);
             }
 
+            // Seed customer portal users in PG if empty
+            try {
+                const userCountRes = await client.query('SELECT COUNT(*) as count FROM customer_portal_users');
+                const userCount = parseInt(userCountRes.rows[0].count);
+                if (userCount === 0) {
+                    console.log('Seeding customer portal users for active companies in PostgreSQL...');
+                    const activeCoRes = await client.query("SELECT id, name FROM companies WHERE credit_status = 'Active'");
+                    for (const co of activeCoRes.rows) {
+                        const username = co.name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12) + '.user';
+                        await client.query(
+                            `INSERT INTO customer_portal_users (company_id, username, password, full_name) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
+                            [co.id, username, 'shakti123', co.name + ' Portal User']
+                        );
+                    }
+                    await client.query("UPDATE companies SET portal_login_enabled = 1 WHERE credit_status = 'Active'");
+                }
+            } catch (err) {
+                console.warn('PostgreSQL customer portal user seeding warning:', err.message);
+            }
+
             const res = await client.query('SELECT COUNT(*) as count FROM companies');
             const count = parseInt(res.rows[0].count);
             if (count === 0) {
@@ -215,6 +235,25 @@ export async function initDb() {
         try {
             await db.run("ALTER TABLE purchase_orders ADD COLUMN commitment_status TEXT DEFAULT 'Pending'");
         } catch (e) {}
+
+        // Seed customer portal users in SQLite if empty
+        try {
+            const userCountRow = await db.get('SELECT COUNT(*) as count FROM customer_portal_users');
+            if (userCountRow.count === 0) {
+                console.log('Seeding customer portal users for active companies in SQLite...');
+                const activeCos = await db.all("SELECT id, name FROM companies WHERE credit_status = 'Active'");
+                for (const co of activeCos) {
+                    const username = co.name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12) + '.user';
+                    await db.run(
+                        `INSERT OR IGNORE INTO customer_portal_users (company_id, username, password, full_name) VALUES (?, ?, ?, ?)`,
+                        [co.id, username, 'shakti123', co.name + ' Portal User']
+                    );
+                }
+                await db.run("UPDATE companies SET portal_login_enabled = 1 WHERE credit_status = 'Active'");
+            }
+        } catch (e) {
+            console.warn('SQLite customer portal user seeding warning:', e.message);
+        }
 
         const row = await db.get('SELECT COUNT(*) as count FROM companies');
         if (row.count === 0) {

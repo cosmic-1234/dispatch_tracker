@@ -83,7 +83,7 @@ async function testPOCreateWithCommitment() {
   const testPoId = `PO-P2TEST-${Date.now()}`;
   const createRes = await req('POST', '/api/pos', {
     id: testPoId,
-    company_id: 1,
+    company_id: 'COMP-001',
     date_received: '2026-07-01',
     committed_dispatch_date: '2026-07-03',
     notes: 'Phase 2 test PO with commitment',
@@ -162,14 +162,14 @@ async function testCustomerPortal() {
   check(badLogin.status === 200, 'POST /api/customer/login returns 200 for bad creds');
   check(badLogin.body.success === false, 'Bad credentials returns success=false');
 
-  const ordersRes = await req('GET', '/api/customer/orders/1');
+  const ordersRes = await req('GET', '/api/customer/orders/COMP-001');
   check(ordersRes.status === 200, 'GET /api/customer/orders/:company_id returns 200');
   check(Array.isArray(ordersRes.body), 'Customer orders list is array');
 
   if (ordersRes.body.length > 0) {
     const poId = ordersRes.body[0].id;
-    const detailRes = await req('GET', `/api/customer/orders/1/${poId}`);
-    check(detailRes.status === 200, `GET /api/customer/orders/1/${poId} returns 200`);
+    const detailRes = await req('GET', `/api/customer/orders/COMP-001/${poId}`);
+    check(detailRes.status === 200, `GET /api/customer/orders/COMP-001/${poId} returns 200`);
     check(detailRes.body.id === poId, 'Order detail id matches requested id');
     check(Array.isArray(detailRes.body.items), 'Order detail has items array');
   }
