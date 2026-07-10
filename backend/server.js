@@ -13,7 +13,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize Database on startup
 initDb().then(() => {
@@ -1438,6 +1439,207 @@ app.delete('/api/scenarios/:id', async (req, res) => {
         await queryRun("DELETE FROM scenario_snapshots WHERE id = ?", [req.params.id]);
         res.json({ success: true });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9b. Excel Data Import Endpoint (Phase 2 Extension)
+// ==========================================
+app.post('/api/import', async (req, res) => {
+    try {
+        const { clear_existing, rows } = req.body;
+        if (!Array.isArray(rows)) {
+            return res.status(400).json({ error: 'Rows must be an array of objects.' });
+        }
+
+        console.log(`Starting import of ${rows.length} rows. Clear existing: ${clear_existing}`);
+
+        // 1. Clear existing data if requested
+        if (clear_existing) {
+            await runInTransaction(async (tx) => {
+                await tx.run("DELETE FROM dispatch_allocations");
+                await tx.run("DELETE FROM dispatch_log");
+                await tx.run("DELETE FROM po_line_items");
+                await tx.run("DELETE FROM po_commitment_history");
+                await tx.run("DELETE FROM purchase_orders");
+                await tx.run("DELETE FROM customer_login_activity");
+            });
+            console.log('Cleared existing orders and dispatches.');
+        }
+
+        // Product mapping translation helper
+        const PRODUCT_MAPPING = {
+            'MTO': 'Toluene',
+            'AA': 'Ethyl Acetate',
+            'RETARDER': 'Retarder',
+            'ACETONE': 'Acetone',
+            'SL SHORT HS': 'Benzene',
+            '200LTR SHAVI HS': 'Acetone',
+            '50LTR SHAVI HS': 'DEP',
+            'BENZENE': 'Benzene',
+            'DEP': 'DEP',
+            'ETHYL ACETATE': 'Ethyl Acetate',
+            'TOLUENE': 'Toluene'
+        };
+
+        const mapProduct = (p) => {
+            if (!p) return 'Acetone';
+            const clean = String(p).trim().toUpperCase();
+            return PRODUCT_MAPPING[clean] || 'Acetone';
+        };
+
+        // Cache for companies to avoid repeated lookups
+        const companyCache = {};
+        const existingCompanies = await queryAll("SELECT id, name FROM companies");
+        for (const c of existingCompanies) {
+            companyCache[c.name.toLowerCase().trim()] = c.id;
+        }
+
+        // Helper to parse dates
+        const parseExcelDate = (val) => {
+            if (!val) return null;
+            if (val instanceof Date) {
+                return val.toISOString().split('T')[0];
+            }
+            if (typeof val === 'number') {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            if (typeof val === 'string') {
+                const parts = val.split('-');
+                if (parts.length === 3) {
+                    const p0 = parts[0].trim();
+                    const p1 = parts[1].trim();
+                    const p2 = parts[2].trim();
+                    if (p0.length <= 2 && p1.length <= 2 && p2.length === 4) {
+                        return `${p2}-${p1.padStart(2, '0')}-${p0.padStart(2, '0')}`;
+                    }
+                    if (p0.length === 4 && p1.length <= 2 && p2.length <= 2) {
+                        return `${p0}-${p1.padStart(2, '0')}-${p2.padStart(2, '0')}`;
+                    }
+                }
+                try {
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        return d.toISOString().split('T')[0];
+                    }
+                } catch (e) {}
+            }
+            return null;
+        };
+
+        let newCompanyCount = 0;
+        let poCount = 0;
+        let dispatchCount = 0;
+
+        await runInTransaction(async (tx) => {
+            const poCreated = new Set();
+            const dispatchCreated = new Set();
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rawCompany = row["Company"] || row["company"];
+                const rawProduct = row["Product"] || row["product"];
+                const rawPOId = row["PO No."] || row["po_no"] || row["PO No"];
+                const rawPODate = row["PO Date"] || row["po_date"];
+                const rawInvNo = row["Inv. No."] || row["inv_no"] || row["Inv No."] || row["Inv No"];
+                const rawInvDate = row["Inv. Date"] || row["inv_date"];
+                const rawQty = parseFloat(row["Quantity"] || row["quantity"] || 0);
+
+                if (!rawCompany || !rawProduct) continue;
+
+                const cleanCoName = String(rawCompany).trim();
+                const coNameKey = cleanCoName.toLowerCase();
+                let companyId = companyCache[coNameKey];
+
+                if (!companyId) {
+                    const suffix = String(Object.keys(companyCache).length + 1).padStart(3, '0');
+                    companyId = `COMP-NEW-${suffix}`;
+                    companyCache[coNameKey] = companyId;
+
+                    const mappedProducts = JSON.stringify([mapProduct(rawProduct)]);
+                    await tx.run(
+                        `INSERT INTO companies (id, name, tier, primary_products, contact_person, contact_phone, credit_status, portal_login_enabled)
+                         VALUES (?, ?, 'C', ?, 'Imported Client', '+91-00000-00000', 'Active', 0)`,
+                        [companyId, cleanCoName, mappedProducts]
+                    );
+                    newCompanyCount++;
+                }
+
+                const poDate = parseExcelDate(rawPODate) || '2026-06-01';
+                const invDate = parseExcelDate(rawInvDate) || poDate;
+
+                const poId = rawPOId ? String(rawPOId).trim() : `PO-IMPORT-${i}`;
+                const mappedProd = mapProduct(rawProduct);
+
+                if (!poCreated.has(poId)) {
+                    poCreated.add(poId);
+                    await tx.run(
+                        `INSERT INTO purchase_orders (id, company_id, date_received, committed_dispatch_date, commitment_status, status, notes, created_by)
+                         VALUES (?, ?, ?, ?, 'Honored', 'Closed', ?, 'Excel Import')`,
+                        [poId, companyId, poDate, invDate, `Imported from Excel Row ${i + 1}`]
+                    );
+                    await tx.run(
+                        `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                         VALUES (?, ?, 'Honored', 'Initial commitment imported from Excel')`,
+                        [poId, invDate]
+                    );
+                    poCount++;
+                }
+
+                await tx.run(
+                    `INSERT INTO po_line_items (po_id, product_type, quantity, allocated_quantity)
+                     VALUES (?, ?, ?, ?)`,
+                    [poId, mappedProd, rawQty, rawQty]
+                );
+
+                const lineItemRow = await tx.get(
+                    "SELECT id FROM po_line_items WHERE po_id = ? AND product_type = ? ORDER BY id DESC LIMIT 1",
+                    [poId, mappedProd]
+                );
+                const lineItemId = lineItemRow ? lineItemRow.id : null;
+
+                if (rawInvNo) {
+                    const cleanInvNo = String(rawInvNo).trim();
+                    const dspId = `DSP-${cleanInvNo}`;
+
+                    if (!dispatchCreated.has(dspId)) {
+                        dispatchCreated.add(dspId);
+                        await tx.run(
+                            `INSERT INTO dispatch_log (id, product_type, quantity, vehicle_id, planned_dispatch_date, actual_dispatch_date, status)
+                             VALUES (?, ?, ?, 'VEH-IMPORT', ?, ?, 'Executed')`,
+                            [dspId, mappedProd, rawQty, poDate, invDate]
+                        );
+                        dispatchCount++;
+                    }
+
+                    if (lineItemId) {
+                        await tx.run(
+                            `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
+                             VALUES (?, ?, ?, ?)`,
+                            [dspId, poId, lineItemId, rawQty]
+                        );
+                    }
+                }
+            }
+        });
+
+        // Recalculate company scores
+        const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
+
+        res.json({
+            success: true,
+            summary: {
+                total_rows: rows.length,
+                new_companies: newCompanyCount,
+                purchase_orders: poCount,
+                dispatches: dispatchCount
+            }
+        });
+    } catch (err) {
+        console.error('Import error:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -17,7 +17,8 @@ import {
   RefreshCw,
   Menu,
   HeartPulse,
-  Globe
+  Globe,
+  Upload
 } from 'lucide-react';
 
 // Components
@@ -31,6 +32,7 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import CommitmentHealth from './components/CommitmentHealth';
 import CustomerPortal from './components/CustomerPortal';
+import DataImport from './components/DataImport';
 import shaktiLogo from './assets/shakti_logo.png';
 
 // Utility helper to format dates from yyyy-mm-dd to dd-mm-yyyy
@@ -49,11 +51,6 @@ export default function App() {
   // Customer portal URL branching
   const isCustomerPortal = window.location.pathname.startsWith('/customer') ||
     new URLSearchParams(window.location.search).get('portal') === 'customer';
-
-  if (isCustomerPortal) {
-    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
-  }
 
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -166,6 +163,11 @@ export default function App() {
     return <div dangerouslySetInnerHTML={{ __html: formatted.replace(/\n/g, '<br/>') }} />;
   };
 
+  if (isCustomerPortal) {
+    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
+  }
+
   return (
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
@@ -233,6 +235,10 @@ export default function App() {
           <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')}>
             <SettingsIcon size={20} />
             <span className="nav-label">Portal Settings</span>
+          </a>
+          <a className={`nav-item ${activeModule === 'import' ? 'active' : ''}`} onClick={() => setActiveModule('import')}>
+            <Upload size={20} />
+            <span className="nav-label">Data Import</span>
           </a>
           <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
             <Globe size={20} />
@@ -371,6 +377,12 @@ export default function App() {
           )}
           {activeModule === 'settings' && (
             <Settings 
+              API_BASE={API_BASE} 
+              triggerRefresh={triggerRefresh} 
+            />
+          )}
+          {activeModule === 'import' && (
+            <DataImport 
               API_BASE={API_BASE} 
               triggerRefresh={triggerRefresh} 
             />
