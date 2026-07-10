@@ -1645,6 +1645,172 @@ app.post('/api/import', async (req, res) => {
 });
 
 // ==========================================
+// 9c. Vendor Purchases Excel Import Endpoint (Phase 2 Extension)
+// ==========================================
+app.post('/api/import-purchases', async (req, res) => {
+    try {
+        const { clear_existing, rows } = req.body;
+        if (!Array.isArray(rows)) {
+            return res.status(400).json({ error: 'Rows must be an array of objects.' });
+        }
+
+        console.log(`Starting import of ${rows.length} vendor purchase rows. Clear existing: ${clear_existing}`);
+
+        // Helper to parse dates
+        const parseExcelDate = (val) => {
+            if (!val) return null;
+            if (val instanceof Date) {
+                return val.toISOString().split('T')[0];
+            }
+            if (typeof val === 'number') {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            if (typeof val === 'string') {
+                const parts = val.split('-');
+                if (parts.length === 3) {
+                    const p0 = parts[0].trim();
+                    const p1 = parts[1].trim();
+                    const p2 = parts[2].trim();
+                    if (p0.length <= 2 && p1.length <= 2 && p2.length === 4) {
+                        return `${p2}-${p1.padStart(2, '0')}-${p0.padStart(2, '0')}`;
+                    }
+                    if (p0.length === 4 && p1.length <= 2 && p2.length <= 2) {
+                        return `${p0}-${p1.padStart(2, '0')}-${p2.padStart(2, '0')}`;
+                    }
+                }
+                try {
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        return d.toISOString().split('T')[0];
+                    }
+                } catch (e) {}
+            }
+            return null;
+        };
+
+        // Material translation dictionary
+        const mapMaterialToProduct = (m) => {
+            if (!m) return 'Other';
+            const clean = String(m).trim().toLowerCase();
+            if (clean.includes('acetone')) return 'Acetone';
+            if (clean.includes('methanol')) return 'Benzene';
+            if (clean.includes('alcohol') || clean.includes('alocohal')) return 'Retarder';
+            if (clean.includes('toluene')) return 'Toluene';
+            if (clean.includes('benzene')) return 'Benzene';
+            if (clean.includes('ethyl acetate')) return 'Ethyl Acetate';
+            if (clean.includes('dep')) return 'DEP';
+            return 'Other';
+        };
+
+        await runInTransaction(async (tx) => {
+            // 1. Clear existing raw purchases if requested
+            if (clear_existing) {
+                await tx.run("DELETE FROM vendor_purchases");
+                // Reset all purchased material received in snapshots to 0
+                await tx.run("UPDATE inventory_snapshots SET purchased_material_received = 0");
+                console.log('Cleared existing vendor purchases and reset inventory snapshot purchase receipts.');
+            }
+
+            // 2. Insert raw rows and aggregate quantities
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rawDate = row["Date"] || row["date"];
+                const rawInvNo = row["Inv. No."] || row["inv_no"] || row["Inv No."] || row["Inv No"];
+                const rawVendor = row["Vendor"] || row["vendor"];
+                const rawMaterial = row["Material"] || row["material"];
+                const rawQty = parseFloat(String(row["Quantity"] || row["quantity"] || 0).replace(/,/g, ''));
+                const rawRate = parseFloat(String(row["Rate"] || row["rate"] || 0).replace(/,/g, ''));
+                const rawAmt = parseFloat(String(row["Amount"] || row["amount"] || 0).replace(/,/g, ''));
+
+                if (!rawVendor || !rawMaterial || isNaN(rawQty) || rawQty <= 0) continue;
+
+                const parsedDate = parseExcelDate(rawDate);
+                if (!parsedDate) continue;
+
+                const mappedProduct = mapMaterialToProduct(rawMaterial);
+
+                // Insert vendor purchase log
+                await tx.run(
+                    `INSERT INTO vendor_purchases (date, invoice_no, vendor, material, quantity, rate, amount, mapped_product)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [parsedDate, rawInvNo ? String(rawInvNo).trim() : null, String(rawVendor).trim(), String(rawMaterial).trim(), rawQty, isNaN(rawRate) ? null : rawRate, isNaN(rawAmt) ? null : rawAmt, mappedProduct]
+                );
+
+                // If mapped to a standard product, update the corresponding inventory snapshot
+                if (mappedProduct !== 'Other') {
+                    const snapId = `${mappedProduct}_${parsedDate}`;
+                    const existingSnap = await tx.get("SELECT id, opening_stock, production_added, dispatched_out, purchased_material_received FROM inventory_snapshots WHERE id = ?", [snapId]);
+
+                    if (existingSnap) {
+                        const newPurRec = existingSnap.purchased_material_received + rawQty;
+                        const newClosing = Math.max(0, existingSnap.opening_stock + existingSnap.production_added + newPurRec - existingSnap.dispatched_out);
+                        await tx.run(
+                            `UPDATE inventory_snapshots 
+                             SET purchased_material_received = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                             WHERE id = ?`,
+                            [newPurRec, newClosing, snapId]
+                        );
+                    } else {
+                        // Create a placeholder snapshot for this date
+                        // Find opening stock from previous day closing
+                        const prevDate = new Date(parsedDate);
+                        prevDate.setDate(prevDate.getDate() - 1);
+                        const prevDateStr = prevDate.toISOString().split('T')[0];
+                        const prevSnap = await tx.get("SELECT closing_stock FROM inventory_snapshots WHERE product_type = ? AND date = ?", [mappedProduct, prevDateStr]);
+                        const opStock = prevSnap ? prevSnap.closing_stock : 0.0;
+                        const clStock = opStock + rawQty;
+
+                        await tx.run(
+                            `INSERT INTO inventory_snapshots (id, product_type, date, opening_stock, production_added, purchased_material_received, dispatched_out, closing_stock, confirmed)
+                             VALUES (?, ?, ?, ?, 0.0, ?, 0.0, ?, 0)`,
+                            [snapId, mappedProduct, parsedDate, opStock, rawQty, clStock]
+                        );
+                    }
+                }
+            }
+
+            // 3. Recalculate opening/closing stocks chronologically for all products to keep snapshots fully consistent!
+            const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+            for (const prod of products) {
+                const snaps = await tx.all("SELECT * FROM inventory_snapshots WHERE product_type = ? ORDER BY date ASC", [prod]);
+                let lastClosingStock = snaps.length > 0 ? snaps[0].opening_stock : 0.0;
+
+                for (let j = 0; j < snaps.length; j++) {
+                    const snap = snaps[j];
+                    const opStock = j === 0 ? snap.opening_stock : lastClosingStock;
+                    const clStock = Math.max(0, opStock + snap.production_added + snap.purchased_material_received - snap.dispatched_out);
+                    
+                    await tx.run(
+                        `UPDATE inventory_snapshots 
+                         SET opening_stock = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                         WHERE id = ?`,
+                        [opStock, clStock, snap.id]
+                    );
+                    lastClosingStock = clStock;
+                }
+            }
+        });
+
+        // Query count of imported rows to return summary
+        const summaryCount = await queryGet("SELECT COUNT(*) as count FROM vendor_purchases");
+        const uniqueVendors = await queryGet("SELECT COUNT(DISTINCT vendor) as count FROM vendor_purchases");
+
+        res.json({
+            success: true,
+            summary: {
+                total_rows: rows.length,
+                inserted_purchases: summaryCount ? summaryCount.count : 0,
+                unique_vendors: uniqueVendors ? uniqueVendors.count : 0
+            }
+        });
+    } catch (err) {
+        console.error('Vendor import error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
 // 10. Customer Portal Endpoints
 // ==========================================
 
