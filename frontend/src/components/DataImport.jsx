@@ -10,6 +10,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
   const [clearExisting, setClearExisting] = useState(true);
   const [importResult, setImportResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Product mapping translator definition for preview
   const PRODUCT_MAPPING = {
@@ -111,41 +112,50 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
   const handleImport = () => {
     if (parsedRows.length === 0) return;
     setImporting(true);
+    setUploadProgress(0);
     setErrorMessage('');
 
-    fetch(`${API_BASE}/import`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        clear_existing: clearExisting,
-        rows: parsedRows
-      })
-    })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => { throw new Error(err.error || 'Server error') });
-        }
-        return res.json();
-      })
-      .then(data => {
-        setImporting(false);
-        if (data.success) {
-          setImportResult(data.summary);
-          setFile(null);
-          setParsedRows([]);
-          triggerRefresh();
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_BASE}/import`);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentComplete = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percentComplete);
+      }
+    };
+
+    xhr.onload = () => {
+      setImporting(false);
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          if (data.success) {
+            setImportResult(data.summary);
+            setFile(null);
+            setParsedRows([]);
+            triggerRefresh();
+          } else {
+            setErrorMessage(data.error || 'Failed to complete import.');
+          }
         } else {
-          setErrorMessage(data.error || 'Failed to complete import.');
+          setErrorMessage(data.error || `Server responded with status code ${xhr.status}`);
         }
-      })
-      .catch(err => {
-        console.error('Import error:', err);
-        setErrorMessage(err.message || 'Network error occurred during import.');
-        setFile(false);
-        setImporting(false);
-      });
+      } catch (err) {
+        setErrorMessage('Failed to parse server response.');
+      }
+    };
+
+    xhr.onerror = () => {
+      setImporting(false);
+      setErrorMessage('Network error occurred during import.');
+    };
+
+    xhr.send(JSON.stringify({
+      clear_existing: clearExisting,
+      rows: parsedRows
+    }));
   };
 
   const handleReset = () => {
@@ -261,12 +271,38 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
           </div>
         )}
 
-        {/* Loading Spinner */}
-        {(parsing || importing) && (
+        {/* Parsing Indicator */}
+        {parsing && (
           <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', gap: '16px' }}>
             <RefreshCw size={36} className="spin" style={{ color: '#1C2D5A' }} />
             <div style={{ fontSize: '14px', fontWeight: 500, color: '#334155' }}>
-              {parsing ? 'Parsing raw binary spreadsheet cells...' : 'Executing high-speed transaction mapping. Please do not close this window...'}
+              Parsing raw binary spreadsheet cells...
+            </div>
+          </div>
+        )}
+
+        {/* Importing & Uploading Progress Bar */}
+        {importing && (
+          <div className="card" style={{ padding: '32px 24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 500, color: '#334155' }}>
+                <span>{uploadProgress < 100 ? `Uploading spreadsheet data: ${uploadProgress}%` : 'Upload complete. Processing database mapping...'}</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: '#EFF2F6', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${uploadProgress}%`, 
+                  height: '100%', 
+                  backgroundColor: '#1C2D5A', 
+                  borderRadius: '4px', 
+                  transition: 'width 0.2s ease-out' 
+                }} />
+              </div>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
+                {uploadProgress < 100 
+                  ? 'Sending chemical solvent transactions to the server...' 
+                  : 'Executing database transactions. Creating companies, POs, and dispatches...'}
+              </p>
             </div>
           </div>
         )}
