@@ -1547,7 +1547,7 @@ app.post('/api/import', async (req, res) => {
                 const rawInvDate = row["Inv. Date"] || row["inv_date"];
                 const rawQty = parseFloat(row["Quantity"] || row["quantity"] || 0);
 
-                if (!rawCompany || !rawProduct) continue;
+                if (!rawCompany || !rawProduct || isNaN(rawQty) || rawQty <= 0) continue;
 
                 const cleanCoName = String(rawCompany).trim();
                 const coNameKey = cleanCoName.toLowerCase();
