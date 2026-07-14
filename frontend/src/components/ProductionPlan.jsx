@@ -642,7 +642,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   type="submit" 
                   disabled={submittingEntry}
                   style={{
-                    backgroundColor: 'var(--primary-navy)',
+                    backgroundColor: 'var(--primary-blue)',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '6px',
@@ -766,7 +766,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   height: '32px', 
                   borderRadius: '6px', 
                   border: 'none', 
-                  background: 'var(--primary-navy)', 
+                  background: 'var(--primary-blue)', 
                   color: '#FFFFFF', 
                   cursor: 'pointer', 
                   display: 'flex', 
@@ -788,7 +788,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   height: '32px', 
                   borderRadius: '6px', 
                   border: 'none', 
-                  background: 'var(--primary-navy)', 
+                  background: 'var(--primary-blue)', 
                   color: '#FFFFFF', 
                   cursor: 'pointer', 
                   display: 'flex', 
@@ -1028,7 +1028,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                     onClick={() => handleSaveEditProduction(dateStr)}
                                     disabled={savingEdit}
                                     style={{
-                                      backgroundColor: 'var(--primary-navy)',
+                                      backgroundColor: 'var(--primary-blue)',
                                       color: '#FFFFFF',
                                       border: 'none',
                                       borderRadius: '4px',
