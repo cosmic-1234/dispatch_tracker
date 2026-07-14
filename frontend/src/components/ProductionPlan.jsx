@@ -531,7 +531,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#F7F5F0', padding: '24px', borderRadius: '12px', minHeight: '80vh', border: '1px solid #E4E2DC' }}>
       
       {/* Top Banner and Navigation Tabs */}
-      <div style={{ backgroundColor: '#1C2D5A', padding: '24px 24px 0 24px', borderRadius: '8px 8px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ backgroundColor: 'var(--primary-navy)', padding: '24px 24px 0 24px', borderRadius: '8px 8px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
           <div style={{ color: '#D4AF37', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DISPATCH LEDGER</div>
           <h2 style={{ margin: '4px 0 0 0', color: '#FFFFFF', fontSize: '22px', fontWeight: 700 }}>Dynamic Dispatch Planning Center</h2>
@@ -548,7 +548,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 fontWeight: 600,
                 border: 'none',
                 background: activeTab === tab ? '#F7F5F0' : 'transparent',
-                color: activeTab === tab ? '#1C2D5A' : 'rgba(255, 255, 255, 0.7)',
+                color: activeTab === tab ? 'var(--primary-navy)' : 'rgba(255, 255, 255, 0.7)',
                 borderRadius: '6px 6px 0 0',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
@@ -576,7 +576,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   fontWeight: 700,
                   borderRadius: '6px',
                   border: '1px solid #CBD5E1',
-                  backgroundColor: selectedSubTab === tab ? '#1C2D5A' : '#FFFFFF',
+                  backgroundColor: selectedSubTab === tab ? 'var(--primary-navy)' : '#FFFFFF',
                   color: selectedSubTab === tab ? '#FFFFFF' : '#334155',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -592,7 +592,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             
             {/* Form Card 1: Log Entry */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid #E2DCD0', borderRadius: '8px' }}>
-              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#1C2D5A', borderBottom: '1px solid #E2DCD0' }}>
+              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
                 Log entry — {selectedSubTab}
               </div>
               <form onSubmit={handleAddEntry} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -642,7 +642,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   type="submit" 
                   disabled={submittingEntry}
                   style={{
-                    backgroundColor: '#1C2D5A',
+                    backgroundColor: 'var(--primary-navy)',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: '6px',
@@ -664,7 +664,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
 
             {/* Form Card 2: Log Dispatch */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid #E2DCD0', borderRadius: '8px' }}>
-              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: '#1C2D5A', borderBottom: '1px solid #E2DCD0' }}>
+              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
                 Log dispatch — {selectedSubTab}
               </div>
               <form onSubmit={handleAddDispatch} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -766,7 +766,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   height: '32px', 
                   borderRadius: '6px', 
                   border: 'none', 
-                  background: '#1C2D5A', 
+                  background: 'var(--primary-navy)', 
                   color: '#FFFFFF', 
                   cursor: 'pointer', 
                   display: 'flex', 
@@ -778,7 +778,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
               >
                 <ChevronLeft size={16} />
               </button>
-              <span style={{ fontSize: '18px', fontWeight: 700, color: '#1C2D5A', minWidth: '120px', textAlign: 'center' }}>
+              <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary-navy)', minWidth: '120px', textAlign: 'center' }}>
                 {formatMonthName(selectedMonth)}
               </span>
               <button 
@@ -788,7 +788,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   height: '32px', 
                   borderRadius: '6px', 
                   border: 'none', 
-                  background: '#1C2D5A', 
+                  background: 'var(--primary-navy)', 
                   color: '#FFFFFF', 
                   cursor: 'pointer', 
                   display: 'flex', 
@@ -814,7 +814,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             <div style={{ borderRadius: '16px', overflow: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#1C2D5A', borderBottom: '1px solid #E2E8F0' }}>
+                  <tr style={{ backgroundColor: 'var(--primary-navy)', borderBottom: '1px solid #E2E8F0' }}>
                     {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
                       <th key={day} style={{ padding: '12px 6px', fontSize: '11px', fontWeight: 700, color: '#FFFFFF', textAlign: 'center', width: '14.28%' }}>
                         {day}
@@ -978,7 +978,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                   left: dIdx > 4 ? '-130px' : '-10px', // Prevent overflow on rightmost columns
                                   width: '240px',
                                   backgroundColor: '#FFFFFF',
-                                  border: '2px solid #1C2D5A',
+                                  border: '2px solid var(--primary-navy)',
                                   borderRadius: '12px',
                                   boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
                                   padding: '12px',
@@ -990,7 +990,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                 }}
                               >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
-                                  <strong style={{ fontSize: '12px', color: '#1C2D5A' }}>Edit Planning ({dayNum})</strong>
+                                  <strong style={{ fontSize: '12px', color: 'var(--primary-navy)' }}>Edit Planning ({dayNum})</strong>
                                   <button 
                                     onClick={() => setEditingDate(null)}
                                     style={{ border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
@@ -1028,7 +1028,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                     onClick={() => handleSaveEditProduction(dateStr)}
                                     disabled={savingEdit}
                                     style={{
-                                      backgroundColor: '#1C2D5A',
+                                      backgroundColor: 'var(--primary-navy)',
                                       color: '#FFFFFF',
                                       border: 'none',
                                       borderRadius: '4px',
@@ -1156,7 +1156,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             </div>
             <div className="card-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
               <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}> FULFILLMENT RATE </div>
-              <div style={{ fontSize: '48px', fontWeight: 800, color: '#1C2D5A' }}>
+              <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--primary-navy)' }}>
                 {totalOrdered > 0 ? ((totalDelivered / totalOrdered) * 100).toFixed(1) : '0.0'}%
               </div>
             </div>
@@ -1237,7 +1237,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '400px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1C2D5A' }}>Add New Company</h3>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--primary-navy)' }}>Add New Company</h3>
               <button 
                 onClick={() => setShowAddCompany(false)}
                 style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#94A3B8' }}
@@ -1319,14 +1319,14 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
           background-color: #D1E5E0 !important;
         }
         .nav-arrow-btn:hover {
-          background-color: #2D4078 !important;
+          background-color: var(--primary-navy-hover) !important;
         }
         .quick-edit-btn {
           display: none;
           position: absolute;
           bottom: 6px;
           right: 6px;
-          background-color: #1C2D5A;
+          background-color: var(--primary-navy);
           color: #FFFFFF;
           border: none;
           border-radius: 4px;
@@ -1342,7 +1342,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
           display: block;
         }
         .quick-edit-btn:hover {
-          background-color: #2D4078;
+          background-color: var(--primary-navy-hover);
         }
       `}</style>
     </div>
