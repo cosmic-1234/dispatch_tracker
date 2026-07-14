@@ -42,6 +42,10 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
     actionable_po_pool
   } = data;
 
+  const products = (inventory_statuses && inventory_statuses.length > 0)
+    ? inventory_statuses.map(i => i.product_type)
+    : ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+
 
   // Render SVG Chart for forward projections
   const renderProjectionChart = (productType) => {
@@ -304,7 +308,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
               7-Day Forward Inventory Projections
             </span>
             <div className="chart-selector">
-              {['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].map(prod => (
+              {products.map(prod => (
                 <div 
                   key={prod} 
                   className={`chart-tab ${selectedProductChart === prod ? 'active' : ''}`}

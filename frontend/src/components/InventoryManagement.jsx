@@ -13,9 +13,22 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
   const [editedSnaps, setEditedSnaps] = useState({}); // prod -> { prod_add, pur_rec, disp_out }
   const [saving, setSaving] = useState(false);
 
+  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   useEffect(() => {
     fetchInventory();
-  }, [activeDate, systemDate]);
+  }, [activeDate, systemDate, products]);
 
   const fetchInventory = () => {
     setLoading(true);
@@ -43,7 +56,6 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
         // If no snapshots exist for activeDate yet, let's create placeholders
         // Finding yesterday's closing stock for each product
         if (todaysSnaps.length === 0) {
-          const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
           products.forEach(p => {
             // Find most recent snapshot before activeDate for this product
             const pastSnaps = data.filter(s => s.product_type === p && s.date < activeDate);

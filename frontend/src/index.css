@@ -1113,6 +1113,16 @@ select {
 }
 
 /* PO pool items visual states */
+.pane-resizer {
+  transition: background-color 0.2s;
+}
+.pane-resizer:hover, .pane-resizer:active {
+  background-color: rgba(28, 107, 244, 0.1);
+}
+.pane-resizer:hover div, .pane-resizer:active div {
+  background-color: #1C6BF4 !important;
+}
+
 .po-pool-row {
   cursor: pointer;
   transition: all 150ms ease;
