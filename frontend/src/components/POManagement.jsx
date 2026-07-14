@@ -6,6 +6,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [pos, setPos] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
 
   // Filtering & Sorting State
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,6 +51,16 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
     fetch(`${API_BASE}/companies`)
       .then(res => res.json())
       .then(data => setCompanies(data))
+      .catch(err => console.error(err));
+    fetch(`${API_BASE}/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+          // Set default product type for forms
+          setNewItems([{ product_type: data[0], quantity: '' }]);
+        }
+      })
       .catch(err => console.error(err));
   }, []);
 
@@ -130,7 +141,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
 
   // Form Handlers
   const handleAddItemRow = () => {
-    setNewItems([...newItems, { product_type: 'Acetone', quantity: '' }]);
+    setNewItems([...newItems, { product_type: products[0] || 'Acetone', quantity: '' }]);
   };
 
   const handleRemoveItemRow = (idx) => {
@@ -197,7 +208,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
           setNewDateReceived(systemDate);
           setNewCommittedDate('');
           setNewNotes('');
-          setNewItems([{ product_type: 'Acetone', quantity: '' }]);
+          setNewItems([{ product_type: products[0] || 'Acetone', quantity: '' }]);
           fetchPOs();
           triggerRefresh();
         }
@@ -247,12 +258,9 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
 
             <select value={productFilter} onChange={(e) => { setProductFilter(e.target.value); setCurrentPage(1); }} style={{ height: '32px', padding: '4px 8px' }}>
               <option value="All">All Products</option>
-              <option value="Acetone">Acetone</option>
-              <option value="Benzene">Benzene</option>
-              <option value="DEP">DEP</option>
-              <option value="Ethyl Acetate">Ethyl Acetate</option>
-              <option value="Retarder">Retarder</option>
-              <option value="Toluene">Toluene</option>
+              {products.map(prod => (
+                <option key={prod} value={prod}>{prod}</option>
+              ))}
             </select>
           </div>
 
@@ -455,12 +463,9 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                           onChange={(e) => handleItemChange(idx, 'product_type', e.target.value)}
                           style={{ width: '100%' }}
                         >
-                          <option value="Acetone">Acetone</option>
-                          <option value="Benzene">Benzene</option>
-                          <option value="DEP">DEP</option>
-                          <option value="Ethyl Acetate">Ethyl Acetate</option>
-                          <option value="Retarder">Retarder</option>
-                          <option value="Toluene">Toluene</option>
+                          {products.map(prod => (
+                            <option key={prod} value={prod}>{prod}</option>
+                          ))}
                         </select>
                       </div>
 

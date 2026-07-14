@@ -26,22 +26,34 @@ export default function Settings({ API_BASE, triggerRefresh }) {
 
   const fetchSettings = () => {
     setLoading(true);
-    fetch(`${API_BASE}/settings`)
+    fetch(`${API_BASE}/products`)
       .then(res => res.json())
-      .then(data => {
-        setSettings(data);
-        if (data.system_date) setSystemDate(data.system_date);
-        if (data.vehicle_capacity_mt) setVehicleCapacity(data.vehicle_capacity_mt);
-        if (data.anthropic_api_key !== undefined) setApiKey(data.anthropic_api_key);
-        
-        const th = { ...thresholds };
-        Object.keys(th).forEach(p => {
-          if (data[`min_threshold_${p}`] !== undefined) {
-            th[p] = data[`min_threshold_${p}`];
-          }
+      .then(prods => {
+        const initialTh = {};
+        prods.forEach(p => {
+          initialTh[p] = '50.0'; // Default safety threshold
         });
-        setThresholds(th);
-        setLoading(false);
+
+        fetch(`${API_BASE}/settings`)
+          .then(res => res.json())
+          .then(data => {
+            setSettings(data);
+            if (data.system_date) setSystemDate(data.system_date);
+            if (data.vehicle_capacity_mt) setVehicleCapacity(data.vehicle_capacity_mt);
+            if (data.anthropic_api_key !== undefined) setApiKey(data.anthropic_api_key);
+            
+            Object.keys(initialTh).forEach(p => {
+              if (data[`min_threshold_${p}`] !== undefined) {
+                initialTh[p] = data[`min_threshold_${p}`];
+              }
+            });
+            setThresholds(initialTh);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error(err);
+            setLoading(false);
+          });
       })
       .catch(err => {
         console.error(err);

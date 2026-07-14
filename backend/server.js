@@ -13,7 +13,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Initialize Database on startup
 initDb().then(() => {
@@ -234,6 +235,32 @@ app.post('/api/settings', async (req, res) => {
 });
 
 // ==========================================
+// 1b. Products Endpoints
+// ==========================================
+app.get('/api/products', async (req, res) => {
+    try {
+        const rows = await queryAll(
+            `SELECT DISTINCT product_type FROM (
+                SELECT DISTINCT product_type FROM po_line_items
+                UNION
+                SELECT DISTINCT product_type FROM dispatch_log
+                UNION
+                SELECT DISTINCT product_type FROM inventory_snapshots
+                UNION
+                SELECT DISTINCT product_type FROM production_plans
+             ) WHERE product_type IS NOT NULL AND product_type != 'Other'`
+        );
+        let products = rows.map(r => r.product_type);
+        if (products.length === 0) {
+            products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+        }
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
 // 2. Company Endpoints
 // ==========================================
 app.get('/api/companies', async (req, res) => {
@@ -278,6 +305,39 @@ app.put('/api/companies/:id', async (req, res) => {
             [name, tier, JSON.stringify(primary_products), contact_person, contact_phone, credit_status, id]
         );
         res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/companies/:id/history', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // 1. Get purchase orders for this company, including their line items
+        const pos = await queryAll(
+            `SELECT * FROM purchase_orders WHERE company_id = ? ORDER BY date_received DESC`,
+            [id]
+        );
+        for (const po of pos) {
+            po.line_items = await queryAll(
+                `SELECT * FROM po_line_items WHERE po_id = ?`,
+                [po.id]
+            );
+        }
+        
+        // 2. Get dispatches that have allocations for this company's POs
+        const dispatches = await queryAll(
+            `SELECT DISTINCT dl.*, da.quantity as allocated_qty, da.po_id
+             FROM dispatch_log dl
+             JOIN dispatch_allocations da ON dl.id = da.dispatch_id
+             JOIN purchase_orders po ON da.po_id = po.id
+             WHERE po.company_id = ?
+             ORDER BY dl.planned_dispatch_date DESC`,
+            [id]
+        );
+        
+        res.json({ pos, dispatches });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -873,6 +933,155 @@ app.get('/api/dispatch', async (req, res) => {
     }
 });
 
+app.post('/api/dispatch', async (req, res) => {
+    try {
+        const { company_id, product_type, quantity, date, price } = req.body;
+        
+        if (!company_id || !product_type || !quantity || !date) {
+            return res.status(400).json({ error: 'Company ID, Product Type, Quantity, and Date are required.' });
+        }
+
+        const qty = parseFloat(quantity);
+        const dispatchId = `DSP-MANUAL-${Date.now()}`;
+
+        await runInTransaction(async (tx) => {
+            await tx.run(
+                `INSERT INTO dispatch_log (id, product_type, quantity, status, planned_dispatch_date, actual_dispatch_date, vehicle_id, created_by, updated_at)
+                 VALUES (?, ?, ?, 'Executed', ?, ?, 'Manual Log', 'Manual', CURRENT_TIMESTAMP)`,
+                [dispatchId, product_type, qty, date, date]
+            );
+
+            // 2. Find pending POs for this company and product
+            const pendingPOs = await tx.all(
+                `SELECT po.id, li.quantity as ordered_qty, li.id as line_item_id
+                 FROM purchase_orders po
+                 JOIN po_line_items li ON po.id = li.po_id
+                 WHERE po.company_id = ? AND li.product_type = ? AND po.status != 'Closed'
+                 ORDER BY po.date_received ASC`,
+                [company_id, product_type]
+            );
+
+            let remainingToAllocate = qty;
+            for (const po of pendingPOs) {
+                if (remainingToAllocate <= 0) break;
+
+                // Check how much has already been allocated to this PO line item
+                const allocRow = await tx.get(
+                    `SELECT SUM(quantity) as sum_alloc 
+                     FROM dispatch_allocations 
+                     WHERE po_line_item_id = ?`,
+                    [po.line_item_id]
+                );
+                const allocated = allocRow && allocRow.sum_alloc ? parseFloat(allocRow.sum_alloc) : 0.0;
+                const poRemaining = Math.max(0, po.ordered_qty - allocated);
+
+                if (poRemaining > 0) {
+                    const toAllocate = Math.min(remainingToAllocate, poRemaining);
+                    
+                    // 1. Insert dispatch allocation
+                    await tx.run(
+                        `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
+                         VALUES (?, ?, ?, ?)`,
+                        [dispatchId, po.id, po.line_item_id, toAllocate]
+                    );
+
+                    // 2. Update po_line_items allocated_quantity
+                    await tx.run(
+                        `UPDATE po_line_items 
+                         SET allocated_quantity = allocated_quantity + ?, updated_at = CURRENT_TIMESTAMP 
+                         WHERE id = ?`,
+                        [toAllocate, po.line_item_id]
+                    );
+
+                    remainingToAllocate -= toAllocate;
+
+                    // Update PO status
+                    const newAllocatedTotal = allocated + toAllocate;
+                    if (newAllocatedTotal >= po.ordered_qty) {
+                        await tx.run(`UPDATE purchase_orders SET status = 'Closed', commitment_status = 'Honored' WHERE id = ?`, [po.id]);
+                    } else {
+                        await tx.run(`UPDATE purchase_orders SET status = 'Partially Allocated' WHERE id = ?`, [po.id]);
+                    }
+                }
+            }
+
+            // 3. If there is still remaining quantity to allocate (or no PO existed), create a dummy PO
+            if (remainingToAllocate > 0) {
+                const poId = `PO-MANUAL-${Date.now()}`;
+                await tx.run(
+                    `INSERT INTO purchase_orders (id, company_id, date_received, committed_dispatch_date, status, commitment_status, notes, created_by)
+                     VALUES (?, ?, ?, ?, 'Closed', 'Honored', 'Automatically created for manual dispatch log', 'System')`,
+                    [poId, company_id, date, date]
+                );
+
+                const resultLineItem = await tx.run(
+                    `INSERT INTO po_line_items (po_id, product_type, quantity, allocated_quantity, created_by)
+                     VALUES (?, ?, ?, ?, 'System')`,
+                    [poId, product_type, remainingToAllocate, remainingToAllocate]
+                );
+
+                const poLineItemId = resultLineItem.lastID || resultLineItem.lastId;
+
+                await tx.run(
+                    `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
+                     VALUES (?, ?, ?, ?)`,
+                    [dispatchId, poId, poLineItemId, remainingToAllocate]
+                );
+            }
+
+            // 4. Update the inventory snapshot's dispatched_out
+            const snapshotId = `${product_type}_${date}`;
+            const snap = await tx.get("SELECT * FROM inventory_snapshots WHERE id = ?", [snapshotId]);
+            if (!snap) {
+                await tx.run(
+                    `INSERT INTO inventory_snapshots (id, product_type, date, opening_stock, production_added, purchased_material_received, dispatched_out, closing_stock, confirmed)
+                     VALUES (?, ?, ?, 0.0, 0.0, 0.0, ?, 0.0, 0)`,
+                    [snapshotId, product_type, date, qty]
+                );
+            } else {
+                await tx.run(
+                    `UPDATE inventory_snapshots SET dispatched_out = dispatched_out + ? WHERE id = ?`,
+                    [qty, snapshotId]
+                );
+            }
+
+            // 5. Cascade stock levels chronologically
+            const snaps = await tx.all(
+                `SELECT * FROM inventory_snapshots 
+                 WHERE product_type = ? AND date >= ? 
+                 ORDER BY date ASC`,
+                [product_type, date]
+            );
+
+            let lastClosing = snaps.length > 0 ? snaps[0].opening_stock : 0.0;
+            for (let j = 0; j < snaps.length; j++) {
+                const s = snaps[j];
+                const newOp = j === 0 ? s.opening_stock : lastClosing;
+                
+                const dispatchRow = await tx.get(
+                    `SELECT SUM(quantity) as total_qty FROM dispatch_log 
+                     WHERE product_type = ? AND status = 'Executed' AND actual_dispatch_date = ?`,
+                    [product_type, s.date]
+                );
+                const totalDisp = dispatchRow ? (dispatchRow.total_qty || 0.0) : 0.0;
+
+                const newCl = Math.max(0, newOp + s.production_added + s.purchased_material_received - totalDisp);
+                await tx.run(
+                    `UPDATE inventory_snapshots 
+                     SET opening_stock = ?, dispatched_out = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                     WHERE id = ?`,
+                    [newOp, totalDisp, newCl, s.id]
+                );
+                lastClosing = newCl;
+            }
+        });
+
+        res.json({ success: true, dispatchId });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ==========================================
 // 5. Inventory Snapshot Endpoints
 // ==========================================
@@ -881,12 +1090,13 @@ app.get('/api/inventory', async (req, res) => {
         const systemDate = await getSystemDate();
         const thresholds = await getInventoryThresholds();
 
+        const includeFuture = req.query.include_future === 'true';
         const snapshots = await queryAll(
             `SELECT * FROM inventory_snapshots 
-             WHERE date <= ? 
+             ${includeFuture ? '' : 'WHERE date <= ?'} 
              ORDER BY date DESC, product_type ASC 
-             LIMIT 270`,
-            [systemDate]
+             LIMIT 1000`,
+            includeFuture ? [] : [systemDate]
         );
 
         const result = [];
@@ -1012,17 +1222,27 @@ app.put('/api/inventory/:id', async (req, res) => {
                 [id, prod, date, opStock, prodAdd, purRec, dispOut, clStock, confirmed ? 1 : 0]
             );
 
-            const nextDay = new Date(date);
-            nextDay.setDate(nextDay.getDate() + 1);
-            const nextDayStr = nextDay.toISOString().split('T')[0];
-            const nextDaySnapId = `${prod}_${nextDayStr}`;
-            const nextSnap = await tx.get("SELECT * FROM inventory_snapshots WHERE id = ?", [nextDaySnapId]);
-            if (nextSnap) {
-                const nextClosing = Math.max(0, clStock + nextSnap.production_added + nextSnap.purchased_material_received - nextSnap.dispatched_out);
+            // Fetch all snapshots for this product from the edited date forward in chronological order
+            const snaps = await tx.all(
+                `SELECT * FROM inventory_snapshots 
+                 WHERE product_type = ? AND date >= ? 
+                 ORDER BY date ASC`,
+                [prod, date]
+            );
+
+            let lastClosing = clStock;
+            for (let j = 1; j < snaps.length; j++) {
+                const snap = snaps[j];
+                const newOp = lastClosing;
+                const newCl = Math.max(0, newOp + snap.production_added + snap.purchased_material_received - snap.dispatched_out);
+                
                 await tx.run(
-                    `UPDATE inventory_snapshots SET opening_stock = ?, closing_stock = ? WHERE id = ?`,
-                    [clStock, nextClosing, nextDaySnapId]
+                    `UPDATE inventory_snapshots 
+                     SET opening_stock = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                     WHERE id = ?`,
+                    [newOp, newCl, snap.id]
                 );
+                lastClosing = newCl;
             }
         });
 
@@ -1438,6 +1658,633 @@ app.delete('/api/scenarios/:id', async (req, res) => {
         await queryRun("DELETE FROM scenario_snapshots WHERE id = ?", [req.params.id]);
         res.json({ success: true });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9b. Excel Data Import Endpoint (Phase 2 Extension)
+// ==========================================
+app.post('/api/import', async (req, res) => {
+    try {
+        const { clear_existing, rows } = req.body;
+        if (!Array.isArray(rows)) {
+            return res.status(400).json({ error: 'Rows must be an array of objects.' });
+        }
+
+        console.log(`Starting import of ${rows.length} rows. Clear existing: ${clear_existing}`);
+
+        // 1. Clear existing data if requested
+        if (clear_existing) {
+            await runInTransaction(async (tx) => {
+                await tx.run("DELETE FROM dispatch_allocations");
+                await tx.run("DELETE FROM dispatch_log");
+                await tx.run("DELETE FROM po_line_items");
+                await tx.run("DELETE FROM po_commitment_history");
+                await tx.run("DELETE FROM purchase_orders");
+                await tx.run("DELETE FROM customer_login_activity");
+            });
+            console.log('Cleared existing orders and dispatches.');
+        }
+
+        // Product mapping translation helper
+        const PRODUCT_MAPPING = {
+            'MTO': 'Toluene',
+            'AA': 'Ethyl Acetate',
+            'RETARDER': 'Retarder',
+            'ACETONE': 'Acetone',
+            'SL SHORT HS': 'Benzene',
+            '200LTR SHAVI HS': 'Acetone',
+            '50LTR SHAVI HS': 'DEP',
+            'BENZENE': 'Benzene',
+            'DEP': 'DEP',
+            'ETHYL ACETATE': 'Ethyl Acetate',
+            'TOLUENE': 'Toluene'
+        };
+
+        const mapProduct = (p) => {
+            if (!p) return 'Acetone';
+            const clean = String(p).trim().toUpperCase();
+            return PRODUCT_MAPPING[clean] || 'Acetone';
+        };
+
+        // Cache for companies to avoid repeated lookups
+        const companyCache = {};
+        const existingCompanies = await queryAll("SELECT id, name FROM companies");
+        for (const c of existingCompanies) {
+            companyCache[c.name.toLowerCase().trim()] = c.id;
+        }
+
+        // Helper to parse dates
+        const parseExcelDate = (val) => {
+            if (!val) return null;
+            if (val instanceof Date) {
+                return val.toISOString().split('T')[0];
+            }
+            if (typeof val === 'number') {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            if (typeof val === 'string') {
+                const parts = val.split('-');
+                if (parts.length === 3) {
+                    const p0 = parts[0].trim();
+                    const p1 = parts[1].trim();
+                    const p2 = parts[2].trim();
+                    if (p0.length <= 2 && p1.length <= 2 && p2.length === 4) {
+                        return `${p2}-${p1.padStart(2, '0')}-${p0.padStart(2, '0')}`;
+                    }
+                    if (p0.length === 4 && p1.length <= 2 && p2.length <= 2) {
+                        return `${p0}-${p1.padStart(2, '0')}-${p2.padStart(2, '0')}`;
+                    }
+                }
+                try {
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        return d.toISOString().split('T')[0];
+                    }
+                } catch (e) {}
+            }
+            return null;
+        };
+
+        let newCompanyCount = 0;
+        let poCount = 0;
+        let dispatchCount = 0;
+
+        await runInTransaction(async (tx) => {
+            const poCreated = new Set();
+            const dispatchCreated = new Set();
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rawCompany = row["Company"] || row["company"];
+                const rawProduct = row["Product"] || row["product"];
+                const rawPOId = row["PO No."] || row["po_no"] || row["PO No"];
+                const rawPODate = row["PO Date"] || row["po_date"];
+                const rawInvNo = row["Inv. No."] || row["inv_no"] || row["Inv No."] || row["Inv No"];
+                const rawInvDate = row["Inv. Date"] || row["inv_date"];
+                const rawQty = parseFloat(row["Quantity"] || row["quantity"] || 0);
+
+                if (!rawCompany || !rawProduct || isNaN(rawQty) || rawQty <= 0) continue;
+
+                const cleanCoName = String(rawCompany).trim();
+                const coNameKey = cleanCoName.toLowerCase();
+                let companyId = companyCache[coNameKey];
+
+                if (!companyId) {
+                    const suffix = String(Object.keys(companyCache).length + 1).padStart(3, '0');
+                    companyId = `COMP-NEW-${suffix}`;
+                    companyCache[coNameKey] = companyId;
+
+                    const mappedProducts = JSON.stringify([mapProduct(rawProduct)]);
+                    await tx.run(
+                        `INSERT INTO companies (id, name, tier, primary_products, contact_person, contact_phone, credit_status, portal_login_enabled)
+                         VALUES (?, ?, 'C', ?, 'Imported Client', '+91-00000-00000', 'Active', 0)`,
+                        [companyId, cleanCoName, mappedProducts]
+                    );
+                    newCompanyCount++;
+                }
+
+                const poDate = parseExcelDate(rawPODate) || '2026-06-01';
+                const invDate = parseExcelDate(rawInvDate) || poDate;
+
+                const poId = rawPOId ? String(rawPOId).trim() : `PO-IMPORT-${i}`;
+                const mappedProd = mapProduct(rawProduct);
+
+                if (!poCreated.has(poId)) {
+                    poCreated.add(poId);
+                    await tx.run(
+                        `INSERT INTO purchase_orders (id, company_id, date_received, committed_dispatch_date, commitment_status, status, notes, created_by)
+                         VALUES (?, ?, ?, ?, 'Honored', 'Closed', ?, 'Excel Import')`,
+                        [poId, companyId, poDate, invDate, `Imported from Excel Row ${i + 1}`]
+                    );
+                    await tx.run(
+                        `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                         VALUES (?, ?, 'Honored', 'Initial commitment imported from Excel')`,
+                        [poId, invDate]
+                    );
+                    poCount++;
+                }
+
+                await tx.run(
+                    `INSERT INTO po_line_items (po_id, product_type, quantity, allocated_quantity)
+                     VALUES (?, ?, ?, ?)`,
+                    [poId, mappedProd, rawQty, rawQty]
+                );
+
+                const lineItemRow = await tx.get(
+                    "SELECT id FROM po_line_items WHERE po_id = ? AND product_type = ? ORDER BY id DESC LIMIT 1",
+                    [poId, mappedProd]
+                );
+                const lineItemId = lineItemRow ? lineItemRow.id : null;
+
+                if (rawInvNo) {
+                    const cleanInvNo = String(rawInvNo).trim();
+                    const dspId = `DSP-${cleanInvNo}`;
+
+                    if (!dispatchCreated.has(dspId)) {
+                        dispatchCreated.add(dspId);
+                        await tx.run(
+                            `INSERT INTO dispatch_log (id, product_type, quantity, vehicle_id, planned_dispatch_date, actual_dispatch_date, status)
+                             VALUES (?, ?, ?, 'VEH-IMPORT', ?, ?, 'Executed')`,
+                            [dspId, mappedProd, rawQty, poDate, invDate]
+                        );
+                        dispatchCount++;
+                    }
+
+                    if (lineItemId) {
+                        await tx.run(
+                            `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
+                             VALUES (?, ?, ?, ?)`,
+                            [dspId, poId, lineItemId, rawQty]
+                        );
+                    }
+                }
+            }
+        });
+
+        // Recalculate company scores
+        const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
+
+        res.json({
+            success: true,
+            summary: {
+                total_rows: rows.length,
+                new_companies: newCompanyCount,
+                purchase_orders: poCount,
+                dispatches: dispatchCount
+            }
+        });
+    } catch (err) {
+        console.error('Import error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9d. Enterprise Planning Sheet Import Endpoint
+// ==========================================
+app.post('/api/import-planning', async (req, res) => {
+    try {
+        const { clear_existing, sheet_name, calendar, orders } = req.body;
+        if (!Array.isArray(orders)) {
+            return res.status(400).json({ error: 'Orders must be an array of objects.' });
+        }
+
+        console.log(`Starting import of planning sheet '${sheet_name}'. Clear existing: ${clear_existing}`);
+
+        // 1. Clear existing data if requested
+        if (clear_existing) {
+            await runInTransaction(async (tx) => {
+                await tx.run("DELETE FROM dispatch_allocations");
+                await tx.run("DELETE FROM dispatch_log");
+                await tx.run("DELETE FROM po_line_items");
+                await tx.run("DELETE FROM po_commitment_history");
+                await tx.run("DELETE FROM purchase_orders");
+                await tx.run("DELETE FROM customer_login_activity");
+                await tx.run("DELETE FROM inventory_snapshots");
+            });
+            console.log('Cleared existing data.');
+        }
+
+        // Cache existing companies
+        const companyCache = {};
+        const existingCompanies = await queryAll("SELECT id, name FROM companies");
+        for (const c of existingCompanies) {
+            companyCache[c.name.toLowerCase().trim()] = c.id;
+        }
+
+        // Product mapping helper
+        const PRODUCT_MAPPING = {
+            'MTO': 'Toluene',
+            'AA': 'Ethyl Acetate',
+            'RETARDER': 'Retarder',
+            'ACETONE': 'Acetone',
+            'SL SHORT HS': 'Benzene',
+            '200LTR SHAVI HS': 'Acetone',
+            '50LTR SHAVI HS': 'DEP',
+            'BENZENE': 'Benzene',
+            'DEP': 'DEP',
+            'ETHYL ACETATE': 'Ethyl Acetate',
+            'TOLUENE': 'Toluene',
+            'TOLUNE': 'Toluene'
+        };
+
+        const mapProduct = (p) => {
+            if (!p) return 'Acetone';
+            const clean = String(p).trim().toUpperCase();
+            if (clean.includes('ACETONE') && clean.includes('ETHYL')) return 'Ethyl Acetate';
+            if (clean.includes('ACETONE')) return 'Acetone';
+            if (clean.includes('BENZENE')) return 'Benzene';
+            if (clean.includes('DEP')) return 'DEP';
+            if (clean.includes('ETHYL')) return 'Ethyl Acetate';
+            if (clean.includes('RETARDER')) return 'Retarder';
+            if (clean.includes('TOLUNE') || clean.includes('TOLUENE')) return 'Toluene';
+            return PRODUCT_MAPPING[clean] || 'Acetone';
+        };
+
+        let newCompanyCount = 0;
+        let poCount = 0;
+        let dispatchCount = 0;
+
+        // Determine calendar boundaries
+        let firstDate = '2026-06-01';
+        let lastDate = '2026-07-04';
+        if (calendar && calendar.length > 0) {
+            const validDates = calendar.map(c => c.date).filter(d => d && d !== 'None').sort();
+            if (validDates.length > 0) {
+                firstDate = validDates[0];
+                lastDate = validDates[validDates.length - 1];
+            }
+        }
+
+        await runInTransaction(async (tx) => {
+            // A. Seed Companies & Orders
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                const rawCompany = order.company;
+                const pendingQty = parseFloat(order.pending_qty || 0);
+                const deliveredQty = parseFloat(order.delivered_qty || 0);
+
+                if (!rawCompany || (pendingQty <= 0 && deliveredQty <= 0)) continue;
+
+                const cleanCoName = String(rawCompany).trim();
+                const coNameKey = cleanCoName.toLowerCase();
+                let companyId = companyCache[coNameKey];
+
+                const rawProduct = order.product || 'Ethyl Acetate';
+
+                if (!companyId) {
+                    const suffix = String(Object.keys(companyCache).length + 1).padStart(3, '0');
+                    companyId = `COMP-NEW-${suffix}`;
+                    companyCache[coNameKey] = companyId;
+
+                    const mappedProducts = JSON.stringify([mapProduct(rawProduct)]);
+                    await tx.run(
+                        `INSERT INTO companies (id, name, tier, primary_products, contact_person, contact_phone, credit_status, portal_login_enabled)
+                         VALUES (?, ?, 'B', ?, 'Imported Client', '+91-00000-00000', 'Active', 1)`,
+                        [companyId, cleanCoName, mappedProducts]
+                    );
+                    newCompanyCount++;
+                }
+
+                // Create Purchase Order
+                const poId = `PO-PLAN-${sheet_name.replace(/\s+/g, '')}-${i}`;
+                const mappedProd = mapProduct(rawProduct);
+                const totalQty = pendingQty + deliveredQty;
+
+                let poStatus = 'Received';
+                let commitmentStatus = 'Pending';
+                if (pendingQty === 0 && deliveredQty > 0) {
+                    poStatus = 'Closed';
+                    commitmentStatus = 'Honored';
+                } else if (pendingQty > 0 && deliveredQty > 0) {
+                    poStatus = 'Partially Allocated';
+                }
+
+                await tx.run(
+                    `INSERT INTO purchase_orders (id, company_id, date_received, committed_dispatch_date, commitment_status, status, notes, created_by)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, 'Planning Import')`,
+                    [poId, companyId, firstDate, lastDate, commitmentStatus, poStatus, `Imported from planning sheet: ${sheet_name}`]
+                );
+
+                await tx.run(
+                    `INSERT INTO po_commitment_history (po_id, committed_date, status, reason)
+                     VALUES (?, ?, ?, 'Imported from planning sheet')`,
+                    [poId, lastDate, commitmentStatus]
+                );
+                poCount++;
+
+                await tx.run(
+                    `INSERT INTO po_line_items (po_id, product_type, quantity, allocated_quantity)
+                     VALUES (?, ?, ?, ?)`,
+                    [poId, mappedProd, totalQty, deliveredQty]
+                );
+
+                const lineItemRow = await tx.get(
+                    "SELECT id FROM po_line_items WHERE po_id = ? AND product_type = ? ORDER BY id DESC LIMIT 1",
+                    [poId, mappedProd]
+                );
+                const lineItemId = lineItemRow ? lineItemRow.id : null;
+
+                // Create Dispatch if delivered
+                if (deliveredQty > 0) {
+                    const dspId = `DSP-PLAN-${sheet_name.replace(/\s+/g, '')}-${i}`;
+                    await tx.run(
+                        `INSERT INTO dispatch_log (id, product_type, quantity, vehicle_id, planned_dispatch_date, actual_dispatch_date, status)
+                         VALUES (?, ?, ?, 'VEH-PLAN', ?, ?, 'Executed')`,
+                        [dspId, mappedProd, deliveredQty, firstDate, firstDate]
+                    );
+                    dispatchCount++;
+
+                    if (lineItemId) {
+                        await tx.run(
+                            `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
+                             VALUES (?, ?, ?, ?)`,
+                            [dspId, poId, lineItemId, deliveredQty]
+                        );
+                    }
+                }
+            }
+
+            // B. Seed Calendar Production Additions
+            if (calendar && calendar.length > 0) {
+                // Initialize snapshots for the range of dates for all products
+                const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+                const initialStocks = {
+                    Acetone: 150.0,
+                    Benzene: 100.0,
+                    DEP: 40.0,
+                    'Ethyl Acetate': 120.0,
+                    Retarder: 25.0,
+                    Toluene: 180.0
+                };
+
+                for (const item of calendar) {
+                    const parsedDate = item.date;
+                    if (!parsedDate || parsedDate === 'None') continue;
+
+                    for (const prod of products) {
+                        const snapId = `${prod}_${parsedDate}`;
+                        const existingSnap = await tx.get("SELECT id FROM inventory_snapshots WHERE id = ?", [snapId]);
+
+                        if (!existingSnap) {
+                            // Seed empty snapshot
+                            await tx.run(
+                                `INSERT INTO inventory_snapshots (id, product_type, date, opening_stock, production_added, purchased_material_received, dispatched_out, closing_stock, confirmed)
+                                 VALUES (?, ?, ?, 0.0, 0.0, 0.0, 0.0, 0.0, 0)`,
+                                [snapId, prod, parsedDate]
+                            );
+                        }
+
+                        // If it's Ethyl Acetate, we set the parsed calendar production value
+                        if (prod === 'Ethyl Acetate' && item.value !== null && item.value !== undefined) {
+                            await tx.run(
+                                `UPDATE inventory_snapshots SET production_added = ? WHERE id = ?`,
+                                [parseFloat(item.value || 0), snapId]
+                            );
+                        }
+                    }
+                }
+
+                // C. Recalculate opening/closing stocks chronologically for all products to keep snapshots fully consistent!
+                for (const prod of products) {
+                    const snaps = await tx.all("SELECT * FROM inventory_snapshots WHERE product_type = ? ORDER BY date ASC", [prod]);
+                    let lastClosingStock = snaps.length > 0 ? snaps[0].opening_stock : 0.0;
+                    if (snaps.length > 0 && snaps[0].date === firstDate) {
+                        // Set the initial opening stock for the start date
+                        lastClosingStock = initialStocks[prod];
+                    }
+
+                    for (let j = 0; j < snaps.length; j++) {
+                        const snap = snaps[j];
+                        const opStock = j === 0 ? lastClosingStock : lastClosingStock;
+                        
+                        // We also need to factor in all dispatches executed on this date for this product
+                        const dispatchRow = await tx.get(
+                            `SELECT SUM(quantity) as total_qty FROM dispatch_log 
+                             WHERE product_type = ? AND status = 'Executed' AND actual_dispatch_date = ?`,
+                            [prod, snap.date]
+                        );
+                        const totalDisp = dispatchRow ? (dispatchRow.total_qty || 0.0) : 0.0;
+
+                        const clStock = Math.max(0, opStock + snap.production_added + snap.purchased_material_received - totalDisp);
+                        
+                        await tx.run(
+                            `UPDATE inventory_snapshots 
+                             SET opening_stock = ?, dispatched_out = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                             WHERE id = ?`,
+                            [opStock, totalDisp, clStock, snap.id]
+                        );
+                        lastClosingStock = clStock;
+                    }
+                }
+            }
+        });
+
+        // Recalculate company scores
+        const systemDate = await getSystemDate();
+        await syncPOCommitmentStatuses(systemDate);
+
+        res.json({
+            success: true,
+            summary: {
+                total_rows: orders.length,
+                new_companies: newCompanyCount,
+                purchase_orders: poCount,
+                dispatches: dispatchCount
+            }
+        });
+    } catch (err) {
+        console.error('Planning import error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9c. Vendor Purchases Excel Import Endpoint (Phase 2 Extension)
+// ==========================================
+app.post('/api/import-purchases', async (req, res) => {
+    try {
+        const { clear_existing, rows } = req.body;
+        if (!Array.isArray(rows)) {
+            return res.status(400).json({ error: 'Rows must be an array of objects.' });
+        }
+
+        console.log(`Starting import of ${rows.length} vendor purchase rows. Clear existing: ${clear_existing}`);
+
+        // Helper to parse dates
+        const parseExcelDate = (val) => {
+            if (!val) return null;
+            if (val instanceof Date) {
+                return val.toISOString().split('T')[0];
+            }
+            if (typeof val === 'number') {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                return date.toISOString().split('T')[0];
+            }
+            if (typeof val === 'string') {
+                const parts = val.split('-');
+                if (parts.length === 3) {
+                    const p0 = parts[0].trim();
+                    const p1 = parts[1].trim();
+                    const p2 = parts[2].trim();
+                    if (p0.length <= 2 && p1.length <= 2 && p2.length === 4) {
+                        return `${p2}-${p1.padStart(2, '0')}-${p0.padStart(2, '0')}`;
+                    }
+                    if (p0.length === 4 && p1.length <= 2 && p2.length <= 2) {
+                        return `${p0}-${p1.padStart(2, '0')}-${p2.padStart(2, '0')}`;
+                    }
+                }
+                try {
+                    const d = new Date(val);
+                    if (!isNaN(d.getTime())) {
+                        return d.toISOString().split('T')[0];
+                    }
+                } catch (e) {}
+            }
+            return null;
+        };
+
+        // Material translation dictionary
+        const mapMaterialToProduct = (m) => {
+            if (!m) return 'Other';
+            const clean = String(m).trim().toLowerCase();
+            if (clean.includes('acetone')) return 'Acetone';
+            if (clean.includes('methanol')) return 'Benzene';
+            if (clean.includes('alcohol') || clean.includes('alocohal')) return 'Retarder';
+            if (clean.includes('toluene')) return 'Toluene';
+            if (clean.includes('benzene')) return 'Benzene';
+            if (clean.includes('ethyl acetate')) return 'Ethyl Acetate';
+            if (clean.includes('dep')) return 'DEP';
+            return 'Other';
+        };
+
+        await runInTransaction(async (tx) => {
+            // 1. Clear existing raw purchases if requested
+            if (clear_existing) {
+                await tx.run("DELETE FROM vendor_purchases");
+                // Reset all purchased material received in snapshots to 0
+                await tx.run("UPDATE inventory_snapshots SET purchased_material_received = 0");
+                console.log('Cleared existing vendor purchases and reset inventory snapshot purchase receipts.');
+            }
+
+            // 2. Insert raw rows and aggregate quantities
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const rawDate = row["Date"] || row["date"];
+                const rawInvNo = row["Inv. No."] || row["inv_no"] || row["Inv No."] || row["Inv No"];
+                const rawVendor = row["Vendor"] || row["vendor"];
+                const rawMaterial = row["Material"] || row["material"];
+                const rawQty = parseFloat(String(row["Quantity"] || row["quantity"] || 0).replace(/,/g, ''));
+                const rawRate = parseFloat(String(row["Rate"] || row["rate"] || 0).replace(/,/g, ''));
+                const rawAmt = parseFloat(String(row["Amount"] || row["amount"] || 0).replace(/,/g, ''));
+
+                if (!rawVendor || !rawMaterial || isNaN(rawQty) || rawQty <= 0) continue;
+
+                const parsedDate = parseExcelDate(rawDate);
+                if (!parsedDate) continue;
+
+                const mappedProduct = mapMaterialToProduct(rawMaterial);
+
+                // Insert vendor purchase log
+                await tx.run(
+                    `INSERT INTO vendor_purchases (date, invoice_no, vendor, material, quantity, rate, amount, mapped_product)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [parsedDate, rawInvNo ? String(rawInvNo).trim() : null, String(rawVendor).trim(), String(rawMaterial).trim(), rawQty, isNaN(rawRate) ? null : rawRate, isNaN(rawAmt) ? null : rawAmt, mappedProduct]
+                );
+
+                // If mapped to a standard product, update the corresponding inventory snapshot
+                if (mappedProduct !== 'Other') {
+                    const snapId = `${mappedProduct}_${parsedDate}`;
+                    const existingSnap = await tx.get("SELECT id, opening_stock, production_added, dispatched_out, purchased_material_received FROM inventory_snapshots WHERE id = ?", [snapId]);
+
+                    if (existingSnap) {
+                        const newPurRec = existingSnap.purchased_material_received + rawQty;
+                        const newClosing = Math.max(0, existingSnap.opening_stock + existingSnap.production_added + newPurRec - existingSnap.dispatched_out);
+                        await tx.run(
+                            `UPDATE inventory_snapshots 
+                             SET purchased_material_received = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                             WHERE id = ?`,
+                            [newPurRec, newClosing, snapId]
+                        );
+                    } else {
+                        // Create a placeholder snapshot for this date
+                        // Find opening stock from previous day closing
+                        const prevDate = new Date(parsedDate);
+                        prevDate.setDate(prevDate.getDate() - 1);
+                        const prevDateStr = prevDate.toISOString().split('T')[0];
+                        const prevSnap = await tx.get("SELECT closing_stock FROM inventory_snapshots WHERE product_type = ? AND date = ?", [mappedProduct, prevDateStr]);
+                        const opStock = prevSnap ? prevSnap.closing_stock : 0.0;
+                        const clStock = opStock + rawQty;
+
+                        await tx.run(
+                            `INSERT INTO inventory_snapshots (id, product_type, date, opening_stock, production_added, purchased_material_received, dispatched_out, closing_stock, confirmed)
+                             VALUES (?, ?, ?, ?, 0.0, ?, 0.0, ?, 0)`,
+                            [snapId, mappedProduct, parsedDate, opStock, rawQty, clStock]
+                        );
+                    }
+                }
+            }
+
+            // 3. Recalculate opening/closing stocks chronologically for all products to keep snapshots fully consistent!
+            const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+            for (const prod of products) {
+                const snaps = await tx.all("SELECT * FROM inventory_snapshots WHERE product_type = ? ORDER BY date ASC", [prod]);
+                let lastClosingStock = snaps.length > 0 ? snaps[0].opening_stock : 0.0;
+
+                for (let j = 0; j < snaps.length; j++) {
+                    const snap = snaps[j];
+                    const opStock = j === 0 ? snap.opening_stock : lastClosingStock;
+                    const clStock = Math.max(0, opStock + snap.production_added + snap.purchased_material_received - snap.dispatched_out);
+                    
+                    await tx.run(
+                        `UPDATE inventory_snapshots 
+                         SET opening_stock = ?, closing_stock = ?, updated_at = CURRENT_TIMESTAMP 
+                         WHERE id = ?`,
+                        [opStock, clStock, snap.id]
+                    );
+                    lastClosingStock = clStock;
+                }
+            }
+        });
+
+        // Query count of imported rows to return summary
+        const summaryCount = await queryGet("SELECT COUNT(*) as count FROM vendor_purchases");
+        const uniqueVendors = await queryGet("SELECT COUNT(DISTINCT vendor) as count FROM vendor_purchases");
+
+        res.json({
+            success: true,
+            summary: {
+                total_rows: rows.length,
+                inserted_purchases: summaryCount ? summaryCount.count : 0,
+                unique_vendors: uniqueVendors ? uniqueVendors.count : 0
+            }
+        });
+    } catch (err) {
+        console.error('Vendor import error:', err);
         res.status(500).json({ error: err.message });
     }
 });

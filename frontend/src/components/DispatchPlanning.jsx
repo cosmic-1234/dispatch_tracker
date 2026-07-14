@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Truck, Check, RefreshCw, AlertTriangle, AlertCircle, Info, ShieldAlert, FlaskConical, Save, X } from 'lucide-react';
 
 
@@ -18,17 +18,53 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
 
   // What-If Scenario Simulator state
   const [showSimulator, setShowSimulator] = useState(false);
+  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
   const [simProduct, setSimProduct] = useState('Acetone');
   const [simExtraDispatch, setSimExtraDispatch] = useState(0);
   const [simProductionBoost, setSimProductionBoost] = useState(0);
   const [scenarioName, setScenarioName] = useState('');
   const [scenarioAiNarration, setScenarioAiNarration] = useState('');
   const [savingScenario, setSavingScenario] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(40); // default 40%
+  const containerRef = useRef(null);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = leftWidth;
+    
+    if (!containerRef.current) return;
+    const containerWidth = containerRef.current.getBoundingClientRect().width;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaPercent = (deltaX / containerWidth) * 100;
+      const newWidth = Math.min(Math.max(startWidth + deltaPercent, 20), 80);
+      setLeftWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
 
   // Fetch optimizer results
   useEffect(() => {
     fetchOptimizerData();
+    fetch(`${API_BASE}/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+          setSimProduct(data[0]);
+        }
+      })
+      .catch(err => console.error(err));
   }, []);
 
   const fetchOptimizerData = () => {
@@ -186,7 +222,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
   // ─── What-If Simulator Logic ────────────────────────────────────────────────
   const buildProjection = (extraDispatch, productionBoost) => {
     if (!optimizerData) return [];
-    const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+    // Uses products state from component scope
     const baselineStocks = optimizerData.inventory_stocks || {};
     const startStock = baselineStocks[simProduct] || 0;
     const dailyProd = 7.5 + productionBoost; // rough daily estimate
@@ -285,10 +321,10 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
 
   return (
     <>
-      <div className="split-pane">
+      <div className="split-pane" ref={containerRef} style={{ gap: 0 }}>
         
         {/* LEFT PANE: Today's Actionable PO Pool */}
-        <div className="pane-left card">
+        <div className="pane-left card" style={{ flex: `0 0 ${leftWidth}%` }}>
           <div className="card-header">
             <span className="card-title">Actionable PO Pool ({optimizerData.actionable_po_pool.length} items)</span>
             <span className="badge received" style={{ fontSize: '10px' }}>Unallocated / Pending</span>
@@ -352,8 +388,28 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
           </div>
         </div>
 
+        {/* Resizer Divider */}
+        <div 
+          onMouseDown={handleMouseDown}
+          className="pane-resizer"
+          style={{
+            width: '12px',
+            margin: '0 -6px',
+            cursor: 'col-resize',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            userSelect: 'none',
+            alignSelf: 'stretch',
+          }}
+          title="Drag to resize panels"
+        >
+          <div style={{ width: '4px', height: '40px', borderRadius: '2px', backgroundColor: '#CBD5E1', transition: 'background-color 0.2s' }} />
+        </div>
+
         {/* RIGHT PANE: AI-Recommended Dispatch Runs */}
-        <div className="pane-right card">
+        <div className="pane-right card" style={{ flex: `1 1 0%` }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Truck size={16} color="#1C6BF4" />
@@ -492,7 +548,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                 <div className="form-group">
                   <label>Product</label>
                   <select value={simProduct} onChange={e => setSimProduct(e.target.value)}>
-                    {['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].map(p => (
+                    {products.map(p => (
                       <option key={p}>{p}</option>
                     ))}
                   </select>

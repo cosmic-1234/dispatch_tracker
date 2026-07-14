@@ -163,3 +163,18 @@ CREATE TABLE IF NOT EXISTS scenario_snapshots (
     created_by TEXT DEFAULT 'Planner',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 13. Vendor Purchases (Raw Material Receipts)
+CREATE TABLE IF NOT EXISTS vendor_purchases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date DATE NOT NULL,
+    invoice_no TEXT,
+    vendor TEXT NOT NULL,
+    material TEXT NOT NULL,
+    quantity REAL NOT NULL CHECK(quantity >= 0),
+    rate REAL,
+    amount REAL,
+    mapped_product TEXT NOT NULL CHECK(mapped_product IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene', 'Other')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+

@@ -17,7 +17,9 @@ import {
   RefreshCw,
   Menu,
   HeartPulse,
-  Globe
+  Globe,
+  Upload,
+  X
 } from 'lucide-react';
 
 // Components
@@ -31,6 +33,7 @@ import Reports from './components/Reports';
 import Settings from './components/Settings';
 import CommitmentHealth from './components/CommitmentHealth';
 import CustomerPortal from './components/CustomerPortal';
+import DataImport from './components/DataImport';
 import shaktiLogo from './assets/shakti_logo.png';
 
 // Utility helper to format dates from yyyy-mm-dd to dd-mm-yyyy
@@ -50,11 +53,6 @@ export default function App() {
   const isCustomerPortal = window.location.pathname.startsWith('/customer') ||
     new URLSearchParams(window.location.search).get('portal') === 'customer';
 
-  if (isCustomerPortal) {
-    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
-  }
-
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(true); // default open for planner visibility
@@ -64,6 +62,11 @@ export default function App() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [dismissedBanners, setDismissedBanners] = useState({
+    reconciliation: false,
+    shortage: false,
+    commitment: false
+  });
 
   // Chat message queue
   const [chatMessages, setChatMessages] = useState([
@@ -95,6 +98,11 @@ export default function App() {
       .then(data => {
         setDashboardData(data);
         setLoading(false);
+        setDismissedBanners({
+          reconciliation: false,
+          shortage: false,
+          commitment: false
+        });
       })
       .catch(err => {
         console.error("Error loading dashboard data:", err);
@@ -166,6 +174,11 @@ export default function App() {
     return <div dangerouslySetInnerHTML={{ __html: formatted.replace(/\n/g, '<br/>') }} />;
   };
 
+  if (isCustomerPortal) {
+    const API_BASE_PORTAL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    return <CustomerPortal API_BASE={API_BASE_PORTAL} />;
+  }
+
   return (
     <div className="app-container">
       {/* 1. Left Sidebar Navigation */}
@@ -234,6 +247,10 @@ export default function App() {
             <SettingsIcon size={20} />
             <span className="nav-label">Portal Settings</span>
           </a>
+          <a className={`nav-item ${activeModule === 'import' ? 'active' : ''}`} onClick={() => setActiveModule('import')}>
+            <Upload size={20} />
+            <span className="nav-label">Data Import</span>
+          </a>
           <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
             <Globe size={20} />
             <span className="nav-label">Customer Portal ↗</span>
@@ -277,19 +294,28 @@ export default function App() {
 
         {/* Global Warning Banners */}
         <div className="global-banners">
-          {dashboardData && dashboardData.unconfirmed_snapshots_count > 0 && (
+          {dashboardData && dashboardData.unconfirmed_snapshots_count > 0 && !dismissedBanners.reconciliation && (
             <div className="banner warning">
               <div className="banner-content">
                 <AlertTriangle size={14} />
                 <span>Unconfirmed End-of-Day Inventory Snapshots exist for planning day: <strong>{formatDate(systemDate)}</strong>. Confirm snapshot to clear safety alerts.</span>
               </div>
-              <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('inventory')}>
-                Review & Confirm
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('inventory')}>
+                  Review & Confirm
+                </button>
+                <button 
+                  className="banner-close" 
+                  onClick={() => setDismissedBanners(prev => ({ ...prev, reconciliation: true }))}
+                  title="Dismiss alert"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             </div>
           )}
           
-          {dashboardData && dashboardData.shortage_alerts && dashboardData.shortage_alerts.length > 0 && (
+          {dashboardData && dashboardData.shortage_alerts && dashboardData.shortage_alerts.length > 0 && !dismissedBanners.shortage && (
             <div className="banner error">
               <div className="banner-content">
                 <AlertTriangle size={14} />
@@ -299,10 +325,17 @@ export default function App() {
                   }
                 </span>
               </div>
+              <button 
+                className="banner-close" 
+                onClick={() => setDismissedBanners(prev => ({ ...prev, shortage: true }))}
+                title="Dismiss alert"
+              >
+                <X size={14} />
+              </button>
             </div>
           )}
 
-          {dashboardData && dashboardData.missed_commitments && dashboardData.missed_commitments.length > 0 && (
+          {dashboardData && dashboardData.missed_commitments && dashboardData.missed_commitments.length > 0 && !dismissedBanners.commitment && (
             <div className="banner error">
               <div className="banner-content">
                 <AlertTriangle size={14} />
@@ -311,9 +344,18 @@ export default function App() {
                   {dashboardData.missed_commitments.map(m => `${m.po_id} (${m.company_name})`).join(', ')}
                 </span>
               </div>
-              <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('commitment-health')}>
-                View Health
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button className="btn btn-secondary" style={{ padding: '2px 8px', fontSize: '10px' }} onClick={() => setActiveModule('commitment-health')}>
+                  View Health
+                </button>
+                <button 
+                  className="banner-close" 
+                  onClick={() => setDismissedBanners(prev => ({ ...prev, commitment: true }))}
+                  title="Dismiss alert"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -371,6 +413,12 @@ export default function App() {
           )}
           {activeModule === 'settings' && (
             <Settings 
+              API_BASE={API_BASE} 
+              triggerRefresh={triggerRefresh} 
+            />
+          )}
+          {activeModule === 'import' && (
+            <DataImport 
               API_BASE={API_BASE} 
               triggerRefresh={triggerRefresh} 
             />

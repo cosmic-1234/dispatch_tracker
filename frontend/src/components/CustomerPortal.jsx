@@ -343,7 +343,7 @@ function OrderListTab({ orders, loading, onSelectOrder }) {
 }
 
 // ─── SCREEN 2: DISPATCH HISTORY ──────────────────────────────────────────────
-function DispatchHistoryTab({ orders, loading }) {
+function DispatchHistoryTab({ orders, loading, products }) {
   const [productFilter, setProductFilter] = useState('All');
   const [search, setSearch] = useState('');
 
@@ -366,7 +366,7 @@ function DispatchHistoryTab({ orders, loading }) {
         actual_dispatch_date: d.actual_dispatch_date,
         quantity: d.quantity,
         status: d.status,
-        product_type: d.product_type || (po.items?.[0]?.product_type || 'Acetone')
+        product_type: d.product_type || (po.items?.[0]?.product_type || (products && products[0]) || 'Acetone')
       });
     });
   });
@@ -413,7 +413,7 @@ function DispatchHistoryTab({ orders, loading }) {
             />
             <select value={productFilter} onChange={e => setProductFilter(e.target.value)} style={{ height: '32px', padding: '4px 8px' }}>
               <option value="All">All Products</option>
-              {['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].map(prod => (
+              {(products || ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']).map(prod => (
                 <option key={prod} value={prod}>{prod}</option>
               ))}
             </select>
@@ -724,6 +724,7 @@ export default function CustomerPortal({ API_BASE }) {
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [systemDate, setSystemDate] = useState('2026-06-29');
+  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
 
   const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
 
@@ -742,6 +743,16 @@ export default function CustomerPortal({ API_BASE }) {
       .then(res => res.json())
       .then(data => {
         if (data.system_date) setSystemDate(data.system_date);
+      })
+      .catch(err => console.error(err));
+
+    // Fetch Products list
+    fetch(`${API_BASE}/products`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data);
+        }
       })
       .catch(err => console.error(err));
   }, [user, refreshTrigger]);
@@ -799,7 +810,7 @@ export default function CustomerPortal({ API_BASE }) {
           ) : (
             <>
               {activeModule === 'orders' && <OrderListTab orders={orders} loading={loading} onSelectOrder={setSelectedPoId} />}
-              {activeModule === 'history' && <DispatchHistoryTab orders={orders} loading={loading} />}
+              {activeModule === 'history' && <DispatchHistoryTab orders={orders} loading={loading} products={products} />}
               {activeModule === 'notifications' && <NotificationsTab orders={orders} loading={loading} />}
             </>
           )}

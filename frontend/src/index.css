@@ -6,14 +6,14 @@
   --font-mono: 'IBM Plex Mono', monospace;
 
   /* Color Palette */
-  --bg-app: #F0F2F7;
+  --bg-app: #F7F5F0;
   --bg-card: #FFFFFF;
-  --border-color: #E2E6EF;
+  --border-color: #E2DCD0;
   --primary-navy: #0F1C33;
   --primary-navy-hover: #16294a;
-  --primary-blue: #1C6BF4;
-  --primary-blue-hover: #1559D4;
-  --primary-blue-active: #1050C0;
+  --primary-blue: #235E52;
+  --primary-blue-hover: #1b4d43;
+  --primary-blue-active: #143b33;
 
   /* Typography Colors */
   --text-primary: #1E2A3B;
@@ -105,6 +105,8 @@ body {
 /* Module Container and Content Layout */
 .module-container {
   flex: 1;
+  min-height: 0;
+  max-height: calc(100vh - 80px);
   overflow-y: auto;
   padding: 24px;
   display: flex;
@@ -182,6 +184,7 @@ input:focus, select:focus, textarea:focus, button:focus, [tabindex]:focus {
 .app-container {
   display: flex;
   height: 100vh;
+  max-height: 100vh;
   width: 100vw;
   overflow: hidden;
   background-color: var(--bg-app);
@@ -407,7 +410,9 @@ input:focus, select:focus, textarea:focus, button:focus, [tabindex]:focus {
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  min-height: 0;
   overflow: hidden;
   position: relative;
   background-color: var(--bg-app);
@@ -453,19 +458,21 @@ input:focus, select:focus, textarea:focus, button:focus, [tabindex]:focus {
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: none;
-  padding: 20px;
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
+  padding: 0;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  background-color: #E5DED0;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
 }
 
 .card-title {
@@ -478,6 +485,7 @@ input:focus, select:focus, textarea:focus, button:focus, [tabindex]:focus {
 
 .card-body {
   flex: 1;
+  padding: 20px;
 }
 
 /* Stat Cards / Metric Widgets */
@@ -573,7 +581,7 @@ input:focus, select:focus, textarea:focus, button:focus, [tabindex]:focus {
 
 /* Shimmer animation for generation states */
 .shimmer-text {
-  background: linear-gradient(90deg, #F0F2F7 25%, #E2E6EF 50%, #F0F2F7 75%);
+  background: linear-gradient(90deg, #F7F5F0 25%, #E2DCD0 50%, #F7F5F0 75%);
   background-size: 200% 100%;
   animation: loading-shimmer 1.5s infinite ease-in-out;
   border-radius: 4px;
@@ -967,7 +975,7 @@ select {
 }
 
 .add-item-row-btn:hover {
-  background-color: #F0F2F7;
+  background-color: #F7F5F0;
 }
 
 /* Interactive Buttons */
@@ -1017,11 +1025,11 @@ select {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #F0F2F7;
+  background-color: #F7F5F0;
 }
 
 .btn-secondary:active:not(:disabled) {
-  background-color: #E2E6EF;
+  background-color: #E2DCD0;
 }
 
 .btn-danger {
@@ -1113,6 +1121,16 @@ select {
 }
 
 /* PO pool items visual states */
+.pane-resizer {
+  transition: background-color 0.2s;
+}
+.pane-resizer:hover, .pane-resizer:active {
+  background-color: rgba(28, 107, 244, 0.1);
+}
+.pane-resizer:hover div, .pane-resizer:active div {
+  background-color: #1C6BF4 !important;
+}
+
 .po-pool-row {
   cursor: pointer;
   transition: all 150ms ease;
@@ -1378,7 +1396,7 @@ select {
 }
 
 .chat-message.user {
-  background-color: #F0F2F7;
+  background-color: #F7F5F0;
   color: var(--text-primary);
   align-self: flex-end;
   border: 1px solid var(--border-color);
