@@ -322,7 +322,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
           }
 
           orders.push({
-            product: productVal ? String(productVal).trim() : 'Ethyl Acetate',
+            product: productVal ? String(productVal).trim() : 'AA',
             company: String(companyVal).trim(),
             pending_qty: pendingQty !== undefined && pendingQty !== null && pendingQty !== '' ? parseFloat(pendingQty) : 0,
             delivered_qty: deliveredQty !== undefined && deliveredQty !== null && deliveredQty !== '' ? parseFloat(deliveredQty) : 0,
@@ -1599,9 +1599,9 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Enterprise Planning Mapping Info:</strong>
                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
-                      <li>Daily additions in calendar will update production logs for <strong>Ethyl Acetate (AA)</strong>.</li>
+                      <li>Daily additions in calendar will update production logs for <strong>AA</strong>.</li>
                       <li>Customer orders table on the right will seed companies, purchase orders, and executed dispatches (for delivered quantities).</li>
-                      <li>Products will auto-map: <em>AA/Ethyl Acetate ➔ Ethyl Acetate</em>, <em>Tolune ➔ Toluene</em>, <em>Retarder ➔ Retarder</em>, etc.</li>
+                      <li>Products will auto-map: <em>AA/Ethyl Acetate ➔ AA</em>, <em>Tolune ➔ SMO</em>, <em>Retarder ➔ RETARDER</em>, etc.</li>
                     </ul>
                   </div>
                 )}

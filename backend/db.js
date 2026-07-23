@@ -302,12 +302,12 @@ async function seedDatabase(db, isPgConn) {
     const date30DaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const companies = [
-        { id: 'COMP-001', name: 'Punjab Chemicals Ltd', tier: 'A', primary_products: JSON.stringify(['Acetone', 'Benzene']), contact_person: 'Harpreet Singh', contact_phone: '+91-98765-43210', credit_status: 'Active' },
-        { id: 'COMP-002', name: 'Rajasthan Organics Corp', tier: 'B', primary_products: JSON.stringify(['DEP', 'Ethyl Acetate']), contact_person: 'Rajendra Prasad', contact_phone: '+91-87654-32109', credit_status: 'Active' },
-        { id: 'COMP-003', name: 'Gujarat Industrial Paints', tier: 'A', primary_products: JSON.stringify(['Retarder', 'Toluene']), contact_person: 'Amit Shah', contact_phone: '+91-76543-21098', credit_status: 'Active' },
-        { id: 'COMP-004', name: 'Deccan Solvent Distributors', tier: 'C', primary_products: JSON.stringify(['Acetone', 'Toluene']), contact_person: 'Venkat Rao', contact_phone: '+91-65432-10987', credit_status: 'Active' },
-        { id: 'COMP-005', name: 'Alpha Pharmaceuticals Inc', tier: 'B', primary_products: JSON.stringify(['Benzene', 'DEP']), contact_person: 'Srinivas Murthy', contact_phone: '+91-54321-09876', credit_status: 'On Hold' },
-        { id: 'COMP-006', name: 'Apex Logistics & Solvents', tier: 'C', primary_products: JSON.stringify(['Ethyl Acetate', 'Retarder']), contact_person: 'Vikram Malhotra', contact_phone: '+91-43210-98765', credit_status: 'Active' }
+        { id: 'COMP-001', name: 'Punjab Chemicals Ltd', tier: 'A', primary_products: JSON.stringify(['SDS', 'KMO']), contact_person: 'Harpreet Singh', contact_phone: '+91-98765-43210', credit_status: 'Active' },
+        { id: 'COMP-002', name: 'Rajasthan Organics Corp', tier: 'B', primary_products: JSON.stringify(['SDS', 'AA']), contact_person: 'Rajendra Prasad', contact_phone: '+91-87654-32109', credit_status: 'Active' },
+        { id: 'COMP-003', name: 'Gujarat Industrial Paints', tier: 'A', primary_products: JSON.stringify(['RETARDER', 'SMO']), contact_person: 'Amit Shah', contact_phone: '+91-76543-21098', credit_status: 'Active' },
+        { id: 'COMP-004', name: 'Deccan Solvent Distributors', tier: 'C', primary_products: JSON.stringify(['SDS', 'SMO']), contact_person: 'Venkat Rao', contact_phone: '+91-65432-10987', credit_status: 'Active' },
+        { id: 'COMP-005', name: 'Alpha Pharmaceuticals Inc', tier: 'B', primary_products: JSON.stringify(['KMO', 'SDS']), contact_person: 'Srinivas Murthy', contact_phone: '+91-54321-09876', credit_status: 'On Hold' },
+        { id: 'COMP-006', name: 'Apex Logistics & Solvents', tier: 'C', primary_products: JSON.stringify(['AA', 'RETARDER']), contact_person: 'Vikram Malhotra', contact_phone: '+91-43210-98765', credit_status: 'Active' }
     ];
 
     for (const c of companies) {
@@ -319,12 +319,12 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const historicalPOs = [
-        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: '2026-04-10', status: 'Closed', product: 'Acetone', quantity: 10.0, allocated: 10.0 },
-        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: '2026-05-15', status: 'Closed', product: 'Acetone', quantity: 12.0, allocated: 12.0 },
-        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: '2026-05-01', status: 'Closed', product: 'Acetone', quantity: 30.0, allocated: 30.0 },
-        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: '2026-05-20', status: 'Closed', product: 'Benzene', quantity: 25.0, allocated: 25.0 },
-        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: '2026-05-10', status: 'Closed', product: 'Toluene', quantity: 40.0, allocated: 40.0 },
-        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: '2026-05-25', status: 'Closed', product: 'DEP', quantity: 15.0, allocated: 15.0 }
+        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: '2026-04-10', status: 'Closed', product: 'SDS', quantity: 10.0, allocated: 10.0 },
+        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: '2026-05-15', status: 'Closed', product: 'SDS', quantity: 12.0, allocated: 12.0 },
+        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: '2026-05-01', status: 'Closed', product: 'SDS', quantity: 30.0, allocated: 30.0 },
+        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: '2026-05-20', status: 'Closed', product: 'KMO', quantity: 25.0, allocated: 25.0 },
+        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: '2026-05-10', status: 'Closed', product: 'SMO', quantity: 40.0, allocated: 40.0 },
+        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: '2026-05-25', status: 'Closed', product: 'SDS', quantity: 15.0, allocated: 15.0 }
     ];
 
     for (const po of historicalPOs) {
@@ -362,11 +362,11 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const activePOs = [
-        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: '2026-06-25', status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'Acetone', qty: 40.0 }, { product: 'Benzene', qty: 20.0 }] },
-        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: '2026-06-28', status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'Toluene', qty: 30.0 }, { product: 'Retarder', qty: 15.0 }] },
-        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: '2026-06-20', status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'DEP', qty: 25.0, allocated: 10.0 }] },
-        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: '2026-06-15', status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'Acetone', qty: 50.0 }] },
-        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: '2026-06-27', status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'Benzene', qty: 15.0 }] }
+        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: '2026-06-25', status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'SDS', qty: 40.0 }, { product: 'KMO', qty: 20.0 }] },
+        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: '2026-06-28', status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'SMO', qty: 30.0 }, { product: 'RETARDER', qty: 15.0 }] },
+        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: '2026-06-20', status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'SDS', qty: 25.0, allocated: 10.0 }] },
+        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: '2026-06-15', status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'SDS', qty: 50.0 }] },
+        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: '2026-06-27', status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'KMO', qty: 15.0 }] }
     ];
 
     for (const po of activePOs) {
@@ -388,7 +388,7 @@ async function seedDatabase(db, isPgConn) {
     const yesterdayDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     await runQuery(
         `INSERT INTO dispatch_log (id, product_type, quantity, vehicle_id, planned_dispatch_date, status, created_at, updated_at)
-         VALUES ('DSP-2026-003-PARTIAL', 'DEP', 10.0, 'VEH-PLN-99', '2026-06-28', 'Planned', ?, ?)`,
+         VALUES ('DSP-2026-003-PARTIAL', 'SDS', 10.0, 'VEH-PLN-99', '2026-06-28', 'Planned', ?, ?)`,
          [yesterdayDate, yesterdayDate]
     );
 
@@ -404,14 +404,13 @@ async function seedDatabase(db, isPgConn) {
         );
     }
 
-    const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+    const products = ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
     const initialStocks = {
-        Acetone: 150.0,
-        Benzene: 100.0,
-        DEP: 40.0,
-        'Ethyl Acetate': 120.0,
-        Retarder: 25.0,
-        Toluene: 180.0
+        AA: 120.0,
+        KMO: 100.0,
+        RETARDER: 25.0,
+        SDS: 150.0,
+        SMO: 180.0
     };
 
     const systemDate = new Date('2026-06-29');
@@ -428,20 +427,20 @@ async function seedDatabase(db, isPgConn) {
             let prodAdded = 0.0;
             const dayOfWeek = currentDate.getDay();
             if (dayOfWeek === 2 || dayOfWeek === 5) {
-                prodAdded = prod === 'Acetone' ? 25.0 : prod === 'Benzene' ? 15.0 : prod === 'DEP' ? 8.0 : prod === 'Ethyl Acetate' ? 20.0 : prod === 'Retarder' ? 4.0 : 30.0;
+                prodAdded = prod === 'SDS' ? 33.0 : prod === 'KMO' ? 15.0 : prod === 'AA' ? 20.0 : prod === 'RETARDER' ? 4.0 : 30.0;
             }
             
             let purchaseRec = 0.0;
             if (dayOfWeek === 4) {
-                purchaseRec = prod === 'DEP' ? 10.0 : prod === 'Retarder' ? 5.0 : 0.0;
+                purchaseRec = prod === 'SDS' ? 10.0 : prod === 'RETARDER' ? 5.0 : 0.0;
             }
 
             let dispOut = 0.0;
             if (dayOfWeek >= 1 && dayOfWeek <= 5 && d > 0) {
-                dispOut = prod === 'Acetone' ? 12.0 : prod === 'Benzene' ? 8.0 : prod === 'DEP' ? 3.0 : prod === 'Ethyl Acetate' ? 10.0 : prod === 'Retarder' ? 2.0 : 15.0;
+                dispOut = prod === 'SDS' ? 15.0 : prod === 'KMO' ? 8.0 : prod === 'AA' ? 10.0 : prod === 'RETARDER' ? 2.0 : 15.0;
             }
 
-            if (dateStr === '2026-06-28' && prod === 'DEP') {
+            if (dateStr === '2026-06-28' && prod === 'SDS') {
                 dispOut = 10.0;
             }
 
@@ -461,12 +460,11 @@ async function seedDatabase(db, isPgConn) {
 
     const weeks = ['2026-06-15', '2026-06-22', '2026-06-29'];
     const plans = [
-        { product: 'Acetone', planned: 50.0, actual: 48.0 },
-        { product: 'Benzene', planned: 30.0, actual: 28.0 },
-        { product: 'DEP', planned: 16.0, actual: 8.0 }, 
-        { product: 'Ethyl Acetate', planned: 40.0, actual: 42.0 },
-        { product: 'Retarder', planned: 8.0, actual: 8.0 },
-        { product: 'Toluene', planned: 60.0, actual: 60.0 }
+        { product: 'AA', planned: 40.0, actual: 42.0 },
+        { product: 'KMO', planned: 30.0, actual: 28.0 },
+        { product: 'RETARDER', planned: 8.0, actual: 8.0 },
+        { product: 'SDS', planned: 66.0, actual: 56.0 },
+        { product: 'SMO', planned: 60.0, actual: 60.0 }
     ];
 
     for (const w of weeks) {
@@ -481,12 +479,11 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const settings = [
-        { key: 'min_threshold_Acetone', value: '50.0' },
-        { key: 'min_threshold_Benzene', value: '40.0' },
-        { key: 'min_threshold_DEP', value: '20.0' },
-        { key: 'min_threshold_Ethyl Acetate', value: '30.0' },
-        { key: 'min_threshold_Retarder', value: '10.0' },
-        { key: 'min_threshold_Toluene', value: '60.0' },
+        { key: 'min_threshold_AA', value: '30.0' },
+        { key: 'min_threshold_KMO', value: '40.0' },
+        { key: 'min_threshold_RETARDER', value: '10.0' },
+        { key: 'min_threshold_SDS', value: '50.0' },
+        { key: 'min_threshold_SMO', value: '60.0' },
         { key: 'vehicle_capacity_mt', value: '32.0' },
         { key: 'system_date', value: '2026-06-29' },
         { key: 'anthropic_api_key', value: process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || '' }

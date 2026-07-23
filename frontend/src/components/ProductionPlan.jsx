@@ -57,7 +57,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newCompanyTier, setNewCompanyTier] = useState('B');
-  const [newCompanyProduct, setNewCompanyProduct] = useState('Ethyl Acetate');
+  const [newCompanyProduct, setNewCompanyProduct] = useState('AA');
   const [submittingCompany, setSubmittingCompany] = useState(false);
 
   const activeProduct = selectedSubTab;
