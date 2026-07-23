@@ -15,7 +15,7 @@ import {
 import { formatDate } from '../App';
 
 export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
-  const [selectedProductChart, setSelectedProductChart] = useState('Acetone');
+  const [selectedProductChart, setSelectedProductChart] = useState('AA');
   
   if (loading) {
     return (
@@ -44,7 +44,7 @@ export default function Dashboard({ data, loading, onNavigate, API_BASE }) {
 
   const products = (inventory_statuses && inventory_statuses.length > 0)
     ? inventory_statuses.map(i => i.product_type)
-    : ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+    : ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
 
 
   // Render SVG Chart for forward projections

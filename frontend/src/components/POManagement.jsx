@@ -6,7 +6,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [pos, setPos] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
 
   // Filtering & Sorting State
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +32,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
   const [newCommittedDate, setNewCommittedDate] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [newItems, setNewItems] = useState([
-    { product_type: 'Acetone', quantity: '' }
+    { product_type: 'AA', quantity: '' }
   ]);
   const [formError, setFormError] = useState('');
 
@@ -141,7 +141,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
 
   // Form Handlers
   const handleAddItemRow = () => {
-    setNewItems([...newItems, { product_type: products[0] || 'Acetone', quantity: '' }]);
+    setNewItems([...newItems, { product_type: products[0] || 'AA', quantity: '' }]);
   };
 
   const handleRemoveItemRow = (idx) => {
@@ -208,7 +208,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
           setNewDateReceived(systemDate);
           setNewCommittedDate('');
           setNewNotes('');
-          setNewItems([{ product_type: products[0] || 'Acetone', quantity: '' }]);
+          setNewItems([{ product_type: products[0] || 'AA', quantity: '' }]);
           fetchPOs();
           triggerRefresh();
         }

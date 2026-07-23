@@ -87,7 +87,7 @@ async function testPOCreateWithCommitment() {
     date_received: '2026-07-01',
     committed_dispatch_date: '2026-07-03',
     notes: 'Phase 2 test PO with commitment',
-    items: [{ product_type: 'Acetone', quantity: 10 }]
+    items: [{ product_type: 'SDS', quantity: 10 }]
   });
   check(createRes.status === 200 || createRes.status === 201, 'POST /api/pos with committed_dispatch_date succeeds');
   
@@ -142,7 +142,7 @@ async function testScenarios() {
 
   const createRes = await req('POST', '/api/scenarios', {
     name: `Test Scenario ${Date.now()}`,
-    snapshot_json: { product: 'Acetone', extra_dispatch: 5, production_boost: 2, projection: { baseline: [], scenario: [] } },
+    snapshot_json: { product: 'SDS', extra_dispatch: 5, production_boost: 2, projection: { baseline: [], scenario: [] } },
     ai_narration: 'Automated test narration.',
     created_by: 'TestRunner'
   });

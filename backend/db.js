@@ -263,6 +263,26 @@ export async function initDb() {
             console.warn('SQLite customer portal user seeding warning:', e.message);
         }
     }
+
+    // Ensure OpenRouter key is set if not already set or if empty
+    try {
+        const envKey = process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || '';
+        if (envKey) {
+            if (isPg) {
+                const client = await pgPool.connect();
+                try {
+                    await client.query("UPDATE system_settings SET value = $1 WHERE key = 'anthropic_api_key' AND (value IS NULL OR value = '')", [envKey]);
+                } finally {
+                    client.release();
+                }
+            } else {
+                const db = await getDbConnection();
+                await db.run("UPDATE system_settings SET value = ? WHERE key = 'anthropic_api_key' AND (value IS NULL OR value = '')", [envKey]);
+            }
+        }
+    } catch (e) {
+        console.warn('System settings update warning:', e.message);
+    }
 }
 
 async function seedDatabase(db, isPgConn) {
@@ -469,7 +489,7 @@ async function seedDatabase(db, isPgConn) {
         { key: 'min_threshold_Toluene', value: '60.0' },
         { key: 'vehicle_capacity_mt', value: '32.0' },
         { key: 'system_date', value: '2026-06-29' },
-        { key: 'anthropic_api_key', value: '' }
+        { key: 'anthropic_api_key', value: process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || '' }
     ];
 
     for (const s of settings) {

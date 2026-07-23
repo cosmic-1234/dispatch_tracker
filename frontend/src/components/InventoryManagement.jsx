@@ -13,7 +13,7 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
   const [editedSnaps, setEditedSnaps] = useState({}); // prod -> { prod_add, pur_rec, disp_out }
   const [saving, setSaving] = useState(false);
 
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
 
   useEffect(() => {
     fetch(`${API_BASE}/products`)

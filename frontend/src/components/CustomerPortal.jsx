@@ -413,7 +413,7 @@ function DispatchHistoryTab({ orders, loading, products }) {
             />
             <select value={productFilter} onChange={e => setProductFilter(e.target.value)} style={{ height: '32px', padding: '4px 8px' }}>
               <option value="All">All Products</option>
-              {(products || ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']).map(prod => (
+              {(products || ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']).map(prod => (
                 <option key={prod} value={prod}>{prod}</option>
               ))}
             </select>
@@ -724,7 +724,7 @@ export default function CustomerPortal({ API_BASE }) {
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [systemDate, setSystemDate] = useState('2026-06-29');
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
 
   const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
 
