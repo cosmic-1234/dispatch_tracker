@@ -216,7 +216,7 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
           )}
         </div>
         <div className="card-body" style={{ padding: 0 }}>
-          <div className="table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
+          <div className="table-wrapper" style={{ border: 'none', borderRadius: 0, overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 320px)', minHeight: '200px' }}>
             <table className="sap-table">
               <thead>
                 <tr>
