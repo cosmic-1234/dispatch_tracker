@@ -173,6 +173,110 @@ export async function initDb() {
                 console.warn('PostgreSQL column migration warning:', err.message);
             }
 
+            // Run product names migration for PG if old products exist
+            try {
+                console.log('Checking if PostgreSQL product migration is needed...');
+                
+                // Helper to drop any check constraints on a column
+                const dropCheckConstraints = async (tableName, columnName) => {
+                    try {
+                        const checkRes = await client.query(`
+                            SELECT tc.constraint_name 
+                            FROM information_schema.table_constraints tc 
+                            JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
+                            WHERE tc.constraint_type = 'CHECK' 
+                              AND tc.table_name = $1 
+                              AND ccu.column_name = $2
+                        `, [tableName, columnName]);
+                        for (const row of checkRes.rows) {
+                            await client.query(\`ALTER TABLE \${tableName} DROP CONSTRAINT IF EXISTS \${row.constraint_name}\`);
+                        }
+                    } catch (err) {
+                        console.warn(\`Warning dropping check constraints on \${tableName}.\${columnName}:\`, err.message);
+                    }
+                };
+
+                // Drop check constraints first to avoid constraint violation during update
+                await dropCheckConstraints('po_line_items', 'product_type');
+                await dropCheckConstraints('dispatch_log', 'product_type');
+                await dropCheckConstraints('inventory_snapshots', 'product_type');
+                await dropCheckConstraints('production_plans', 'product_type');
+                await dropCheckConstraints('vendor_purchases', 'mapped_product');
+
+                // Update product names in po_line_items
+                await client.query("UPDATE po_line_items SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE po_line_items SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE po_line_items SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE po_line_items SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE po_line_items SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in dispatch_log
+                await client.query("UPDATE dispatch_log SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE dispatch_log SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE dispatch_log SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE dispatch_log SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE dispatch_log SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in inventory_snapshots
+                await client.query("UPDATE inventory_snapshots SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in production_plans
+                await client.query("UPDATE production_plans SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE production_plans SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE production_plans SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE production_plans SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE production_plans SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in vendor_purchases
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'SDS' WHERE mapped_product IN ('Acetone', 'DEP')");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'KMO' WHERE mapped_product = 'Benzene'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'SMO' WHERE mapped_product = 'Toluene'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'AA' WHERE mapped_product = 'Ethyl Acetate'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'RETARDER' WHERE mapped_product = 'Retarder'");
+
+                // Update companies primary products
+                const cos = await client.query("SELECT id, primary_products FROM companies");
+                for (const row of cos.rows) {
+                    try {
+                        let prods = JSON.parse(row.primary_products);
+                        if (Array.isArray(prods)) {
+                            let updated = prods.map(p => {
+                                if (p === 'Acetone' || p === 'DEP') return 'SDS';
+                                if (p === 'Benzene') return 'KMO';
+                                if (p === 'Toluene') return 'SMO';
+                                if (p === 'Ethyl Acetate') return 'AA';
+                                if (p === 'Retarder') return 'RETARDER';
+                                return p;
+                            });
+                            await client.query("UPDATE companies SET primary_products = $1 WHERE id = $2", [JSON.stringify(updated), row.id]);
+                        }
+                    } catch (e) {}
+                }
+
+                // Update system settings key thresholds
+                await client.query("UPDATE system_settings SET key = 'min_threshold_SDS' WHERE key = 'min_threshold_Acetone'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_KMO' WHERE key = 'min_threshold_Benzene'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_AA' WHERE key = 'min_threshold_Ethyl Acetate'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_RETARDER' WHERE key = 'min_threshold_Retarder'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_SMO' WHERE key = 'min_threshold_Toluene'");
+                await client.query("DELETE FROM system_settings WHERE key = 'min_threshold_DEP'");
+
+                // Re-add check constraints with the new allowed products
+                await client.query("ALTER TABLE po_line_items ADD CONSTRAINT po_line_items_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE dispatch_log ADD CONSTRAINT dispatch_log_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE inventory_snapshots ADD CONSTRAINT inventory_snapshots_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE production_plans ADD CONSTRAINT production_plans_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE vendor_purchases ADD CONSTRAINT vendor_purchases_mapped_product_check CHECK (mapped_product IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO', 'Other'))");
+
+                console.log('PostgreSQL product migration completed successfully!');
+            } catch (err) {
+                console.error('PostgreSQL product migration error:', err.message);
+            }
+
             const res = await client.query('SELECT COUNT(*) as count FROM companies');
             const count = parseInt(res.rows[0].count);
             if (count === 0) {
