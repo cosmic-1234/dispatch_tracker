@@ -142,6 +142,29 @@ export async function initDb() {
     if (isPg) {
         const client = await pgPool.connect();
         try {
+            // Check if database contains old product names and needs a clean wipe
+            let needsWipe = false;
+            try {
+                const checkRes = await client.query("SELECT COUNT(*) as count FROM po_line_items WHERE product_type = 'Acetone'");
+                if (parseInt(checkRes.rows[0].count) > 0) {
+                    needsWipe = true;
+                }
+            } catch (e) {}
+            
+            if (needsWipe) {
+                console.log('Old product names detected in PostgreSQL database. Wiping tables for a clean, relative date seed...');
+                const dropTables = [
+                    'dispatch_allocations', 'dispatch_log', 'po_line_items', 
+                    'po_commitment_history', 'purchase_orders', 'inventory_snapshots', 
+                    'production_plans', 'vendor_purchases', 'system_settings', 
+                    'customer_portal_users', 'companies', 'customer_login_activity', 
+                    'scenario_snapshots'
+                ];
+                for (const table of dropTables) {
+                    await client.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
+                }
+            }
+
             const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
             // Remove single line SQL comments
             const cleanSql = schemaSql.replace(/--.*$/gm, '');
@@ -390,6 +413,22 @@ export async function initDb() {
 }
 
 async function seedDatabase(db, isPgConn) {
+    const today = new Date();
+    const formatDateRelative = (daysAgo) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - daysAgo);
+        return d.toLocaleDateString('en-CA');
+    };
+    const getMonday = (d) => {
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    };
+    const getMondayRelative = (weeksAgo) => {
+        const d = getMonday(new Date());
+        d.setDate(d.getDate() - weeksAgo * 7);
+        return d.toLocaleDateString('en-CA');
+    };
     const runQuery = async (sql, params = []) => {
         if (isPgConn) {
             let pgSql = sql;
@@ -423,12 +462,12 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const historicalPOs = [
-        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: '2026-04-10', status: 'Closed', product: 'SDS', quantity: 10.0, allocated: 10.0 },
-        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: '2026-05-15', status: 'Closed', product: 'SDS', quantity: 12.0, allocated: 12.0 },
-        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: '2026-05-01', status: 'Closed', product: 'SDS', quantity: 30.0, allocated: 30.0 },
-        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: '2026-05-20', status: 'Closed', product: 'KMO', quantity: 25.0, allocated: 25.0 },
-        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: '2026-05-10', status: 'Closed', product: 'SMO', quantity: 40.0, allocated: 40.0 },
-        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: '2026-05-25', status: 'Closed', product: 'SDS', quantity: 15.0, allocated: 15.0 }
+        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: formatDateRelative(80), status: 'Closed', product: 'SDS', quantity: 10.0, allocated: 10.0 },
+        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: formatDateRelative(45), status: 'Closed', product: 'SDS', quantity: 12.0, allocated: 12.0 },
+        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: formatDateRelative(59), status: 'Closed', product: 'SDS', quantity: 30.0, allocated: 30.0 },
+        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: formatDateRelative(40), status: 'Closed', product: 'KMO', quantity: 25.0, allocated: 25.0 },
+        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: formatDateRelative(50), status: 'Closed', product: 'SMO', quantity: 40.0, allocated: 40.0 },
+        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: formatDateRelative(35), status: 'Closed', product: 'SDS', quantity: 15.0, allocated: 15.0 }
     ];
 
     for (const po of historicalPOs) {
@@ -466,11 +505,11 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const activePOs = [
-        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: '2026-06-25', status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'SDS', qty: 40.0 }, { product: 'KMO', qty: 20.0 }] },
-        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: '2026-06-28', status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'SMO', qty: 30.0 }, { product: 'RETARDER', qty: 15.0 }] },
-        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: '2026-06-20', status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'SDS', qty: 25.0, allocated: 10.0 }] },
-        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: '2026-06-15', status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'SDS', qty: 50.0 }] },
-        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: '2026-06-27', status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'KMO', qty: 15.0 }] }
+        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: formatDateRelative(4), status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'SDS', qty: 40.0 }, { product: 'KMO', qty: 20.0 }] },
+        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: formatDateRelative(1), status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'SMO', qty: 30.0 }, { product: 'RETARDER', qty: 15.0 }] },
+        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: formatDateRelative(9), status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'SDS', qty: 25.0, allocated: 10.0 }] },
+        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: formatDateRelative(14), status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'SDS', qty: 50.0 }] },
+        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: formatDateRelative(2), status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'KMO', qty: 15.0 }] }
     ];
 
     for (const po of activePOs) {
@@ -517,7 +556,7 @@ async function seedDatabase(db, isPgConn) {
         SMO: 180.0
     };
 
-    const systemDate = new Date('2026-06-29');
+    const systemDate = new Date();
     let currentStocks = { ...initialStocks };
 
     for (let d = 30; d >= 0; d--) {
@@ -562,7 +601,7 @@ async function seedDatabase(db, isPgConn) {
         }
     }
 
-    const weeks = ['2026-06-15', '2026-06-22', '2026-06-29'];
+    const weeks = [getMondayRelative(2), getMondayRelative(1), getMondayRelative(0)];
     const plans = [
         { product: 'AA', planned: 40.0, actual: 42.0 },
         { product: 'KMO', planned: 30.0, actual: 28.0 },
@@ -573,7 +612,7 @@ async function seedDatabase(db, isPgConn) {
 
     for (const w of weeks) {
         for (const p of plans) {
-            const actualQty = w === '2026-06-29' ? 0.0 : p.actual;
+            const actualQty = w === getMondayRelative(0) ? 0.0 : p.actual;
             await runQuery(
                 `INSERT INTO production_plans (product_type, week_start_date, planned_quantity, actual_quantity, created_at, updated_at)
                  VALUES (?, ?, ?, ?, ?, ?)`,
@@ -589,7 +628,7 @@ async function seedDatabase(db, isPgConn) {
         { key: 'min_threshold_SDS', value: '50.0' },
         { key: 'min_threshold_SMO', value: '60.0' },
         { key: 'vehicle_capacity_mt', value: '32.0' },
-        { key: 'system_date', value: '2026-06-29' },
+        { key: 'system_date', value: formatDateRelative(0) },
         { key: 'anthropic_api_key', value: process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || '' }
     ];
 

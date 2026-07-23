@@ -723,7 +723,7 @@ export default function CustomerPortal({ API_BASE }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [systemDate, setSystemDate] = useState('2026-06-29');
+  const [systemDate, setSystemDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
 
   const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);

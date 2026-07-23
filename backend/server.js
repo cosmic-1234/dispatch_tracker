@@ -26,7 +26,7 @@ initDb().then(() => {
 // Helper: Get active simulated date or actual date
 async function getSystemDate() {
     const row = await queryGet("SELECT value FROM system_settings WHERE key = 'system_date'");
-    return row ? row.value : '2026-06-29';
+    return (row && row.value && row.value !== 'None' && row.value !== '') ? row.value : new Date().toLocaleDateString('en-CA');
 }
 
 // Helper: Sync PO Commitment Statuses and Company Health Scores based on simulated date
