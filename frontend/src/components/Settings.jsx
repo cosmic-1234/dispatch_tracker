@@ -8,7 +8,7 @@ export default function Settings({ API_BASE, triggerRefresh }) {
   const [successMsg, setSuccessMsg] = useState('');
 
   // Editable Form fields
-  const [systemDate, setSystemDate] = useState('2026-06-29');
+  const [systemDate, setSystemDate] = useState(new Date().toLocaleDateString('en-CA'));
   const [vehicleCapacity, setVehicleCapacity] = useState('32.0');
   const [apiKey, setApiKey] = useState('');
   const [thresholds, setThresholds] = useState({

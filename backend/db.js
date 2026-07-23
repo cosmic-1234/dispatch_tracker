@@ -142,6 +142,29 @@ export async function initDb() {
     if (isPg) {
         const client = await pgPool.connect();
         try {
+            // Check if database contains old product names and needs a clean wipe
+            let needsWipe = false;
+            try {
+                const checkRes = await client.query("SELECT COUNT(*) as count FROM po_line_items WHERE product_type = 'Acetone'");
+                if (parseInt(checkRes.rows[0].count) > 0) {
+                    needsWipe = true;
+                }
+            } catch (e) {}
+            
+            if (needsWipe) {
+                console.log('Old product names detected in PostgreSQL database. Wiping tables for a clean, relative date seed...');
+                const dropTables = [
+                    'dispatch_allocations', 'dispatch_log', 'po_line_items', 
+                    'po_commitment_history', 'purchase_orders', 'inventory_snapshots', 
+                    'production_plans', 'vendor_purchases', 'system_settings', 
+                    'customer_portal_users', 'companies', 'customer_login_activity', 
+                    'scenario_snapshots'
+                ];
+                for (const table of dropTables) {
+                    await client.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
+                }
+            }
+
             const schemaSql = fs.readFileSync(SCHEMA_PATH, 'utf8');
             // Remove single line SQL comments
             const cleanSql = schemaSql.replace(/--.*$/gm, '');
@@ -171,6 +194,110 @@ export async function initDb() {
                 await client.query("ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS commitment_status TEXT DEFAULT 'Pending'");
             } catch (err) {
                 console.warn('PostgreSQL column migration warning:', err.message);
+            }
+
+            // Run product names migration for PG if old products exist
+            try {
+                console.log('Checking if PostgreSQL product migration is needed...');
+                
+                // Helper to drop any check constraints on a column
+                const dropCheckConstraints = async (tableName, columnName) => {
+                    try {
+                        const checkRes = await client.query(`
+                            SELECT tc.constraint_name 
+                            FROM information_schema.table_constraints tc 
+                            JOIN information_schema.constraint_column_usage ccu ON tc.constraint_name = ccu.constraint_name
+                            WHERE tc.constraint_type = 'CHECK' 
+                              AND tc.table_name = $1 
+                              AND ccu.column_name = $2
+                        `, [tableName, columnName]);
+                        for (const row of checkRes.rows) {
+                            await client.query(`ALTER TABLE ${tableName} DROP CONSTRAINT IF EXISTS ${row.constraint_name}`);
+                        }
+                    } catch (err) {
+                        console.warn(`Warning dropping check constraints on ${tableName}.${columnName}:`, err.message);
+                    }
+                };
+
+                // Drop check constraints first to avoid constraint violation during update
+                await dropCheckConstraints('po_line_items', 'product_type');
+                await dropCheckConstraints('dispatch_log', 'product_type');
+                await dropCheckConstraints('inventory_snapshots', 'product_type');
+                await dropCheckConstraints('production_plans', 'product_type');
+                await dropCheckConstraints('vendor_purchases', 'mapped_product');
+
+                // Update product names in po_line_items
+                await client.query("UPDATE po_line_items SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE po_line_items SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE po_line_items SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE po_line_items SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE po_line_items SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in dispatch_log
+                await client.query("UPDATE dispatch_log SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE dispatch_log SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE dispatch_log SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE dispatch_log SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE dispatch_log SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in inventory_snapshots
+                await client.query("UPDATE inventory_snapshots SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE inventory_snapshots SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in production_plans
+                await client.query("UPDATE production_plans SET product_type = 'SDS' WHERE product_type IN ('Acetone', 'DEP')");
+                await client.query("UPDATE production_plans SET product_type = 'KMO' WHERE product_type = 'Benzene'");
+                await client.query("UPDATE production_plans SET product_type = 'SMO' WHERE product_type = 'Toluene'");
+                await client.query("UPDATE production_plans SET product_type = 'AA' WHERE product_type = 'Ethyl Acetate'");
+                await client.query("UPDATE production_plans SET product_type = 'RETARDER' WHERE product_type = 'Retarder'");
+
+                // Update product names in vendor_purchases
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'SDS' WHERE mapped_product IN ('Acetone', 'DEP')");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'KMO' WHERE mapped_product = 'Benzene'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'SMO' WHERE mapped_product = 'Toluene'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'AA' WHERE mapped_product = 'Ethyl Acetate'");
+                await client.query("UPDATE vendor_purchases SET mapped_product = 'RETARDER' WHERE mapped_product = 'Retarder'");
+
+                // Update companies primary products
+                const cos = await client.query("SELECT id, primary_products FROM companies");
+                for (const row of cos.rows) {
+                    try {
+                        let prods = JSON.parse(row.primary_products);
+                        if (Array.isArray(prods)) {
+                            let updated = prods.map(p => {
+                                if (p === 'Acetone' || p === 'DEP') return 'SDS';
+                                if (p === 'Benzene') return 'KMO';
+                                if (p === 'Toluene') return 'SMO';
+                                if (p === 'Ethyl Acetate') return 'AA';
+                                if (p === 'Retarder') return 'RETARDER';
+                                return p;
+                            });
+                            await client.query("UPDATE companies SET primary_products = $1 WHERE id = $2", [JSON.stringify(updated), row.id]);
+                        }
+                    } catch (e) {}
+                }
+
+                // Update system settings key thresholds
+                await client.query("UPDATE system_settings SET key = 'min_threshold_SDS' WHERE key = 'min_threshold_Acetone'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_KMO' WHERE key = 'min_threshold_Benzene'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_AA' WHERE key = 'min_threshold_Ethyl Acetate'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_RETARDER' WHERE key = 'min_threshold_Retarder'");
+                await client.query("UPDATE system_settings SET key = 'min_threshold_SMO' WHERE key = 'min_threshold_Toluene'");
+                await client.query("DELETE FROM system_settings WHERE key = 'min_threshold_DEP'");
+
+                // Re-add check constraints with the new allowed products
+                await client.query("ALTER TABLE po_line_items ADD CONSTRAINT po_line_items_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE dispatch_log ADD CONSTRAINT dispatch_log_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE inventory_snapshots ADD CONSTRAINT inventory_snapshots_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE production_plans ADD CONSTRAINT production_plans_product_type_check CHECK (product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO'))");
+                await client.query("ALTER TABLE vendor_purchases ADD CONSTRAINT vendor_purchases_mapped_product_check CHECK (mapped_product IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO', 'Other'))");
+
+                console.log('PostgreSQL product migration completed successfully!');
+            } catch (err) {
+                console.error('PostgreSQL product migration error:', err.message);
             }
 
             const res = await client.query('SELECT COUNT(*) as count FROM companies');
@@ -286,6 +413,22 @@ export async function initDb() {
 }
 
 async function seedDatabase(db, isPgConn) {
+    const today = new Date();
+    const formatDateRelative = (daysAgo) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - daysAgo);
+        return d.toLocaleDateString('en-CA');
+    };
+    const getMonday = (d) => {
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        return new Date(d.setDate(diff));
+    };
+    const getMondayRelative = (weeksAgo) => {
+        const d = getMonday(new Date());
+        d.setDate(d.getDate() - weeksAgo * 7);
+        return d.toLocaleDateString('en-CA');
+    };
     const runQuery = async (sql, params = []) => {
         if (isPgConn) {
             let pgSql = sql;
@@ -319,12 +462,12 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const historicalPOs = [
-        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: '2026-04-10', status: 'Closed', product: 'SDS', quantity: 10.0, allocated: 10.0 },
-        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: '2026-05-15', status: 'Closed', product: 'SDS', quantity: 12.0, allocated: 12.0 },
-        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: '2026-05-01', status: 'Closed', product: 'SDS', quantity: 30.0, allocated: 30.0 },
-        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: '2026-05-20', status: 'Closed', product: 'KMO', quantity: 25.0, allocated: 25.0 },
-        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: '2026-05-10', status: 'Closed', product: 'SMO', quantity: 40.0, allocated: 40.0 },
-        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: '2026-05-25', status: 'Closed', product: 'SDS', quantity: 15.0, allocated: 15.0 }
+        { id: 'PO-HIST-001', company_id: 'COMP-004', date_received: formatDateRelative(80), status: 'Closed', product: 'SDS', quantity: 10.0, allocated: 10.0 },
+        { id: 'PO-HIST-002', company_id: 'COMP-004', date_received: formatDateRelative(45), status: 'Closed', product: 'SDS', quantity: 12.0, allocated: 12.0 },
+        { id: 'PO-HIST-003', company_id: 'COMP-001', date_received: formatDateRelative(59), status: 'Closed', product: 'SDS', quantity: 30.0, allocated: 30.0 },
+        { id: 'PO-HIST-004', company_id: 'COMP-001', date_received: formatDateRelative(40), status: 'Closed', product: 'KMO', quantity: 25.0, allocated: 25.0 },
+        { id: 'PO-HIST-005', company_id: 'COMP-003', date_received: formatDateRelative(50), status: 'Closed', product: 'SMO', quantity: 40.0, allocated: 40.0 },
+        { id: 'PO-HIST-006', company_id: 'COMP-002', date_received: formatDateRelative(35), status: 'Closed', product: 'SDS', quantity: 15.0, allocated: 15.0 }
     ];
 
     for (const po of historicalPOs) {
@@ -362,11 +505,11 @@ async function seedDatabase(db, isPgConn) {
     }
 
     const activePOs = [
-        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: '2026-06-25', status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'SDS', qty: 40.0 }, { product: 'KMO', qty: 20.0 }] },
-        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: '2026-06-28', status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'SMO', qty: 30.0 }, { product: 'RETARDER', qty: 15.0 }] },
-        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: '2026-06-20', status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'SDS', qty: 25.0, allocated: 10.0 }] },
-        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: '2026-06-15', status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'SDS', qty: 50.0 }] },
-        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: '2026-06-27', status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'KMO', qty: 15.0 }] }
+        { id: 'PO-2026-001', company_id: 'COMP-001', date_received: formatDateRelative(4), status: 'Received', notes: 'Urgent requirement for pharma batch synthesis.', items: [{ product: 'SDS', qty: 40.0 }, { product: 'KMO', qty: 20.0 }] },
+        { id: 'PO-2026-002', company_id: 'COMP-003', date_received: formatDateRelative(1), status: 'Received', notes: 'Requesting fast-track delivery. Special Retarder blend.', items: [{ product: 'SMO', qty: 30.0 }, { product: 'RETARDER', qty: 15.0 }] },
+        { id: 'PO-2026-003', company_id: 'COMP-002', date_received: formatDateRelative(9), status: 'Partially Allocated', notes: 'Deliver to Udaipur plant.', items: [{ product: 'SDS', qty: 25.0, allocated: 10.0 }] },
+        { id: 'PO-2026-004', company_id: 'COMP-004', date_received: formatDateRelative(14), status: 'Received', notes: 'Bulk purchase order for festival inventory.', items: [{ product: 'SDS', qty: 50.0 }] },
+        { id: 'PO-2026-005', company_id: 'COMP-005', date_received: formatDateRelative(2), status: 'Received', notes: 'Credit verification pending but order accepted.', items: [{ product: 'KMO', qty: 15.0 }] }
     ];
 
     for (const po of activePOs) {
@@ -413,7 +556,7 @@ async function seedDatabase(db, isPgConn) {
         SMO: 180.0
     };
 
-    const systemDate = new Date('2026-06-29');
+    const systemDate = new Date();
     let currentStocks = { ...initialStocks };
 
     for (let d = 30; d >= 0; d--) {
@@ -458,7 +601,7 @@ async function seedDatabase(db, isPgConn) {
         }
     }
 
-    const weeks = ['2026-06-15', '2026-06-22', '2026-06-29'];
+    const weeks = [getMondayRelative(2), getMondayRelative(1), getMondayRelative(0)];
     const plans = [
         { product: 'AA', planned: 40.0, actual: 42.0 },
         { product: 'KMO', planned: 30.0, actual: 28.0 },
@@ -469,7 +612,7 @@ async function seedDatabase(db, isPgConn) {
 
     for (const w of weeks) {
         for (const p of plans) {
-            const actualQty = w === '2026-06-29' ? 0.0 : p.actual;
+            const actualQty = w === getMondayRelative(0) ? 0.0 : p.actual;
             await runQuery(
                 `INSERT INTO production_plans (product_type, week_start_date, planned_quantity, actual_quantity, created_at, updated_at)
                  VALUES (?, ?, ?, ?, ?, ?)`,
@@ -485,7 +628,7 @@ async function seedDatabase(db, isPgConn) {
         { key: 'min_threshold_SDS', value: '50.0' },
         { key: 'min_threshold_SMO', value: '60.0' },
         { key: 'vehicle_capacity_mt', value: '32.0' },
-        { key: 'system_date', value: '2026-06-29' },
+        { key: 'system_date', value: formatDateRelative(0) },
         { key: 'anthropic_api_key', value: process.env.ANTHROPIC_API_KEY || process.env.OPENROUTER_API_KEY || '' }
     ];
 

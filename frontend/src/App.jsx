@@ -56,7 +56,7 @@ export default function App() {
   const [activeModule, setActiveModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(true); // default open for planner visibility
-  const [systemDate, setSystemDate] = useState('2026-06-29');
+  const [systemDate, setSystemDate] = useState(new Date().toLocaleDateString('en-CA'));
   
   // Dashboard indicators and alerts
   const [dashboardData, setDashboardData] = useState(null);
