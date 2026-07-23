@@ -227,7 +227,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
           {/* Filters Group */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748B' }} />
+              <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-muted)' }} />
               <input 
                 type="text" 
                 placeholder="Search PO ID / Company..." 
@@ -304,13 +304,13 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span>{po.company_name}</span>
                         {po.anomaly_flag === 1 && (
-                          <span style={{ fontSize: '9px', color: '#B45309', fontWeight: 600 }}>⚠️ ANOMALY VOLUME</span>
+                          <span style={{ fontSize: '9px', color: 'var(--warning)', fontWeight: 600 }}>⚠️ ANOMALY VOLUME</span>
                         )}
                         {po.company_credit_status === 'On Hold' && (
-                          <span style={{ fontSize: '9px', color: '#DC2626', fontWeight: 600 }}>🚫 CREDIT HOLD</span>
+                          <span style={{ fontSize: '9px', color: 'var(--danger)', fontWeight: 600 }}>🚫 CREDIT HOLD</span>
                         )}
                         {po.relationship_risk_flag === 1 && (
-                          <span style={{ fontSize: '9px', color: '#7C3AED', fontWeight: 600 }}>⚡ RELATIONSHIP RISK</span>
+                          <span style={{ fontSize: '9px', color: 'var(--info)', fontWeight: 600 }}>⚡ RELATIONSHIP RISK</span>
                         )}
                       </div>
                     </td>
@@ -318,14 +318,14 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                     <td>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                         {po.items.map(item => (
-                          <span key={item.product_type} style={{ fontSize: '10px', backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', padding: '1px 4px', borderRadius: '2px' }}>
+                          <span key={item.product_type} style={{ fontSize: '10px', backgroundColor: 'var(--bg-subtle)', border: '1px solid #E2E8F0', padding: '1px 4px', borderRadius: '2px' }}>
                             {item.product_type} ({item.quantity} MT)
                           </span>
                         ))}
                       </div>
                     </td>
                     <td className="mono" style={{ fontWeight: 500 }}>{po.total_qty.toFixed(1)} MT</td>
-                    <td className="mono" style={{ fontWeight: 500, color: pending > 0 ? '#1C6BF4' : 'inherit' }}>{pending.toFixed(1)} MT</td>
+                    <td className="mono" style={{ fontWeight: 500, color: pending > 0 ? 'var(--primary-blue)' : 'inherit' }}>{pending.toFixed(1)} MT</td>
                     <td>{formatDate(po.date_received)}</td>
                     <td>{po.order_age} day(s)</td>
                     <td>
@@ -335,12 +335,12 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                           {po.commitment_status && (
                             <span style={{
                               fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '3px',
-                              background: po.commitment_status === 'Honored' ? '#D1FAE5' : po.commitment_status === 'Missed' ? '#FEE2E2' : po.commitment_status === 'Renegotiated' ? '#FEF3C7' : '#EFF6FF',
-                              color: po.commitment_status === 'Honored' ? '#065F46' : po.commitment_status === 'Missed' ? '#991B1B' : po.commitment_status === 'Renegotiated' ? '#92400E' : '#1E40AF',
+                              background: po.commitment_status === 'Honored' ? 'var(--success-bg)' : po.commitment_status === 'Missed' ? 'var(--danger-bg)' : po.commitment_status === 'Renegotiated' ? 'var(--warning-bg)' : 'var(--info-bg)',
+                              color: po.commitment_status === 'Honored' ? 'var(--success)' : po.commitment_status === 'Missed' ? 'var(--danger)' : po.commitment_status === 'Renegotiated' ? 'var(--warning)' : 'var(--info)',
                             }}>{po.commitment_status}</span>
                           )}
                         </div>
-                      ) : <span style={{ color: '#94A3B8', fontSize: '10px' }}>Not set</span>}
+                      ) : <span style={{ color: 'var(--text-disabled)', fontSize: '10px' }}>Not set</span>}
                     </td>
                     <td><span className={`badge ${po.status.toLowerCase().replace(' ', '_')}`}>{po.status}</span></td>
                     <td style={{ textAlign: 'right' }}>
@@ -354,7 +354,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
               })}
               {(!loading && currentRows.length === 0) && (
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: '#64748B' }}>No Purchase Orders matching filters found.</td>
+                  <td colSpan="10" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No Purchase Orders matching filters found.</td>
                 </tr>
               )}
             </tbody>
@@ -385,7 +385,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
             <form onSubmit={handleCreatePOSubmit}>
               <div className="modal-body">
                 {formError && (
-                  <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px', fontSize: '12px', borderRadius: '4px', marginBottom: '16px' }}>
+                  <div style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid #FCA5A5', color: 'var(--danger)', padding: '10px', fontSize: '12px', borderRadius: '4px', marginBottom: '16px' }}>
                     {formError}
                   </div>
                 )}
@@ -425,7 +425,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                   <div className="form-group">
                     <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Calendar size={12} /> Committed Dispatch Date
-                      <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 400 }}>(optional)</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-disabled)', fontWeight: 400 }}>(optional)</span>
                     </label>
                     <input 
                       type="date" 
@@ -483,7 +483,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                       <button 
                         type="button" 
                         className="btn btn-secondary" 
-                        style={{ padding: '6px', color: '#EF4444', borderColor: '#FCA5A5' }}
+                        style={{ padding: '6px', color: 'var(--danger)', borderColor: 'var(--danger-border)' }}
                         disabled={newItems.length === 1}
                         onClick={() => handleRemoveItemRow(idx)}
                       >
@@ -512,7 +512,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
               </button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', backgroundColor: '#F8FAFC', padding: '12px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', backgroundColor: 'var(--bg-subtle)', padding: '12px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                 <div>Company Name: <strong>{poDetail.company_name}</strong></div>
                 <div>Customer Priority: <span className={`tier-badge ${poDetail.company_tier}`}>Tier {poDetail.company_tier}</span></div>
                 <div>Credit Verification: <strong style={{ color: poDetail.company_credit_status === 'Active' ? 'green' : 'red' }}>{poDetail.company_credit_status}</strong></div>
@@ -527,23 +527,23 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
 
               {/* Commitment Section */}
               {poDetail.committed_dispatch_date && (
-                <div style={{ background: '#F0F7FF', border: '1px solid #BFDBFE', borderRadius: '6px', padding: '12px' }}>
+                <div style={{ background: 'var(--info-bg)', border: '1px solid #BFDBFE', borderRadius: '6px', padding: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Clock size={13} color="#3B82F6" />
-                      <span style={{ fontWeight: 700, fontSize: '12px', color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Commitment Tracking</span>
+                      <span style={{ fontWeight: 700, fontSize: '12px', color: 'var(--info)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Commitment Tracking</span>
                     </div>
-                    <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px', color: '#D97706', borderColor: '#FCD34D' }}
+                    <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--warning)', borderColor: 'var(--warning)' }}
                       onClick={() => { setRenegotiatePoId(poDetail.id); setRenegotiateNewDate(''); setRenegotiateReason(''); setRenegotiateError(''); setShowRenegotiateModal(true); }}>
                       Renegotiate Date
                     </button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '12px' }}>
-                    <div>Committed Date: <strong style={{ color: poDetail.commitment_status === 'Missed' ? '#DC2626' : '#1E293B' }}>{formatDate(poDetail.committed_dispatch_date)}</strong></div>
+                    <div>Committed Date: <strong style={{ color: poDetail.commitment_status === 'Missed' ? 'var(--danger)' : 'var(--text-primary)' }}>{formatDate(poDetail.committed_dispatch_date)}</strong></div>
                     <div>Status: <span style={{
                       padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700,
-                      background: poDetail.commitment_status === 'Honored' ? '#D1FAE5' : poDetail.commitment_status === 'Missed' ? '#FEE2E2' : poDetail.commitment_status === 'Renegotiated' ? '#FEF3C7' : '#EFF6FF',
-                      color: poDetail.commitment_status === 'Honored' ? '#065F46' : poDetail.commitment_status === 'Missed' ? '#991B1B' : poDetail.commitment_status === 'Renegotiated' ? '#92400E' : '#1E40AF',
+                      background: poDetail.commitment_status === 'Honored' ? 'var(--success-bg)' : poDetail.commitment_status === 'Missed' ? 'var(--danger-bg)' : poDetail.commitment_status === 'Renegotiated' ? 'var(--warning-bg)' : 'var(--info-bg)',
+                      color: poDetail.commitment_status === 'Honored' ? 'var(--success)' : poDetail.commitment_status === 'Missed' ? 'var(--danger)' : poDetail.commitment_status === 'Renegotiated' ? 'var(--warning)' : 'var(--info)',
                     }}>{poDetail.commitment_status}</span></div>
                     {poDetail.commitment_health_score !== null && poDetail.commitment_health_score !== undefined && (
                       <div>Company Health Score: <strong>{Math.round(poDetail.commitment_health_score)}%</strong></div>
@@ -552,15 +552,15 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                   {/* Commitment History Timeline */}
                   {poDetail.commitment_history && poDetail.commitment_history.length > 0 && (
                     <div style={{ marginTop: '12px', borderTop: '1px solid #BFDBFE', paddingTop: '10px' }}>
-                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Commitment History</div>
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--info)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Commitment History</div>
                       {poDetail.commitment_history.map((h, i) => (
                         <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '8px' }}>
                           <div style={{ width: '7px', height: '7px', borderRadius: '50%', marginTop: '4px', flexShrink: 0,
-                            background: h.status === 'Honored' ? '#10B981' : h.status === 'Missed' ? '#EF4444' : h.status === 'Renegotiated' ? '#F59E0B' : '#3B82F6' }} />
+                            background: h.status === 'Honored' ? 'var(--success)' : h.status === 'Missed' ? 'var(--danger)' : h.status === 'Renegotiated' ? 'var(--warning)' : 'var(--info)' }} />
                           <div style={{ fontSize: '11px' }}>
                             <span style={{ fontWeight: 600 }}>{h.status}</span>
-                            {h.committed_date && <span style={{ color: '#64748B' }}> — {formatDate(h.committed_date)}</span>}
-                            {h.reason && <div style={{ color: '#94A3B8', marginTop: '1px' }}>{h.reason}</div>}
+                            {h.committed_date && <span style={{ color: 'var(--text-muted)' }}> — {formatDate(h.committed_date)}</span>}
+                            {h.reason && <div style={{ color: 'var(--text-disabled)', marginTop: '1px' }}>{h.reason}</div>}
                           </div>
                         </div>
                       ))}
@@ -587,7 +587,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                         <tr key={item.id}>
                           <td><strong>{item.product_type}</strong></td>
                           <td className="mono">{item.quantity} MT</td>
-                          <td className="mono" style={{ color: '#1C6BF4', fontWeight: 600 }}>{item.allocated_quantity} MT</td>
+                          <td className="mono" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>{item.allocated_quantity} MT</td>
                           <td className="mono">{item.avg_90day ? `${item.avg_90day.toFixed(1)} MT` : 'N/A'}</td>
                           <td>
                             {item.is_anomalous ? (
@@ -630,7 +630,7 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
                       ))}
                       {(!poDetail.allocations || poDetail.allocations.length === 0) && (
                         <tr>
-                          <td colSpan="6" style={{ textAlign: 'center', padding: '12px', color: '#64748B' }}>No dispatches scheduled yet.</td>
+                          <td colSpan="6" style={{ textAlign: 'center', padding: '12px', color: 'var(--text-muted)' }}>No dispatches scheduled yet.</td>
                         </tr>
                       )}
                     </tbody>
@@ -657,11 +657,11 @@ export default function POManagement({ API_BASE, systemDate, triggerRefresh }) {
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {renegotiateError && (
-                <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '4px', padding: '10px', fontSize: '12px', color: '#DC2626' }}>
+                <div style={{ background: 'var(--danger-bg)', border: '1px solid #FECACA', borderRadius: '4px', padding: '10px', fontSize: '12px', color: 'var(--danger)' }}>
                   <AlertTriangle size={12} style={{ marginRight: '5px' }} />{renegotiateError}
                 </div>
               )}
-              <div style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '4px', padding: '10px', fontSize: '12px', color: '#92400E' }}>
+              <div style={{ background: 'var(--warning-bg)', border: '1px solid #FDE68A', borderRadius: '4px', padding: '10px', fontSize: '12px', color: 'var(--warning)' }}>
                 <strong>PO ID:</strong> {renegotiatePoId} — This action will create a permanent audit record in the commitment history.
               </div>
               <div className="form-group">

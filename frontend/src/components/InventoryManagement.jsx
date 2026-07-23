@@ -296,7 +296,7 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
 
                       <td className="mono" style={{ fontWeight: 600 }}>{calculatedClosing.toFixed(1)} MT</td>
                       
-                      <td className="mono" style={{ color: '#64748B' }}>{systemSum.toFixed(1)} MT</td>
+                      <td className="mono" style={{ color: 'var(--text-muted)' }}>{systemSum.toFixed(1)} MT</td>
                       
                       <td>
                         {mismatch ? (
@@ -363,7 +363,7 @@ export default function InventoryManagement({ API_BASE, systemDate, triggerRefre
                     {snap.confirmed === 1 ? (
                       <span style={{ color: 'green', fontWeight: 500 }}>Locked</span>
                     ) : (
-                      <span style={{ color: '#D97706', fontWeight: 500 }}>Draft</span>
+                      <span style={{ color: 'var(--warning)', fontWeight: 500 }}>Draft</span>
                     )}
                   </td>
                 </tr>

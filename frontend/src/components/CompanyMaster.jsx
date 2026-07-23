@@ -192,7 +192,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
           
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748B' }} />
+              <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-muted)' }} />
               <input 
                 type="text" 
                 placeholder="Search Company ID / Name..." 
@@ -252,7 +252,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                   <td>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                       {c.primary_products.map(p => (
-                        <span key={p} style={{ fontSize: '10px', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '1px 4px', borderRadius: '2px', color: '#1E3A8A' }}>
+                        <span key={p} style={{ fontSize: '10px', backgroundColor: 'var(--info-bg)', border: '1px solid #BFDBFE', padding: '1px 4px', borderRadius: '2px', color: 'var(--info)' }}>
                           {p}
                         </span>
                       ))}
@@ -295,7 +295,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
               ))}
               {(!loading && filtered.length === 0) && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px', color: '#64748B' }}>No companies found.</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>No companies found.</td>
                 </tr>
               )}
             </tbody>
@@ -316,7 +316,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {formError && (
-                  <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px', fontSize: '12px', borderRadius: '4px' }}>
+                  <div style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid #FCA5A5', color: 'var(--danger)', padding: '10px', fontSize: '12px', borderRadius: '4px' }}>
                     {formError}
                   </div>
                 )}
@@ -428,7 +428,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
           <div 
             style={{
               width: '650px',
-              backgroundColor: '#F8FAF9',
+              backgroundColor: 'var(--bg-subtle)',
               height: '100%',
               boxShadow: '-4px 0 15px rgba(0, 0, 0, 0.1)',
               display: 'flex',
@@ -442,11 +442,11 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
             {/* Drawer Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2DCD0', paddingBottom: '16px', marginBottom: '20px' }}>
               <div>
-                <div style={{ color: '#D4AF37', fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>COMPANY DOSSIER</div>
-                <h3 style={{ margin: '4px 0 0 0', color: '#1C2D5A', fontSize: '18px', fontWeight: 700 }}>
+                <div style={{ color: 'var(--accent)', fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>COMPANY DOSSIER</div>
+                <h3 style={{ margin: '4px 0 0 0', color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>
                   {selectedCompany?.name}
                 </h3>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span className={`tier-badge ${selectedCompany?.tier}`} style={{ fontSize: '10px' }}>Tier {selectedCompany?.tier}</span>
                   <span>·</span>
                   <span>ID: <strong className="mono">{selectedCompany?.id}</strong></span>
@@ -456,7 +456,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
               </div>
               <button 
                 onClick={() => setShowHistoryDrawer(false)}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748B', padding: '4px' }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}
               >
                 <X size={20} />
               </button>
@@ -465,8 +465,8 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
             {/* Loading Indicator */}
             {loadingHistory ? (
               <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                <RefreshCw size={24} className="spin" style={{ color: '#1C2D5A' }} />
-                <span style={{ fontSize: '14px', color: '#334155' }}>Loading ledger history...</span>
+                <RefreshCw size={24} className="spin" style={{ color: 'var(--text-primary)' }} />
+                <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Loading ledger history...</span>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -481,7 +481,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                       border: 'none',
                       background: 'none',
                       borderBottom: historyTab === 'pos' ? '2px solid #1C2D5A' : 'none',
-                      color: historyTab === 'pos' ? '#1C2D5A' : '#64748B',
+                      color: historyTab === 'pos' ? 'var(--text-primary)' : 'var(--text-muted)',
                       cursor: 'pointer',
                       transition: 'all 0.15s'
                     }}
@@ -497,7 +497,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                       border: 'none',
                       background: 'none',
                       borderBottom: historyTab === 'dispatches' ? '2px solid #1C2D5A' : 'none',
-                      color: historyTab === 'dispatches' ? '#1C2D5A' : '#64748B',
+                      color: historyTab === 'dispatches' ? 'var(--text-primary)' : 'var(--text-muted)',
                       cursor: 'pointer',
                       transition: 'all 0.15s'
                     }}
@@ -513,11 +513,11 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                   {historyTab === 'pos' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {historyData.pos.map(po => (
-                        <div key={po.id} className="card" style={{ padding: '16px', border: '1px solid #E2DCD0', borderRadius: '8px', backgroundColor: '#FFFFFF' }}>
+                        <div key={po.id} className="card" style={{ padding: '16px', border: '1px solid #E2DCD0', borderRadius: '8px', backgroundColor: 'var(--bg-elevated)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                             <div>
-                              <strong className="mono" style={{ fontSize: '13px', color: '#1C2D5A' }}>{po.id}</strong>
-                              <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '8px' }}>Recd: {po.date_received}</span>
+                              <strong className="mono" style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{po.id}</strong>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>Recd: {po.date_received}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                               <span className={`badge ${po.status === 'Closed' ? 'dispatched' : 'received'}`} style={{ fontSize: '9px', textTransform: 'none' }}>
@@ -532,15 +532,15 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                           </div>
 
                           {/* Line items list */}
-                          <div style={{ backgroundColor: '#F8FAF9', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', marginTop: '8px' }}>
-                            <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase' }}>Items ordered & allocated</div>
+                          <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '6px', border: '1px solid #E2E8F0', marginTop: '8px' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '6px', textTransform: 'uppercase' }}>Items ordered & allocated</div>
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                               <thead>
                                 <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                                  <th style={{ fontSize: '10px', color: '#64748B', paddingBottom: '4px', textAlign: 'left' }}>Product</th>
-                                  <th style={{ fontSize: '10px', color: '#64748B', paddingBottom: '4px', textAlign: 'right' }}>Ordered</th>
-                                  <th style={{ fontSize: '10px', color: '#64748B', paddingBottom: '4px', textAlign: 'right' }}>Allocated</th>
-                                  <th style={{ fontSize: '10px', color: '#64748B', paddingBottom: '4px', textAlign: 'right' }}>Pending</th>
+                                  <th style={{ fontSize: '10px', color: 'var(--text-muted)', paddingBottom: '4px', textAlign: 'left' }}>Product</th>
+                                  <th style={{ fontSize: '10px', color: 'var(--text-muted)', paddingBottom: '4px', textAlign: 'right' }}>Ordered</th>
+                                  <th style={{ fontSize: '10px', color: 'var(--text-muted)', paddingBottom: '4px', textAlign: 'right' }}>Allocated</th>
+                                  <th style={{ fontSize: '10px', color: 'var(--text-muted)', paddingBottom: '4px', textAlign: 'right' }}>Pending</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -550,8 +550,8 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                                     <tr key={li.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                                       <td style={{ fontSize: '11px', padding: '6px 0', fontWeight: 600 }}>{li.product_type}</td>
                                       <td className="mono" style={{ fontSize: '11px', padding: '6px 0', textAlign: 'right' }}>{li.quantity.toFixed(1)} MT</td>
-                                      <td className="mono" style={{ fontSize: '11px', padding: '6px 0', textAlign: 'right', color: '#0F766E' }}>{li.allocated_quantity.toFixed(1)} MT</td>
-                                      <td className="mono" style={{ fontSize: '11px', padding: '6px 0', textAlign: 'right', color: pending > 0 ? '#C2410C' : 'inherit' }}>{pending.toFixed(1)} MT</td>
+                                      <td className="mono" style={{ fontSize: '11px', padding: '6px 0', textAlign: 'right', color: 'var(--success)' }}>{li.allocated_quantity.toFixed(1)} MT</td>
+                                      <td className="mono" style={{ fontSize: '11px', padding: '6px 0', textAlign: 'right', color: pending > 0 ? 'var(--warning)' : 'inherit' }}>{pending.toFixed(1)} MT</td>
                                     </tr>
                                   );
                                 })}
@@ -560,14 +560,14 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                           </div>
                           
                           {po.notes && (
-                            <div style={{ fontSize: '11px', color: '#64748B', fontStyle: 'italic', marginTop: '8px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '8px' }}>
                               Note: {po.notes}
                             </div>
                           )}
                         </div>
                       ))}
                       {historyData.pos.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '32px', color: '#64748B', fontStyle: 'italic', fontSize: '13px' }}>
+                        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '13px' }}>
                           No purchase orders recorded for this company.
                         </div>
                       )}
@@ -578,11 +578,11 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
                   {historyTab === 'dispatches' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {historyData.dispatches.map(d => (
-                        <div key={d.id} className="card" style={{ padding: '16px', border: '1px solid #E2DCD0', borderRadius: '8px', backgroundColor: '#FFFFFF' }}>
+                        <div key={d.id} className="card" style={{ padding: '16px', border: '1px solid #E2DCD0', borderRadius: '8px', backgroundColor: 'var(--bg-elevated)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                             <div>
-                              <strong className="mono" style={{ fontSize: '13px', color: '#1C2D5A' }}>{d.id}</strong>
-                              <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '8px' }}>Planned: {d.planned_dispatch_date}</span>
+                              <strong className="mono" style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{d.id}</strong>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>Planned: {d.planned_dispatch_date}</span>
                             </div>
                             <span className={`badge ${d.status === 'Executed' ? 'dispatched' : d.status === 'Cancelled' ? 'onhold' : 'received'}`} style={{ fontSize: '9px', textTransform: 'none' }}>
                               {d.status}
@@ -591,36 +591,36 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
 
                           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '12px', fontSize: '12px', padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
                             <div>
-                              <span style={{ color: '#64748B' }}>Product:</span> <strong>{d.product_type}</strong>
+                              <span style={{ color: 'var(--text-muted)' }}>Product:</span> <strong>{d.product_type}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#64748B' }}>Allocated:</span> <strong className="mono" style={{ color: '#0F766E' }}>{d.allocated_qty.toFixed(1)} MT</strong>
+                              <span style={{ color: 'var(--text-muted)' }}>Allocated:</span> <strong className="mono" style={{ color: 'var(--success)' }}>{d.allocated_qty.toFixed(1)} MT</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#64748B' }}>Total Loaded:</span> <strong className="mono">{d.quantity.toFixed(1)} MT</strong>
+                              <span style={{ color: 'var(--text-muted)' }}>Total Loaded:</span> <strong className="mono">{d.quantity.toFixed(1)} MT</strong>
                             </div>
                           </div>
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '12px', fontSize: '11px', color: '#64748B', paddingTop: '8px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: '12px', fontSize: '11px', color: 'var(--text-muted)', paddingTop: '8px' }}>
                             <div>
-                              <span>Vehicle ID:</span> <strong className="mono" style={{ color: '#334155' }}>{d.vehicle_id}</strong>
+                              <span>Vehicle ID:</span> <strong className="mono" style={{ color: 'var(--text-primary)' }}>{d.vehicle_id}</strong>
                             </div>
                             {d.actual_dispatch_date && (
                               <div>
-                                <span>Dispatched On:</span> <strong style={{ color: '#334155' }}>{d.actual_dispatch_date}</strong>
+                                <span>Dispatched On:</span> <strong style={{ color: 'var(--text-primary)' }}>{d.actual_dispatch_date}</strong>
                               </div>
                             )}
                           </div>
                           
                           {d.cancellation_reason && (
-                            <div style={{ fontSize: '11px', color: '#DC2626', fontWeight: 600, marginTop: '8px' }}>
+                            <div style={{ fontSize: '11px', color: 'var(--danger)', fontWeight: 600, marginTop: '8px' }}>
                               Cancellation Reason: {d.cancellation_reason}
                             </div>
                           )}
                         </div>
                       ))}
                       {historyData.dispatches.length === 0 && (
-                        <div style={{ textAlign: 'center', padding: '32px', color: '#64748B', fontStyle: 'italic', fontSize: '13px' }}>
+                        <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '13px' }}>
                           No dispatches allocated to this company yet.
                         </div>
                       )}

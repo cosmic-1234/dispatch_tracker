@@ -117,31 +117,31 @@ export default function Reports({ API_BASE, systemDate }) {
 
       {/* Reports Module Wrapper */}
       <div className="card" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-        <div className="card-header" style={{ display: 'flex', padding: 0, borderBottom: '1px solid var(--border-color)', backgroundColor: '#F8FAFC' }}>
+        <div className="card-header" style={{ display: 'flex', padding: 0, borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-subtle)' }}>
           <button 
             className={`chart-tab`} 
-            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'monthly' ? '#FFFFFF' : '#F8FAFC', fontWeight: activeTab === 'monthly' ? 600 : 500, color: activeTab === 'monthly' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'monthly' ? 'var(--bg-elevated)' : 'var(--bg-subtle)', fontWeight: activeTab === 'monthly' ? 600 : 500, color: activeTab === 'monthly' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
             onClick={() => setActiveTab('monthly')}
           >
             Monthly Dispatch Summary
           </button>
           <button 
             className={`chart-tab`} 
-            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'movement' ? '#FFFFFF' : '#F8FAFC', fontWeight: activeTab === 'movement' ? 600 : 500, color: activeTab === 'movement' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'movement' ? 'var(--bg-elevated)' : 'var(--bg-subtle)', fontWeight: activeTab === 'movement' ? 600 : 500, color: activeTab === 'movement' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
             onClick={() => setActiveTab('movement')}
           >
             Inventory Movement
           </button>
           <button 
             className={`chart-tab`} 
-            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'fulfillment' ? '#FFFFFF' : '#F8FAFC', fontWeight: activeTab === 'fulfillment' ? 600 : 500, color: activeTab === 'fulfillment' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ border: 'none', borderRight: '1px solid var(--border-color)', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'fulfillment' ? 'var(--bg-elevated)' : 'var(--bg-subtle)', fontWeight: activeTab === 'fulfillment' ? 600 : 500, color: activeTab === 'fulfillment' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
             onClick={() => setActiveTab('fulfillment')}
           >
             PO Fulfillment Rate
           </button>
           <button 
             className={`chart-tab`} 
-            style={{ border: 'none', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'aivsactual' ? '#FFFFFF' : '#F8FAFC', fontWeight: activeTab === 'aivsactual' ? 600 : 500, color: activeTab === 'aivsactual' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ border: 'none', borderRadius: 0, padding: '12px 20px', backgroundColor: activeTab === 'aivsactual' ? 'var(--bg-elevated)' : 'var(--bg-subtle)', fontWeight: activeTab === 'aivsactual' ? 600 : 500, color: activeTab === 'aivsactual' ? 'var(--primary-navy)' : 'var(--text-secondary)', cursor: 'pointer' }}
             onClick={() => setActiveTab('aivsactual')}
           >
             AI vs Actual Comparison
@@ -173,13 +173,13 @@ export default function Reports({ API_BASE, systemDate }) {
                           <td>{r.product_type}</td>
                           <td className="mono">{r.month}</td>
                           <td className="mono" style={{ fontWeight: 600 }}>{r.total_dispatched_qty.toFixed(1)} MT</td>
-                          <td className="mono" style={{ color: r.pending_balance > 0 ? '#1C6BF4' : 'inherit' }}>
+                          <td className="mono" style={{ color: r.pending_balance > 0 ? 'var(--primary-blue)' : 'inherit' }}>
                             {r.pending_balance ? `${r.pending_balance.toFixed(1)} MT` : '0.0 MT'}
                           </td>
                         </tr>
                       ))}
                       {reportData.monthly_summary.length === 0 && (
-                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748B' }}>No dispatch summary logs found for range.</td></tr>
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>No dispatch summary logs found for range.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -220,7 +220,7 @@ export default function Reports({ API_BASE, systemDate }) {
                         </tr>
                       ))}
                       {reportData.inventory_movement.length === 0 && (
-                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px', color: '#64748B' }}>No inventory logs found for range.</td></tr>
+                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>No inventory logs found for range.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -277,14 +277,14 @@ export default function Reports({ API_BASE, systemDate }) {
                             <td><strong>{r.product_type}</strong></td>
                             <td className="mono">{r.ai_recommended_qty.toFixed(1)} MT</td>
                             <td className="mono" style={{ fontWeight: 600 }}>{r.actual_dispatched_qty.toFixed(1)} MT</td>
-                            <td className="mono" style={{ color: Math.abs(variance) > 5 ? '#D97706' : 'inherit' }}>
+                            <td className="mono" style={{ color: Math.abs(variance) > 5 ? 'var(--warning)' : 'inherit' }}>
                               {variance >= 0 ? '+' : ''}{variance.toFixed(1)} MT
                             </td>
                           </tr>
                         );
                       })}
                       {reportData.ai_vs_actual.length === 0 && (
-                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#64748B' }}>No AI variance analysis logs found for range.</td></tr>
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}>No AI variance analysis logs found for range.</td></tr>
                       )}
                     </tbody>
                   </table>
