@@ -1,0 +1,181 @@
+{
+  "theme_strategy": "Both light and dark mode supported via Tailwind's 'class' strategy. Toggle must be available in the header or sidebar.",
+  "typography": {
+    "fonts": {
+      "headings": "'Cabinet Grotesk', sans-serif (Bold/Extrabold for impact, tight tracking)",
+      "body": "'Satoshi', sans-serif (Clean, readable for dense data)",
+      "mono": "'JetBrains Mono', monospace (For tabular numeric data, PO numbers, dates, codes)"
+    },
+    "scale": {
+      "h1": "text-3xl sm:text-4xl font-extrabold tracking-tight",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3": "text-xl font-bold tracking-tight",
+      "h4": "text-lg font-semibold",
+      "body": "text-sm sm:text-base leading-relaxed",
+      "small": "text-xs font-medium",
+      "overline": "text-[10px] uppercase tracking-[0.2em] font-bold"
+    },
+    "instructions": "Import 'Cabinet Grotesk' and 'Satoshi' via Fontshare, and 'JetBrains Mono' via Google Fonts. Never use Inter or Roboto for headings."
+  },
+  "colors": {
+    "light": {
+      "background": "#FAFAFA",
+      "foreground": "#09090B",
+      "card": "#FFFFFF",
+      "card_foreground": "#09090B",
+      "popover": "#FFFFFF",
+      "popover_foreground": "#09090B",
+      "primary": "#0F1C33",
+      "primary_foreground": "#FAFAFA",
+      "secondary": "#F4F4F5",
+      "secondary_foreground": "#18181B",
+      "muted": "#F4F4F5",
+      "muted_foreground": "#71717A",
+      "accent": "#F4F4F5",
+      "accent_foreground": "#18181B",
+      "border": "#E4E4E7",
+      "input": "#E4E4E7",
+      "ring": "#0F1C33",
+      "semantic": {
+        "success": "#10B981",
+        "success_bg": "#D1FAE5",
+        "warning": "#F59E0B",
+        "warning_bg": "#FEF3C7",
+        "danger": "#EF4444",
+        "danger_bg": "#FEE2E2",
+        "info": "#3B82F6",
+        "info_bg": "#DBEAFE"
+      }
+    },
+    "dark": {
+      "background": "#0A0A0B",
+      "foreground": "#FAFAFA",
+      "card": "#121214",
+      "card_foreground": "#FAFAFA",
+      "popover": "#121214",
+      "popover_foreground": "#FAFAFA",
+      "primary": "#FAFAFA",
+      "primary_foreground": "#09090B",
+      "secondary": "#27272A",
+      "secondary_foreground": "#FAFAFA",
+      "muted": "#27272A",
+      "muted_foreground": "#A1A1AA",
+      "accent": "#27272A",
+      "accent_foreground": "#FAFAFA",
+      "border": "#27272A",
+      "input": "#27272A",
+      "ring": "#D4D4D8",
+      "semantic": {
+        "success": "#059669",
+        "success_bg": "#064E3B",
+        "warning": "#D97706",
+        "warning_bg": "#78350F",
+        "danger": "#DC2626",
+        "danger_bg": "#7F1D1D",
+        "info": "#2563EB",
+        "info_bg": "#1E3A8A"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "radii": {
+      "none": "rounded-none",
+      "sm": "rounded-sm (2px) - For small badges, tooltips",
+      "md": "rounded-md (6px) - For inputs, buttons",
+      "lg": "rounded-lg (8px) - For cards, dropdowns",
+      "xl": "rounded-xl (12px) - For major modal windows, large widgets",
+      "full": "rounded-full - For avatars, pill buttons"
+    },
+    "shadows": {
+      "sm": "shadow-sm (Subtle depth for buttons/inputs)",
+      "md": "shadow-md (For dropdowns/popovers)",
+      "lg": "shadow-lg (For floating elements like modals, AI sidebar)"
+    },
+    "borders": "1px solid border everywhere for a 'Technical/Swiss' crisp look. No blurry edges.",
+    "glassmorphism": "backdrop-blur-xl bg-background/80 border-b border-border/50. Use strictly for Sticky Headers, Floating Navs, and AI Chat sidebar."
+  },
+  "layouts": {
+    "app_shell": "flex h-screen overflow-hidden bg-background text-foreground",
+    "sidebar": "w-64 border-r border-border bg-card flex-shrink-0 transition-all duration-300 ease-in-out (collapsible to w-16)",
+    "main_content": "flex-1 flex flex-col min-w-0 overflow-hidden",
+    "header": "h-14 border-b border-border bg-background/80 backdrop-blur-xl flex items-center px-4 md:px-6 z-40 sticky top-0",
+    "split_pane": "flex gap-4 md:gap-6 (left pane: flex-1, right pane: w-1/3 min-w-[300px]) with a visible, interactive 1px border divider.",
+    "grids": "Use 12-column bento grids for dashboard. (grid-cols-1 md:grid-cols-3 lg:grid-cols-4 or 12). Gap 4 or 6. Dense and compact for data."
+  },
+  "component_blueprints": {
+    "header": {
+      "brand": "Maintain 'SHAKTI SCM' logo exactly. Font: Cabinet Grotesk, bold.",
+      "date_badge": "Pill shaped, bg-muted text-muted-foreground text-xs font-mono py-1 px-2.5 rounded-full border border-border.",
+      "actions": "Use sleek ghost buttons with hover:bg-muted for refresh, theme toggle, and AI toggle."
+    },
+    "sidebar": {
+      "nav_links": "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-muted hover:text-foreground text-muted-foreground",
+      "active_link": "bg-primary text-primary-foreground hover:bg-primary/90",
+      "section_titles": "text-[10px] font-bold tracking-[0.2em] text-muted-foreground uppercase px-3 mt-6 mb-2"
+    },
+    "cards": {
+      "dashboard_stat": "p-4 or p-6 rounded-lg border border-border bg-card shadow-sm flex flex-col gap-2 hover:-translate-y-[1px] transition-transform",
+      "morning_brief": "bg-gradient-to-br from-primary/5 to-transparent border border-border/50 rounded-lg p-6"
+    },
+    "tables": {
+      "container": "w-full overflow-auto border border-border rounded-lg bg-card",
+      "header": "bg-muted/50 text-xs font-bold text-muted-foreground uppercase tracking-wider",
+      "row": "border-b border-border transition-colors hover:bg-muted/30",
+      "cell": "p-3 sm:p-4 text-sm whitespace-nowrap",
+      "numeric_cell": "text-right font-mono"
+    },
+    "badges": {
+      "base": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "status_ok": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+      "status_warning": "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+      "status_danger": "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20",
+      "tier_a": "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
+      "tier_b": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20",
+      "tier_c": "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20",
+      "priority_score": "bg-primary text-primary-foreground rounded-md px-2 py-1 font-mono text-xs shadow-sm cursor-help (with Shadcn tooltip)"
+    },
+    "banners": {
+      "warning": "bg-amber-500/10 border-l-4 border-amber-500 p-4 text-amber-700 dark:text-amber-300 rounded-r-md flex items-start gap-3"
+    },
+    "ai_chat_assistant": {
+      "container": "fixed inset-y-0 right-0 w-80 bg-background/95 backdrop-blur-xl border-l border-border shadow-2xl z-50 flex flex-col transition-transform transform",
+      "header": "p-4 border-b border-border flex justify-between items-center bg-card",
+      "user_bubble": "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-2 text-sm max-w-[85%] self-end",
+      "agent_bubble": "bg-muted text-foreground rounded-2xl rounded-tl-sm px-4 py-2 text-sm max-w-[85%] self-start",
+      "input_area": "p-4 border-t border-border bg-background"
+    },
+    "forms": {
+      "input": "flex h-9 w-full rounded-md border border-border bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+      "button_primary": "inline-flex items-center justify-center rounded-md text-sm font-medium shadow bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 transition-all active:scale-[0.98]"
+    }
+  },
+  "motion": {
+    "duration": "Use fast, snappy transitions. 150ms to 200ms.",
+    "easing": "cubic-bezier(0.16, 1, 0.3, 1) (Ease-out-expo for crisp, responsive feel)",
+    "hover": "Subtle translation (-translate-y-[1px]) or color shifts. Do NOT over-animate."
+  },
+  "accessibility": {
+    "contrast": "Ensure min 4.5:1 ratio. Dark mode text should not be pure white (#FFF), use #FAFAFA. Gray text should not be too dark in dark mode.",
+    "focus": "All interactive elements MUST have visible focus rings (`focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`).",
+    "testing": "All interactive components must have data-testid attributes."
+  },
+  "charts": "Use Recharts. Minimalist axes, grid lines dashed and very faint (opacity 0.1). Tooltips must be dark with solid border.",
+  "instructions_to_main_agent": [
+    "This is a UI/UX CSS/JSX structural styling overhaul ONLY. DO NOT REMOVE, MOCK, OR ALTER ANY EXISTING BUSINESS LOGIC, API CALLS, OR STATE MANAGEMENT.",
+    "File extensions are .js (using standard React + JSX syntax). Do not create or rename to .tsx.",
+    "For the theme toggle, use a context or existing state. Make sure tailwind.config.js has darkMode: 'class'.",
+    "Replace generic default fonts with the requested typography pair. Import via CSS or <link> in index.html.",
+    "Use Shadcn UI components heavily but customize their styles using the provided color scales (border radii, border colors, background colors).",
+    "Maintain the exact layout map: Sidebar (Left), Header (Top), Main Content area, Right collapsible AI Chat.",
+    "All new or overhauled components must include `data-testid` attributes.",
+    "Do NOT use completely transparent backgrounds for headers or sticky elements; always use solid or backdrop-blur backgrounds."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Do not converge towards generic 'AI slop' aesthetics. Make it look like a high-end, $100M+ ARR enterprise software (Linear, Retool, SAP Fiori).",
+    "Create depth through layered z-index hierarchy and subtle 1px borders rather than heavy drop shadows.",
+    "Every interactive element needs micro-animations (hover states, focus states).",
+    "Never use raw HTML <select> or <input type='date'>. Use Shadcn Select and Calendar/Popover.",
+    "Use Lucide-react for all iconography. Keep icon sizes consistent (e.g., w-4 h-4 for inline, w-5 h-5 for sidebar).",
+    "Use Sonner for toast notifications if replacing the existing notification system."
+  ]
+}
