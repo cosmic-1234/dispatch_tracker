@@ -1004,8 +1004,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
         
         {/* Header Block */}
         <div>
-          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1C2D5A' }}>Enterprise Data Import Center</h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#666' }}>
+          <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)' }}>Enterprise Data Import Center</h2>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
             Upload raw company chemical solvent master spreadsheets to automatically seed and map transactions to the dispatch planner dashboard.
           </p>
         </div>
@@ -1022,7 +1022,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === 'sales' ? '2px solid #1C2D5A' : '2px solid transparent',
-                color: activeTab === 'sales' ? '#1C2D5A' : '#64748B',
+                color: activeTab === 'sales' ? 'var(--text-primary)' : 'var(--text-muted)',
                 cursor: 'pointer'
               }}
             >
@@ -1037,7 +1037,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === 'purchases' ? '2px solid #1C2D5A' : '2px solid transparent',
-                color: activeTab === 'purchases' ? '#1C2D5A' : '#64748B',
+                color: activeTab === 'purchases' ? 'var(--text-primary)' : 'var(--text-muted)',
                 cursor: 'pointer'
               }}
             >
@@ -1052,7 +1052,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === 'planning' ? '2px solid #1C2D5A' : '2px solid transparent',
-                color: activeTab === 'planning' ? '#1C2D5A' : '#64748B',
+                color: activeTab === 'planning' ? 'var(--text-primary)' : 'var(--text-muted)',
                 cursor: 'pointer'
               }}
             >
@@ -1067,7 +1067,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 background: 'none',
                 border: 'none',
                 borderBottom: activeTab === 'tally-po' ? '2px solid #1C2D5A' : '2px solid transparent',
-                color: activeTab === 'tally-po' ? '#1C2D5A' : '#64748B',
+                color: activeTab === 'tally-po' ? 'var(--text-primary)' : 'var(--text-muted)',
                 cursor: 'pointer'
               }}
             >
@@ -1078,53 +1078,53 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
         {/* Success Alert */}
         {importResult && (
-          <div className="card" style={{ border: '1px solid #A7F3D0', backgroundColor: '#F0FDF4' }}>
+          <div className="card" style={{ border: '1px solid #A7F3D0', backgroundColor: 'var(--success-bg)' }}>
             <div className="card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <CheckCircle size={24} style={{ color: '#059669', flexShrink: 0, marginTop: '2px' }} />
+              <CheckCircle size={24} style={{ color: 'var(--success)', flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <h4 style={{ margin: 0, color: '#065F46', fontSize: '15px', fontWeight: 600 }}>Master File Import Successfully Executed</h4>
-                <p style={{ margin: '4px 0 12px 0', fontSize: '13px', color: '#047857' }}>
+                <h4 style={{ margin: 0, color: 'var(--success)', fontSize: '15px', fontWeight: 600 }}>Master File Import Successfully Executed</h4>
+                <p style={{ margin: '4px 0 12px 0', fontSize: '13px', color: 'var(--success)' }}>
                   A total of <strong>{importResult.total_rows.toLocaleString()}</strong> rows have been mapped and seeded into the database in a single secure transaction.
                 </p>
                 {activeTab === 'sales' ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', backgroundColor: 'var(--bg-elevated)', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>New Clients Registered</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.new_companies}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>New Clients Registered</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.new_companies}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Purchase Orders Synced</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.purchase_orders}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Purchase Orders Synced</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.purchase_orders}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dispatches Generated</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.dispatches}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dispatches Generated</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.dispatches}</div>
                     </div>
                   </div>
                 ) : activeTab === 'purchases' ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', backgroundColor: 'var(--bg-elevated)', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vendor Purchases Seeded</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.inserted_purchases}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vendor Purchases Seeded</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.inserted_purchases}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Unique Suppliers Recorded</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.unique_vendors}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Unique Suppliers Recorded</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.unique_vendors}</div>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', backgroundColor: 'var(--bg-elevated)', padding: '12px', borderRadius: '4px', border: '1px solid #E6E8F1' }}>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Planning Orders Synced</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.total_rows}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Planning Orders Synced</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.total_rows}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>New Clients Registered</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.new_companies}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>New Clients Registered</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.new_companies}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dispatches Generated</div>
-                      <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', marginTop: '2px' }}>{importResult.dispatches}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dispatches Generated</div>
+                      <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{importResult.dispatches}</div>
                     </div>
                   </div>
                 )}
@@ -1138,9 +1138,9 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="card" style={{ border: '1px solid #FECACA', backgroundColor: '#FEF2F2' }}>
-            <div className="card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: '#991B1B' }}>
-              <AlertCircle size={24} style={{ color: '#DC2626', flexShrink: 0, marginTop: '2px' }} />
+          <div className="card" style={{ border: '1px solid #FECACA', backgroundColor: 'var(--danger-bg)' }}>
+            <div className="card-body" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', color: 'var(--danger)' }}>
+              <AlertCircle size={24} style={{ color: 'var(--danger)', flexShrink: 0, marginTop: '2px' }} />
               <div>
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>Import Operation Failed</h4>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>{errorMessage}</p>
@@ -1164,7 +1164,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: '#F8FAFC',
+                  backgroundColor: 'var(--bg-subtle)',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
@@ -1177,13 +1177,13 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#EFF2F6', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <Upload size={24} style={{ color: '#4F5E80' }} />
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                  <Upload size={24} style={{ color: 'var(--text-secondary)' }} />
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', marginBottom: '4px' }}>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
                   {!libLoaded ? 'Loading parser components...' : `Drag & drop your ${activeTab === 'sales' ? 'Sales Order' : activeTab === 'purchases' ? 'Vendor Purchase' : activeTab === 'planning' ? 'Enterprise Planning' : 'PO (PDF/Excel)'} file here`}
                 </div>
-                <div style={{ fontSize: '13px', color: '#64748B', textAlign: 'center' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center' }}>
                   {activeTab === 'tally-po' 
                     ? 'Supports digital PDFs and Excel exports generated from ERP.'
                     : 'Supports Microsoft Excel (.xlsx, .xls) and CSV files up to 10,000+ rows.'}
@@ -1199,8 +1199,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
         {/* Parsing Indicator */}
         {parsing && (
           <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', gap: '16px' }}>
-            <RefreshCw size={36} className="spin" style={{ color: '#1C2D5A' }} />
-            <div style={{ fontSize: '14px', fontWeight: 500, color: '#334155' }}>
+            <RefreshCw size={36} className="spin" style={{ color: 'var(--text-primary)' }} />
+            <div style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
               Parsing raw binary spreadsheet cells...
             </div>
           </div>
@@ -1210,20 +1210,20 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
         {importing && (
           <div className="card" style={{ padding: '32px 24px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 500, color: '#334155' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>
                 <span>{uploadProgress < 100 ? `Uploading spreadsheet data: ${uploadProgress}%` : 'Upload complete. Processing database mapping...'}</span>
                 <span>{uploadProgress}%</span>
               </div>
-              <div style={{ width: '100%', height: '8px', backgroundColor: '#EFF2F6', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-subtle)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ 
                   width: `${uploadProgress}%`, 
                   height: '100%', 
-                  backgroundColor: '#1C2D5A', 
+                  backgroundColor: 'var(--text-primary)', 
                   borderRadius: '4px', 
                   transition: 'width 0.2s ease-out' 
                 }} />
               </div>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
+              <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.4 }}>
                 {uploadProgress < 100 
                   ? 'Sending transactions to the server...' 
                   : 'Executing database transactions. Creating tables and roll-forward recalculation...'}
@@ -1238,15 +1238,15 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
             {activeTab === 'tally-po' ? (
               /* Scanned PO Preview / Verification Form */
               <div className="card" style={{ border: '2px solid #1C2D5A' }}>
-                <div className="card-header" style={{ backgroundColor: '#1C2D5A', color: '#FFFFFF', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="card-title" style={{ color: '#FFFFFF', fontSize: '15px' }}>Verify Scanned Purchase Order Data</span>
+                <div className="card-header" style={{ backgroundColor: 'var(--text-primary)', color: 'var(--bg-elevated)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="card-title" style={{ color: 'var(--bg-elevated)', fontSize: '15px' }}>Verify Scanned Purchase Order Data</span>
                   <span style={{ fontSize: '12px', opacity: 0.8 }}>File: {file.name}</span>
                 </div>
                 <div className="card-body" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   
                   {/* Order Classification Toggle */}
                   <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155', alignSelf: 'center' }}>Order Classification:</label>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', alignSelf: 'center' }}>Order Classification:</label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'normal', textTransform: 'none' }}>
                       <input 
                         type="radio" 
@@ -1269,7 +1269,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
                     <div className="form-group">
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>PO Number <span style={{ color: '#EF4444' }}>*</span></label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>PO Number <span style={{ color: 'var(--danger)' }}>*</span></label>
                       <input 
                         type="text" 
                         value={scannedPO.id}
@@ -1278,7 +1278,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                       />
                     </div>
                     <div className="form-group">
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Date Received <span style={{ color: '#EF4444' }}>*</span></label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Date Received <span style={{ color: 'var(--danger)' }}>*</span></label>
                       <input 
                         type="date" 
                         value={scannedPO.date_received}
@@ -1289,11 +1289,11 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     
                     {!scannedPO.is_vendor_po ? (
                       <div className="form-group">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Customer Company <span style={{ color: '#EF4444' }}>*</span></label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Customer Company <span style={{ color: 'var(--danger)' }}>*</span></label>
                         <select 
                           value={scannedPO.company_id}
                           onChange={(e) => setScannedPO(prev => ({ ...prev, company_id: e.target.value }))}
-                          style={{ width: '100%', padding: '6px 10px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
+                          style={{ width: '100%', padding: '6px 10px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)' }}
                         >
                           <option value="">-- Select Customer Company --</option>
                           {companies.map(c => (
@@ -1303,7 +1303,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                       </div>
                     ) : (
                       <div className="form-group">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Vendor / Supplier Name <span style={{ color: '#EF4444' }}>*</span></label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Vendor / Supplier Name <span style={{ color: 'var(--danger)' }}>*</span></label>
                         <input 
                           type="text" 
                           value={scannedPO.vendor_name}
@@ -1318,7 +1318,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px' }}>
                     {!scannedPO.is_vendor_po ? (
                       <div className="form-group">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Committed Delivery Date</label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Committed Delivery Date</label>
                         <input 
                           type="date" 
                           value={scannedPO.committed_dispatch_date}
@@ -1330,7 +1330,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                       <div style={{ display: 'none' }} />
                     )}
                     <div className="form-group" style={{ gridColumn: scannedPO.is_vendor_po ? 'span 3' : 'auto' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Notes</label>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Notes</label>
                       <input 
                         type="text" 
                         value={scannedPO.notes}
@@ -1342,24 +1342,24 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
                   {/* Scanned Items Table */}
                   <div style={{ marginTop: '12px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '8px', textTransform: 'uppercase' }}>Line Items Scanned</div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', textTransform: 'uppercase' }}>Line Items Scanned</div>
                     <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #E2E8F0', borderRadius: '6px', overflow: 'hidden' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'left' }}>Scanned Description</th>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'left', width: '180px' }}>Map to Portal Product</th>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'right', width: '100px' }}>Quantity (MT)</th>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'right', width: '100px' }}>Rate (Unit)</th>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'right', width: '120px' }}>Amount (Rs)</th>
-                          <th style={{ fontSize: '11px', color: '#475569', padding: '8px 12px', textAlign: 'center', width: '80px' }}>Actions</th>
+                        <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid #E2E8F0' }}>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'left' }}>Scanned Description</th>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'left', width: '180px' }}>Map to Portal Product</th>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'right', width: '100px' }}>Quantity (MT)</th>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'right', width: '100px' }}>Rate (Unit)</th>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'right', width: '120px' }}>Amount (Rs)</th>
+                          <th style={{ fontSize: '11px', color: 'var(--text-secondary)', padding: '8px 12px', textAlign: 'center', width: '80px' }}>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {scannedPO.items.map((item, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid #E2E8F0' }}>
-                            <td style={{ fontSize: '12px', padding: '8px 12px', color: '#334155' }}>
+                            <td style={{ fontSize: '12px', padding: '8px 12px', color: 'var(--text-primary)' }}>
                               <div style={{ fontWeight: 600 }}>{item.scanned_description}</div>
-                              {item.uom && <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>UOM detected: {item.uom}</div>}
+                              {item.uom && <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>UOM detected: {item.uom}</div>}
                             </td>
                             <td style={{ padding: '8px 12px' }}>
                               <select 
@@ -1369,7 +1369,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                   newItems[idx].product_type = e.target.value;
                                   setScannedPO(prev => ({ ...prev, items: newItems }));
                                 }}
-                                style={{ width: '100%', padding: '4px 6px', fontSize: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: '#FFFFFF' }}
+                                style={{ width: '100%', padding: '4px 6px', fontSize: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', backgroundColor: 'var(--bg-elevated)' }}
                               >
                                 {products.map(prod => (
                                   <option key={prod} value={prod}>{prod}</option>
@@ -1403,7 +1403,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                 style={{ width: '90px', padding: '4px 6px', fontSize: '12px', border: '1px solid #CBD5E1', borderRadius: '4px', textAlign: 'right' }}
                               />
                             </td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: '#0F172A', verticalAlign: 'middle' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', verticalAlign: 'middle' }}>
                               {(
                                 item.quantity * 
                                 (item.uom?.includes('Kgs') || item.uom?.includes('KG') ? 1000 : 1) * 
@@ -1417,7 +1417,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                   const newItems = scannedPO.items.filter((_, i) => i !== idx);
                                   setScannedPO(prev => ({ ...prev, items: newItems }));
                                 }}
-                                style={{ border: 'none', background: 'none', color: '#DC2626', cursor: 'pointer', padding: '4px' }}
+                                style={{ border: 'none', background: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '4px' }}
                                 title="Delete Item"
                               >
                                 <Trash2 size={14} />
@@ -1427,7 +1427,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         ))}
                         {scannedPO.items.length === 0 && (
                           <tr>
-                            <td colSpan="6" style={{ textAlign: 'center', padding: '16px', color: '#64748B', fontStyle: 'italic', fontSize: '12px' }}>
+                            <td colSpan="6" style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '12px' }}>
                               No line items detected. Click "Add Line Item" below to register products manually.
                             </td>
                           </tr>
@@ -1446,7 +1446,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         marginTop: '8px',
                         fontSize: '11px',
                         fontWeight: 600,
-                        color: '#1C2D5A',
+                        color: 'var(--text-primary)',
                         background: 'none',
                         border: '1px dashed #1C2D5A',
                         padding: '4px 8px',
@@ -1460,8 +1460,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
                   {/* Local Error Alert inside Card */}
                   {errorMessage && (
-                    <div style={{ padding: '10px 14px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '4px', color: '#991B1B', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
-                      <AlertCircle size={16} style={{ color: '#DC2626', flexShrink: 0 }} />
+                    <div style={{ padding: '10px 14px', backgroundColor: 'var(--danger-bg)', border: '1px solid #FCA5A5', borderRadius: '4px', color: 'var(--danger)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+                      <AlertCircle size={16} style={{ color: 'var(--danger)', flexShrink: 0 }} />
                       <span>{errorMessage}</span>
                     </div>
                   )}
@@ -1475,7 +1475,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                       className="btn btn-primary" 
                       onClick={handleSaveScannedPO}
                       disabled={importing}
-                      style={{ fontSize: '13px', backgroundColor: '#10B981', borderColor: '#10B981' }}
+                      style={{ fontSize: '13px', backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}
                     >
                       {importing ? 'Saving PO...' : '✓ Save Scanned PO to Database'}
                     </button>
@@ -1485,13 +1485,13 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
             ) : (
               <>
                 {/* File Statistics Banner */}
-                <div className="card" style={{ backgroundColor: '#F8FAFC' }}>
+                <div className="card" style={{ backgroundColor: 'var(--bg-subtle)' }}>
                   <div className="card-body" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <FileText size={24} style={{ color: '#0F172A' }} />
+                  <FileText size={24} style={{ color: 'var(--text-primary)' }} />
                   <div>
-                    <div style={{ fontWeight: 600, color: '#0F172A', fontSize: '14px' }}>{file.name}</div>
-                    <div style={{ fontSize: '12px', color: '#64748B' }}>{(file.size / 1024).toFixed(1)} KB</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '14px' }}>{file.name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{(file.size / 1024).toFixed(1)} KB</div>
                   </div>
                 </div>
 
@@ -1499,7 +1499,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   {activeTab === 'planning' ? (
                     <>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>Select Sheet</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Select Sheet</div>
                         <select 
                           value={selectedSheet} 
                           onChange={(e) => handleSheetChange(e.target.value)}
@@ -1509,8 +1509,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                             border: '1px solid #CBD5E1',
                             fontSize: '13px',
                             fontWeight: 600,
-                            color: '#1E293B',
-                            backgroundColor: '#FFFFFF',
+                            color: 'var(--text-primary)',
+                            backgroundColor: 'var(--bg-elevated)',
                             cursor: 'pointer',
                             marginTop: '2px'
                           }}
@@ -1519,27 +1519,27 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         </select>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>Calendar Days</div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{parsedCalendar.length}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Calendar Days</div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{parsedCalendar.length}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>Planning Orders</div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{parsedOrders.length}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Planning Orders</div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{parsedOrders.length}</div>
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>Spreadsheet Rows</div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{parsedRows.length.toLocaleString()}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Spreadsheet Rows</div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{parsedRows.length.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Customers' : 'Unique Vendors'}</div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{uniqueCompanies.length}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Customers' : 'Unique Vendors'}</div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{uniqueCompanies.length}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Products' : 'Unique Materials'}</div>
-                        <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{uniqueProducts.length}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Products' : 'Unique Materials'}</div>
+                        <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{uniqueProducts.length}</div>
                       </div>
                     </>
                   )}
@@ -1566,7 +1566,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     onChange={(e) => setClearExisting(e.target.checked)}
                     style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                   />
-                  <label htmlFor="clear-existing-checkbox" style={{ fontSize: '13px', color: '#334155', cursor: 'pointer', fontWeight: 500 }}>
+                  <label htmlFor="clear-existing-checkbox" style={{ fontSize: '13px', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 500 }}>
                     {activeTab === 'sales'
                       ? 'Clear existing purchase orders, dispatches, and historical records before executing import (Recommended to purge dummy data)'
                       : activeTab === 'purchases'
@@ -1576,7 +1576,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 </div>
 
                 {activeTab === 'sales' ? (
-                  <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--info-bg)', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Product Auto-Mapping Info:</strong> Spreadsheet products will be automatically mapped to standard portal products:
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: '6px', fontFamily: 'monospace' }}>
                       <span>MTO ➔ SMO</span>
@@ -1586,7 +1586,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     </div>
                   </div>
                 ) : activeTab === 'purchases' ? (
-                  <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--info-bg)', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Material Auto-Mapping Info:</strong> Purchased materials will be mapped to standard finished products to update purchased stock quantities:
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: '6px', fontFamily: 'monospace' }}>
                       <span>Acetone ➔ SDS</span>
@@ -1596,7 +1596,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--info-bg)', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Enterprise Planning Mapping Info:</strong>
                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
                       <li>Daily additions in calendar will update production logs for <strong>AA</strong>.</li>
@@ -1636,14 +1636,14 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                           {parsedCalendar.slice(0, 15).map((item, idx) => (
                             <tr key={idx}>
                               <td style={{ fontWeight: 500 }}>{item.date}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 600, color: '#10B981' }}>
+                              <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--success)' }}>
                                 +{parseFloat(item.value || 0).toFixed(1)} MT
                               </td>
                             </tr>
                           ))}
                           {parsedCalendar.length > 15 && (
                             <tr>
-                              <td colSpan="2" style={{ textAlign: 'center', color: '#64748B', fontSize: '12px', fontStyle: 'italic' }}>
+                              <td colSpan="2" style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
                                 ... and {parsedCalendar.length - 15} more calendar days
                               </td>
                             </tr>
@@ -1673,8 +1673,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         <tbody>
                           {parsedOrders.slice(0, 15).map((order, idx) => (
                             <tr key={idx}>
-                              <td style={{ fontWeight: 600, color: '#1C2D5A' }}>{order.company}</td>
-                              <td style={{ fontStyle: 'italic', color: '#64748B' }}>{order.product}</td>
+                              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{order.company}</td>
+                              <td style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{order.product}</td>
                               <td>
                                 <span style={{
                                   display: 'inline-flex',
@@ -1683,15 +1683,15 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                   borderRadius: '3px',
                                   fontSize: '11px',
                                   fontWeight: 500,
-                                  backgroundColor: '#EFF6FF',
-                                  color: '#1D4ED8',
+                                  backgroundColor: 'var(--info-bg)',
+                                  color: 'var(--info)',
                                   border: '1px solid #BFDBFE'
                                 }}>
                                   {getMappedProduct(order.product)}
                                 </span>
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 500 }}>{order.pending_qty || '—'}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 500, color: order.delivered_qty > 0 ? '#10B981' : '#64748B' }}>
+                              <td style={{ textAlign: 'right', fontWeight: 500, color: order.delivered_qty > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
                                 {order.delivered_qty || '—'}
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 600 }}>
@@ -1701,7 +1701,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                           ))}
                           {parsedOrders.length > 15 && (
                             <tr>
-                              <td colSpan="6" style={{ textAlign: 'center', color: '#64748B', fontSize: '12px', fontStyle: 'italic' }}>
+                              <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', fontStyle: 'italic' }}>
                                 ... and {parsedOrders.length - 15} more order lines
                               </td>
                             </tr>
@@ -1746,11 +1746,11 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
                           return (
                             <tr key={idx}>
-                              <td style={{ color: '#888', fontSize: '12px' }}>{idx + 1}</td>
+                              <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{idx + 1}</td>
                               <td style={{ fontWeight: 500 }}>{poNo || '—'}</td>
                               <td>{poDate || '—'}</td>
-                              <td style={{ fontWeight: 500, color: '#1C2D5A' }}>{coName || '—'}</td>
-                              <td style={{ fontStyle: 'italic', color: '#666' }}>{prodName || '—'}</td>
+                              <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{coName || '—'}</td>
+                              <td style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{prodName || '—'}</td>
                               <td>
                                 <span style={{
                                   display: 'inline-flex',
@@ -1760,8 +1760,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                   borderRadius: '3px',
                                   fontSize: '11px',
                                   fontWeight: 500,
-                                  backgroundColor: '#F1F5F9',
-                                  color: '#475569',
+                                  backgroundColor: 'var(--bg-subtle)',
+                                  color: 'var(--text-secondary)',
                                   border: '1px solid #E2E8F0'
                                 }}>
                                   {getMappedProduct(prodName)}
@@ -1802,11 +1802,11 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
                           return (
                             <tr key={idx}>
-                              <td style={{ color: '#888', fontSize: '12px' }}>{idx + 1}</td>
+                              <td style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{idx + 1}</td>
                               <td>{dateVal || '—'}</td>
                               <td style={{ fontWeight: 500 }}>{invNo || '—'}</td>
-                              <td style={{ fontWeight: 500, color: '#1C2D5A' }}>{vendor || '—'}</td>
-                              <td style={{ fontStyle: 'italic', color: '#666' }}>{material || '—'}</td>
+                              <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{vendor || '—'}</td>
+                              <td style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>{material || '—'}</td>
                               <td>
                                 <span style={{
                                   display: 'inline-flex',
@@ -1816,16 +1816,16 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                                   borderRadius: '3px',
                                   fontSize: '11px',
                                   fontWeight: 500,
-                                  backgroundColor: getMappedProduct(material) === 'Other' ? '#F8FAFC' : '#EFF6FF',
-                                  color: getMappedProduct(material) === 'Other' ? '#64748B' : '#1D4ED8',
+                                  backgroundColor: getMappedProduct(material) === 'Other' ? 'var(--bg-subtle)' : 'var(--info-bg)',
+                                  color: getMappedProduct(material) === 'Other' ? 'var(--text-muted)' : 'var(--info)',
                                   border: getMappedProduct(material) === 'Other' ? '1px solid #E2E8F0' : '1px solid #BFDBFE'
                                 }}>
                                   {getMappedProduct(material)}
                                 </span>
                               </td>
                               <td style={{ textAlign: 'right', fontWeight: 600 }}>{qty || '0'}</td>
-                              <td style={{ textAlign: 'right', color: '#475569' }}>{rate || '—'}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 500, color: '#0F172A' }}>{amount || '—'}</td>
+                              <td style={{ textAlign: 'right', color: 'var(--text-secondary)' }}>{rate || '—'}</td>
+                              <td style={{ textAlign: 'right', fontWeight: 500, color: 'var(--text-primary)' }}>{amount || '—'}</td>
                             </tr>
                           );
                         })}

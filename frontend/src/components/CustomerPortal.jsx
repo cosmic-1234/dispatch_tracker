@@ -48,10 +48,10 @@ const STATUS_BADGE_CLASSES = {
 };
 
 const COMMITMENT_STATUS_STYLE = {
-  Honored:      { bg: '#D1FAE5', color: '#065F46', border: '#A7F3D0' },
-  Missed:       { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
-  Renegotiated: { bg: '#FEF3C7', color: '#92400E', border: '#FDE68A' },
-  Pending:      { bg: '#EFF6FF', color: '#1E40AF', border: '#BFDBFE' },
+  Honored:      { bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success-border)' },
+  Missed:       { bg: 'var(--danger-bg)', color: 'var(--danger)', border: 'var(--danger-border)' },
+  Renegotiated: { bg: 'var(--warning-bg)', color: 'var(--warning)', border: 'var(--warning-border)' },
+  Pending:      { bg: 'var(--info-bg)', color: 'var(--info)', border: 'var(--info-border)' },
 };
 
 function StatusChip({ status }) {
@@ -66,7 +66,7 @@ function StatusChip({ status }) {
 }
 
 function CommitmentChip({ status }) {
-  const s = COMMITMENT_STATUS_STYLE[status] || { bg: '#F1F5F9', color: '#64748B', border: '#CBD5E1' };
+  const s = COMMITMENT_STATUS_STYLE[status] || { bg: 'var(--bg-subtle)', color: 'var(--text-muted)', border: 'var(--border-strong)' };
   return (
     <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700,
       background: s.bg, color: s.color, border: `1px solid ${s.border}`, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -108,22 +108,22 @@ function LoginScreen({ API_BASE, onLogin }) {
       <div style={{ width: '380px' }}>
         {/* Logo / Brand */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '16px', backgroundColor: '#FFFFFF',
+          <div style={{ width: '64px', height: '64px', borderRadius: '16px', backgroundColor: 'var(--bg-elevated)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
             <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
           </div>
           <h1 style={{ margin: 0, color: 'white', fontSize: '20px', fontWeight: 700, letterSpacing: '0.5px' }}>SHAKTI SCM</h1>
-          <p style={{ margin: '4px 0 0', color: '#A0B2C6', fontSize: '12px' }}>Customer Self-Service Portal</p>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-disabled)', fontSize: '12px' }}>Customer Self-Service Portal</p>
         </div>
 
         {/* Card */}
-        <div style={{ background: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: '6px',
+        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: '6px',
           padding: '28px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
           <h2 style={{ color: 'var(--text-primary)', margin: '0 0 20px', fontSize: '15px', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>Sign In to Your Account</h2>
           
           {error && (
-            <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '4px', padding: '8px 12px',
-              color: '#DC2626', fontSize: '11px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ background: 'var(--danger-bg)', border: '1px solid #FECACA', borderRadius: '4px', padding: '8px 12px',
+              color: 'var(--danger)', fontSize: '11px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <AlertTriangle size={12} /> {error}
             </div>
           )}
@@ -146,7 +146,7 @@ function LoginScreen({ API_BASE, onLogin }) {
           </form>
         </div>
 
-        <p style={{ color: '#A0B2C6', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
+        <p style={{ color: 'var(--text-disabled)', fontSize: '11px', textAlign: 'center', marginTop: '20px' }}>
           Access provided by Shakti SCM. Contact your account manager for credentials.
         </p>
       </div>
@@ -204,10 +204,10 @@ function CustomerSidebar({ user, activeModule, setActiveModule, onLogout, collap
           <div className="sidebar-avatar">{getInitials(user.full_name || user.username)}</div>
           {!collapsed && (
             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span className="sidebar-user-name" style={{ fontSize: '11px', color: '#FFFFFF', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span className="sidebar-user-name" style={{ fontSize: '11px', color: 'var(--bg-elevated)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.full_name || user.username}
               </span>
-              <span style={{ fontSize: '10px', color: '#8AAAC8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.company_name}
               </span>
             </div>
@@ -302,7 +302,7 @@ function OrderListTab({ orders, loading, onSelectOrder }) {
                     <td>
                       <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                         {(po.items || []).map(i => (
-                          <span key={i.product_type} style={{ fontSize: '10px', backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', padding: '1px 4px', borderRadius: '2px' }}>
+                          <span key={i.product_type} style={{ fontSize: '10px', backgroundColor: 'var(--bg-subtle)', border: '1px solid #E2E8F0', padding: '1px 4px', borderRadius: '2px' }}>
                             {i.product_type} ({parseFloat(i.quantity).toFixed(1)} MT)
                           </span>
                         ))}
@@ -310,9 +310,9 @@ function OrderListTab({ orders, loading, onSelectOrder }) {
                     </td>
                     <td>{formatDate(po.date_received)}</td>
                     <td className="mono">{totalQty.toFixed(1)} MT</td>
-                    <td className="mono" style={{ color: '#16A34A', fontWeight: 600 }}>{allocatedQty.toFixed(1)} MT</td>
-                    <td className="mono" style={{ color: pendingQty > 0 ? '#0A6ED1' : 'inherit' }}>{pendingQty.toFixed(1)} MT</td>
-                    <td className="mono" style={{ fontWeight: 500, color: po.commitment_status === 'Missed' ? '#BB0000' : 'inherit' }}>
+                    <td className="mono" style={{ color: 'var(--success)', fontWeight: 600 }}>{allocatedQty.toFixed(1)} MT</td>
+                    <td className="mono" style={{ color: pendingQty > 0 ? 'var(--primary-blue)' : 'inherit' }}>{pendingQty.toFixed(1)} MT</td>
+                    <td className="mono" style={{ fontWeight: 500, color: po.commitment_status === 'Missed' ? 'var(--danger)' : 'inherit' }}>
                       {po.committed_dispatch_date ? formatDate(po.committed_dispatch_date) : '—'}
                     </td>
                     <td>
@@ -573,7 +573,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
     );
   }
 
-  if (!po) return <div className="card" style={{ padding: '24px', color: '#BB0000' }}>Order not found.</div>;
+  if (!po) return <div className="card" style={{ padding: '24px', color: 'var(--danger)' }}>Order not found.</div>;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -598,11 +598,11 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
         </div>
 
         {po.committed_dispatch_date && (
-          <div style={{ background: '#EFF6FC', border: '1px solid #A3D1FF', borderRadius: '4px', padding: '10px 14px',
+          <div style={{ background: 'var(--info-bg)', border: '1px solid #A3D1FF', borderRadius: '4px', padding: '10px 14px',
             display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
             <Clock size={14} color="#0A6ED1" />
             <span style={{ color: 'var(--text-secondary)' }}>Committed Dispatch Date:</span>
-            <strong style={{ color: po.commitment_status === 'Missed' ? '#BB0000' : 'var(--text-primary)' }}>{formatDate(po.committed_dispatch_date)}</strong>
+            <strong style={{ color: po.commitment_status === 'Missed' ? 'var(--danger)' : 'var(--text-primary)' }}>{formatDate(po.committed_dispatch_date)}</strong>
           </div>
         )}
         {po.notes && (
@@ -634,8 +634,8 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
                   <tr key={item.id}>
                     <td><strong>{item.product_type}</strong></td>
                     <td className="mono">{parseFloat(item.quantity).toFixed(1)} MT</td>
-                    <td className="mono" style={{ color: '#16A34A', fontWeight: 600 }}>{parseFloat(item.allocated_quantity || 0).toFixed(1)} MT</td>
-                    <td className="mono" style={{ color: pending > 0 ? '#0A6ED1' : 'inherit' }}>{pending.toFixed(1)} MT</td>
+                    <td className="mono" style={{ color: 'var(--success)', fontWeight: 600 }}>{parseFloat(item.allocated_quantity || 0).toFixed(1)} MT</td>
+                    <td className="mono" style={{ color: pending > 0 ? 'var(--primary-blue)' : 'inherit' }}>{pending.toFixed(1)} MT</td>
                   </tr>
                 );
               })}
@@ -668,7 +668,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
                   <td><strong>{d.product_type || '—'}</strong></td>
                   <td className="mono">{parseFloat(d.quantity).toFixed(1)} MT</td>
                   <td>{formatDate(d.planned_dispatch_date)}</td>
-                  <td style={{ color: d.actual_dispatch_date ? '#16A34A' : 'var(--text-muted)' }}>{d.actual_dispatch_date ? formatDate(d.actual_dispatch_date) : 'Pending'}</td>
+                  <td style={{ color: d.actual_dispatch_date ? 'var(--success)' : 'var(--text-muted)' }}>{d.actual_dispatch_date ? formatDate(d.actual_dispatch_date) : 'Pending'}</td>
                   <td>
                     <span className={`badge ${d.status === 'Executed' ? 'executed' : d.status === 'Planned' ? 'planned' : 'closed'}`}>
                       {d.status}
@@ -696,7 +696,7 @@ function OrderDetailTab({ API_BASE, user, poId, onBack }) {
             {po.commitment_history.map((h, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: i < po.commitment_history.length - 1 ? '14px' : 0 }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', marginTop: '4px', flexShrink: 0,
-                  background: h.status === 'Honored' ? '#107E3E' : h.status === 'Missed' ? '#BB0000' : h.status === 'Renegotiated' ? '#D04900' : '#0A6ED1' }} />
+                  background: h.status === 'Honored' ? 'var(--success)' : h.status === 'Missed' ? 'var(--danger)' : h.status === 'Renegotiated' ? 'var(--warning)' : 'var(--primary-blue)' }} />
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
                     <CommitmentChip status={h.status} />
@@ -781,7 +781,7 @@ export default function CustomerPortal({ API_BASE }) {
           <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
             <h1 style={{ textTransform: 'uppercase' }}>SHAKTI CUSTOMER PORTAL</h1>
-            <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
+            <span className="badge" style={{ backgroundColor: 'var(--bg-subtle)', border: '1px solid #D9D9D9', color: 'var(--text-primary)', textTransform: 'none', display: 'flex', gap: '6px' }}>
               <Clock size={12} color="#515559" />
               <span>Simulated Date: <strong>{formatDate(systemDate)}</strong></span>
             </span>

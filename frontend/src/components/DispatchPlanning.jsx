@@ -293,7 +293,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
         <path d={makePath(proj.scenario)} fill="none" stroke="#3B82F6" strokeWidth="2.5" />
         {proj.scenario.map((p, i) => (
           <circle key={i} cx={scaleX(p.day)} cy={scaleY(p.stock)} r="3"
-            fill={p.stock < 10 ? '#EF4444' : '#3B82F6'} />
+            fill={p.stock < 10 ? 'var(--danger)' : 'var(--info)'} />
         ))}
         {/* Axis labels */}
         {proj.baseline.map((p, i) => (
@@ -312,7 +312,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
-        <div style={{ width: '20px', height: '20px', border: '3px solid #E2E8F0', borderTopColor: '#1C6BF4', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ width: '20px', height: '20px', border: '3px solid #E2E8F0', borderTopColor: 'var(--primary-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <span>Synthesizing inventory snapshots and running prioritizer...</span>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -348,7 +348,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                     return (
                       <tr key={`${item.id}-${item.product_type}`} style={{ opacity: isCreditHold ? 0.6 : 1 }}>
                         <td>
-                          <span className="score-cell badge" style={{ backgroundColor: item.score >= 100 ? '#D1FAE5' : item.score >= 60 ? '#DBEAFE' : '#F3F4F6', color: item.score >= 100 ? '#065F46' : item.score >= 60 ? '#1E3A8A' : '#374151' }}>
+                          <span className="score-cell badge" style={{ backgroundColor: item.score >= 100 ? 'var(--success-bg)' : item.score >= 60 ? 'var(--info-bg)' : 'var(--bg-subtle)', color: item.score >= 100 ? 'var(--success)' : item.score >= 60 ? 'var(--info)' : 'var(--text-primary)' }}>
                             {item.score}
                             <span className="score-tooltip">
                               <div style={{ fontWeight: 'bold', marginBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>AI Prioritization Score Details</div>
@@ -356,7 +356,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                               <div className="tooltip-row"><span>Age ({item.order_age_days}d × 2):</span> <span>+{item.age_points} pts</span></div>
                               <div className="tooltip-row"><span>Stock Deficit Check:</span> <span>{item.stock_penalty} pts</span></div>
                               {item.commitment_points > 0 && (
-                                <div className="tooltip-row" style={{ color: '#FCD34D' }}><span>Commitment Urgency:</span> <span>+{item.commitment_points} pts</span></div>
+                                <div className="tooltip-row" style={{ color: 'var(--warning)' }}><span>Commitment Urgency:</span> <span>+{item.commitment_points} pts</span></div>
                               )}
                               <div className="tooltip-row total"><span>Final Priority Score:</span> <span>{item.score} pts</span></div>
                             </span>
@@ -379,7 +379,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                   })}
                   {optimizerData.actionable_po_pool.length === 0 && (
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#64748B' }}>No unallocated PO lines found.</td>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>No unallocated PO lines found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -405,7 +405,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
           }}
           title="Drag to resize panels"
         >
-          <div style={{ width: '4px', height: '40px', borderRadius: '2px', backgroundColor: '#CBD5E1', transition: 'background-color 0.2s' }} />
+          <div style={{ width: '4px', height: '40px', borderRadius: '2px', backgroundColor: 'var(--border-strong)', transition: 'background-color 0.2s' }} />
         </div>
 
         {/* RIGHT PANE: AI-Recommended Dispatch Runs */}
@@ -416,7 +416,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
               Proposed Consolidation Runs
             </span>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px', color: '#7C3AED', borderColor: '#C4B5FD', display: 'flex', alignItems: 'center', gap: '5px' }}
+              <button className="btn btn-secondary" style={{ padding: '4px 10px', fontSize: '11px', color: 'var(--info)', borderColor: 'var(--info-border)', display: 'flex', alignItems: 'center', gap: '5px' }}
                 onClick={() => { setShowSimulator(true); setScenarioAiNarration(''); }}>
                 <FlaskConical size={12} /> Simulate Scenario
               </button>
@@ -429,14 +429,14 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
           <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
             
             {/* Projected Stock Remainder */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', backgroundColor: '#FAFBFD', padding: '10px 14px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', backgroundColor: 'var(--bg-subtle)', padding: '10px 14px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
               <div style={{ width: '100%', fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px' }}>Projected Remaining Stock After Plan Exec:</div>
               {Object.entries(remainingStocks).map(([prod, stock]) => {
                 const isWarning = stock < 10; // generic threshold check
                 return (
                   <div key={prod} style={{ display: 'flex', gap: '6px', fontSize: '11px', borderRight: '1px solid #E2E8F0', paddingRight: '10px' }}>
                     <span>{prod}:</span>
-                    <strong style={{ color: isWarning ? '#DC2626' : '#16A34A', fontFamily: 'monospace' }}>{stock.toFixed(0)} MT</strong>
+                    <strong style={{ color: isWarning ? 'var(--danger)' : 'var(--success)', fontFamily: 'monospace' }}>{stock.toFixed(0)} MT</strong>
                   </div>
                 );
               })}
@@ -444,14 +444,14 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
 
             {/* Run Items list */}
             {editableRuns.map((run, runIdx) => (
-              <div key={run.run_id} style={{ border: '1px solid #E2E8F0', borderRadius: '4px', background: '#FFFFFF' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+              <div key={run.run_id} style={{ border: '1px solid #E2E8F0', borderRadius: '4px', background: 'var(--bg-elevated)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid #E2E8F0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="badge planned" style={{ fontSize: '10px', fontWeight: 'bold' }}>{run.run_id}</span>
                     <span style={{ fontSize: '13px', fontWeight: 600 }}>Product: <strong>{run.product_type}</strong></span>
                   </div>
                   <div style={{ fontSize: '12px' }}>
-                    Consolidated Weight: <strong className="mono" style={{ color: run.total_quantity > 32 ? '#B45309' : '#16A34A' }}>{run.total_quantity.toFixed(1)} MT</strong> / 32 MT
+                    Consolidated Weight: <strong className="mono" style={{ color: run.total_quantity > 32 ? 'var(--warning)' : 'var(--success)' }}>{run.total_quantity.toFixed(1)} MT</strong> / 32 MT
                   </div>
                 </div>
 
@@ -478,7 +478,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                               <div style={{ display: 'flex', flexDirection: 'column' }}>
                                 <span>{alloc.company_name}</span>
                                 {hasCreditWarning && (
-                                  <span style={{ fontSize: '8px', color: '#DC2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                  <span style={{ fontSize: '8px', color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px' }}>
                                     <ShieldAlert size={10} /> CREDIT HOLD - OVERRIDE REQUIRED
                                   </span>
                                 )}
@@ -494,7 +494,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                               />
                             </td>
                             <td style={{ textAlign: 'right' }}>
-                              <button className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '10px', color: '#EF4444', borderColor: '#FCA5A5' }} onClick={() => handleRemoveAllocation(runIdx, allocIdx)}>
+                              <button className="btn btn-secondary" style={{ padding: '3px 6px', fontSize: '10px', color: 'var(--danger)', borderColor: 'var(--danger-border)' }} onClick={() => handleRemoveAllocation(runIdx, allocIdx)}>
                                 Remove
                               </button>
                             </td>
@@ -508,7 +508,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
             ))}
 
             {editableRuns.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '30px', color: '#64748B' }}>
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)' }}>
                 <AlertCircle size={24} style={{ margin: '0 auto 8px auto', opacity: 0.6 }} />
                 <span>No consolidation runs active. Adjust safety thresholds or receive new POs.</span>
               </div>
@@ -539,7 +539,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
               </button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ fontSize: '12px', color: '#64748B', background: '#F8FAFC', padding: '10px 12px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
                 Adjust parameters below to see how changes in dispatch volume or production output affect 7-day inventory projections. Baseline (gray dashed) vs Scenario (blue solid).
               </div>
 
@@ -568,14 +568,14 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
               </div>
 
               {/* Dual-series Chart */}
-              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px', overflowX: 'auto' }}>
+              <div style={{ background: 'var(--bg-subtle)', border: '1px solid #E2E8F0', borderRadius: '6px', padding: '12px', overflowX: 'auto' }}>
                 {renderDualChart()}
               </div>
 
               {/* AI Narration */}
-              <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '6px', padding: '12px' }}>
-                <div style={{ fontSize: '10px', fontWeight: 700, color: '#1E40AF', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>AI Scenario Analysis</div>
-                <p style={{ margin: 0, fontSize: '12px', color: '#1E293B', lineHeight: 1.6 }}>{buildNarration()}</p>
+              <div style={{ background: 'var(--info-bg)', border: '1px solid #BFDBFE', borderRadius: '6px', padding: '12px' }}>
+                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--info)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>AI Scenario Analysis</div>
+                <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.6 }}>{buildNarration()}</p>
               </div>
 
               {/* Save Scenario */}
@@ -602,8 +602,8 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
       {showOverrideModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '500px' }}>
-            <div className="modal-header" style={{ backgroundColor: '#FFFBEB', borderBottomColor: '#FDE68A' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#B45309' }}>
+            <div className="modal-header" style={{ backgroundColor: 'var(--warning-bg)', borderBottomColor: 'var(--warning-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--warning)' }}>
                 <ShieldAlert size={18} />
                 <h3>Credit Hold Override Authorization</h3>
               </div>
@@ -611,7 +611,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
             <form onSubmit={handleOverrideSubmit}>
               <div className="modal-body">
                 {overrideError && (
-                  <div style={{ backgroundColor: '#FEE2E2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '10px', fontSize: '12px', borderRadius: '4px', marginBottom: '16px' }}>
+                  <div style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid #FCA5A5', color: 'var(--danger)', padding: '10px', fontSize: '12px', borderRadius: '4px', marginBottom: '16px' }}>
                     {overrideError}
                   </div>
                 )}
@@ -621,7 +621,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
                 </p>
 
                 {getOnHoldAllocations().map(alloc => (
-                  <div key={alloc.po_id} style={{ border: '1px solid #E2E8F0', padding: '12px', borderRadius: '4px', marginBottom: '12px', backgroundColor: '#F8FAFC' }}>
+                  <div key={alloc.po_id} style={{ border: '1px solid #E2E8F0', padding: '12px', borderRadius: '4px', marginBottom: '12px', backgroundColor: 'var(--bg-subtle)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
                       <strong>{alloc.company_name}</strong>
                       <span className="badge onhold">Credit Hold</span>
@@ -644,7 +644,7 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowOverrideModal(false)}>Cancel Plan</button>
-                <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#D97706' }}>Authorize & Commit</button>
+                <button type="submit" className="btn btn-primary" style={{ backgroundColor: 'var(--warning)' }}>Authorize & Commit</button>
               </div>
             </form>
           </div>

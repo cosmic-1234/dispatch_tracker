@@ -66,11 +66,21 @@ export default function App() {
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
+  const [accent, setAccent] = useState(() => {
+    if (typeof window === 'undefined') return 'emerald';
+    const saved = window.localStorage.getItem('shakti-accent');
+    return ['emerald', 'indigo', 'amber'].includes(saved) ? saved : 'emerald';
+  });
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     window.localStorage.setItem('shakti-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-accent', accent);
+    window.localStorage.setItem('shakti-accent', accent);
+  }, [accent]);
 
   const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   

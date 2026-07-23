@@ -227,6 +227,148 @@
   --sidebar-section-label: #4D5666;
 }
 
+/* ============================================================================
+   CORPORATE ACCENT PICKER — layers on top of base tokens.
+   `data-accent` on <html> switches the emerald / indigo / amber palette.
+   Interacts with `data-theme` so each accent has a light + dark tuning.
+   ============================================================================ */
+
+/* Emerald (default) — already covered by base tokens */
+:root[data-accent="emerald"] {
+  --primary-blue: #0F5A4E;
+  --primary-blue-hover: #0d4d43;
+  --primary-blue-active: #0a3f37;
+  --sidebar-active-border: #5EC2A8;
+  --sidebar-active-bg: rgba(94, 194, 168, 0.14);
+  --focus-ring: 0 0 0 3px rgba(15, 90, 78, 0.22);
+}
+:root[data-theme="dark"][data-accent="emerald"] {
+  --primary-blue: #4FD1B0;
+  --primary-blue-hover: #64DDBE;
+  --primary-blue-active: #3AB894;
+  --sidebar-active-border: #4FD1B0;
+  --sidebar-active-bg: rgba(79, 209, 176, 0.12);
+  --focus-ring: 0 0 0 3px rgba(79, 209, 176, 0.30);
+}
+
+/* Indigo */
+:root[data-accent="indigo"] {
+  --primary-blue: #4F46E5;
+  --primary-blue-hover: #4338CA;
+  --primary-blue-active: #3730A3;
+  --sidebar-active-border: #A5B4FC;
+  --sidebar-active-bg: rgba(165, 180, 252, 0.14);
+  --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.22);
+}
+:root[data-theme="dark"][data-accent="indigo"] {
+  --primary-blue: #818CF8;
+  --primary-blue-hover: #A5B4FC;
+  --primary-blue-active: #6366F1;
+  --sidebar-active-border: #A5B4FC;
+  --sidebar-active-bg: rgba(129, 140, 248, 0.14);
+  --focus-ring: 0 0 0 3px rgba(129, 140, 248, 0.32);
+}
+
+/* Amber */
+:root[data-accent="amber"] {
+  --primary-blue: #B45309;
+  --primary-blue-hover: #92400E;
+  --primary-blue-active: #78350F;
+  --sidebar-active-border: #F59E0B;
+  --sidebar-active-bg: rgba(245, 158, 11, 0.16);
+  --focus-ring: 0 0 0 3px rgba(180, 83, 9, 0.24);
+}
+:root[data-theme="dark"][data-accent="amber"] {
+  --primary-blue: #F59E0B;
+  --primary-blue-hover: #FBBF24;
+  --primary-blue-active: #D97706;
+  --sidebar-active-border: #F59E0B;
+  --sidebar-active-bg: rgba(245, 158, 11, 0.14);
+  --focus-ring: 0 0 0 3px rgba(245, 158, 11, 0.32);
+}
+
+/* Ensure primary text on solid buttons reads well when accent flips */
+[data-accent="amber"] .btn-primary,
+[data-theme="dark"] .btn-primary {
+  color: var(--btn-primary-text, #FFFFFF);
+}
+[data-theme="dark"][data-accent="emerald"] .btn-primary,
+[data-theme="dark"][data-accent="indigo"] .btn-primary,
+[data-theme="dark"][data-accent="amber"] .btn-primary {
+  color: #061512;
+}
+:root[data-theme="light"][data-accent="amber"] .btn-primary,
+:root[data-theme="light"][data-accent="indigo"] .btn-primary,
+:root[data-theme="light"][data-accent="emerald"] .btn-primary {
+  color: #FFFFFF;
+}
+
+/* ============================================================================
+   ACCENT PICKER UI (Settings screen)
+   ============================================================================ */
+.accent-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 6px;
+}
+.accent-swatch {
+  border: 1.5px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 14px 12px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: transform 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease), background 160ms var(--ease);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+.accent-swatch:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.accent-swatch.active {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.03), var(--shadow-sm);
+}
+.accent-swatch.active::after {
+  content: '✓';
+  position: absolute;
+  top: 8px; right: 10px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--primary-blue);
+  color: #FFFFFF;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+}
+[data-theme="dark"] .accent-swatch.active::after { color: #061512; }
+
+.accent-swatch-dots {
+  display: flex;
+  gap: 6px;
+}
+.accent-swatch-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.accent-swatch-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.005em;
+}
+.accent-swatch-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* ─────────────────────────────  RESET & BASE  ───────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

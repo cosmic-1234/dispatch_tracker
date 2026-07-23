@@ -6,19 +6,19 @@ import { formatDate } from '../App';
 
 
 const STATUS_COLORS = {
-  Honored: { bg: '#D1FAE5', color: '#065F46', border: '#A7F3D0' },
-  Missed:  { bg: '#FEE2E2', color: '#991B1B', border: '#FECACA' },
-  Renegotiated: { bg: '#FEF3C7', color: '#92400E', border: '#FDE68A' },
-  Pending: { bg: '#EFF6FF', color: '#1E40AF', border: '#BFDBFE' },
+  Honored: { bg: 'var(--success-bg)', color: 'var(--success)', border: 'var(--success-border)' },
+  Missed:  { bg: 'var(--danger-bg)', color: 'var(--danger)', border: 'var(--danger-border)' },
+  Renegotiated: { bg: 'var(--warning-bg)', color: 'var(--warning)', border: 'var(--warning-border)' },
+  Pending: { bg: 'var(--info-bg)', color: 'var(--info)', border: 'var(--info-border)' },
 };
 
 function HealthScore({ score }) {
-  if (score === null || score === undefined) return <span style={{ color: '#94A3B8', fontSize: '11px' }}>N/A</span>;
+  if (score === null || score === undefined) return <span style={{ color: 'var(--text-disabled)', fontSize: '11px' }}>N/A</span>;
   const pct = Math.round(score);
-  const color = pct >= 80 ? '#10B981' : pct >= 60 ? '#F59E0B' : '#EF4444';
+  const color = pct >= 80 ? 'var(--success)' : pct >= 60 ? 'var(--warning)' : 'var(--danger)';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <div style={{ width: '80px', height: '6px', borderRadius: '3px', background: '#E2E8F0', overflow: 'hidden' }}>
+      <div style={{ width: '80px', height: '6px', borderRadius: '3px', background: 'var(--border-color)', overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '3px', transition: 'width 0.4s ease' }} />
       </div>
       <span style={{ fontSize: '11px', fontWeight: 600, color }}>{pct}%</span>
@@ -27,7 +27,7 @@ function HealthScore({ score }) {
 }
 
 function StatusChip({ status }) {
-  const s = STATUS_COLORS[status] || { bg: '#F1F5F9', color: '#64748B', border: '#CBD5E1' };
+  const s = STATUS_COLORS[status] || { bg: 'var(--bg-subtle)', color: 'var(--text-muted)', border: 'var(--border-strong)' };
   return (
     <span style={{ padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 700,
       background: s.bg, color: s.color, border: `1px solid ${s.border}`, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -54,13 +54,13 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
   useEffect(() => { loadData(); }, []);
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: '#64748B', gap: '8px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', color: 'var(--text-muted)', gap: '8px' }}>
       <RefreshCw size={16} style={{ animation: 'spin 1.5s linear infinite' }} /> Loading commitment health data...
     </div>
   );
 
   if (error) return (
-    <div style={{ padding: '24px', color: '#EF4444' }}>
+    <div style={{ padding: '24px', color: 'var(--danger)' }}>
       <AlertTriangle size={14} style={{ marginRight: '6px' }} /> {error}
     </div>
   );
@@ -74,8 +74,8 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <HeartPulse size={20} color="#EF4444" />
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1E293B' }}>Commitment Health Dashboard</h2>
-          <span style={{ fontSize: '11px', color: '#64748B', background: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '2px 8px' }}>
+          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>Commitment Health Dashboard</h2>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', background: 'var(--bg-subtle)', border: '1px solid #E2E8F0', borderRadius: '4px', padding: '2px 8px' }}>
             SCM Date: {formatDate(data?.system_date || systemDate)}
           </span>
         </div>
@@ -87,14 +87,14 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
       {/* Summary KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         {[
-          { label: 'At-Risk Companies', value: riskCompanies.length, color: '#EF4444', bg: '#FEF2F2' },
-          { label: 'Missed POs', value: data?.missed_pos?.length || 0, color: '#F59E0B', bg: '#FFFBEB' },
-          { label: 'Total Commitments Tracked', value: (data?.companies || []).reduce((s, c) => s + (parseInt(c.total_commitments) || 0), 0), color: '#3B82F6', bg: '#EFF6FF' },
-          { label: 'Total Companies', value: (data?.companies || []).length, color: '#10B981', bg: '#F0FDF4' },
+          { label: 'At-Risk Companies', value: riskCompanies.length, color: 'var(--danger)', bg: 'var(--danger-bg)' },
+          { label: 'Missed POs', value: data?.missed_pos?.length || 0, color: 'var(--warning)', bg: 'var(--warning-bg)' },
+          { label: 'Total Commitments Tracked', value: (data?.companies || []).reduce((s, c) => s + (parseInt(c.total_commitments) || 0), 0), color: 'var(--info)', bg: 'var(--info-bg)' },
+          { label: 'Total Companies', value: (data?.companies || []).length, color: 'var(--success)', bg: 'var(--success-bg)' },
         ].map(kpi => (
           <div key={kpi.label} style={{ background: kpi.bg, border: `1px solid ${kpi.color}22`, borderRadius: '8px', padding: '16px' }}>
             <div style={{ fontSize: '24px', fontWeight: 800, color: kpi.color }}>{kpi.value}</div>
-            <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', fontWeight: 500 }}>{kpi.label}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 500 }}>{kpi.label}</div>
           </div>
         ))}
       </div>
@@ -102,10 +102,10 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
       {/* At-Risk Companies Section */}
       {riskCompanies.length > 0 && (
         <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column', borderLeft: '4px solid #DC2626' }}>
-          <div className="card-header" style={{ background: '#FEF2F2', borderBottomColor: '#FECACA' }}>
+          <div className="card-header" style={{ background: 'var(--danger-bg)', borderBottomColor: 'var(--danger-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertTriangle size={14} color="#DC2626" />
-              <span className="card-title" style={{ color: '#991B1B' }}>
+              <span className="card-title" style={{ color: 'var(--danger)' }}>
                 Relationship Risk — {riskCompanies.length} Company(s) Flagged
               </span>
             </div>
@@ -125,10 +125,10 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
                   <td><span className={`tier-badge ${c.tier}`}>{c.tier}</span></td>
                   <td><HealthScore score={c.commitment_health_score} /></td>
                   <td className="mono">{c.total_commitments || 0}</td>
-                  <td className="mono" style={{ color: '#166534', fontWeight: 600 }}>{c.honored || 0}</td>
-                  <td className="mono" style={{ color: '#991B1B', fontWeight: 700 }}>{c.missed || 0}</td>
-                  <td className="mono" style={{ color: '#92400E', fontWeight: 600 }}>{c.renegotiated || 0}</td>
-                  <td className="mono" style={{ color: '#1C6BF4', fontWeight: 600 }}>{c.pending || 0}</td>
+                  <td className="mono" style={{ color: 'var(--success)', fontWeight: 600 }}>{c.honored || 0}</td>
+                  <td className="mono" style={{ color: 'var(--danger)', fontWeight: 700 }}>{c.missed || 0}</td>
+                  <td className="mono" style={{ color: 'var(--warning)', fontWeight: 600 }}>{c.renegotiated || 0}</td>
+                  <td className="mono" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>{c.pending || 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -139,7 +139,7 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
       {/* Missed POs Table */}
       {data?.missed_pos?.length > 0 && (
         <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="card-header" style={{ background: '#F8FAFC' }}>
+          <div className="card-header" style={{ background: 'var(--bg-subtle)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertTriangle size={13} color="#EF4444" />
               <span className="card-title">Overdue Commitments — Open POs</span>
@@ -159,7 +159,7 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
                   <td className="mono" style={{ fontWeight: 600, textAlign: 'left' }}>{po.id}</td>
                   <td>{po.company_name}</td>
                   <td><span className={`tier-badge ${po.tier}`}>{po.tier}</span></td>
-                  <td className="mono" style={{ color: '#DC2626', fontWeight: 600, textAlign: 'left' }}>{formatDate(po.committed_dispatch_date)}</td>
+                  <td className="mono" style={{ color: 'var(--danger)', fontWeight: 600, textAlign: 'left' }}>{formatDate(po.committed_dispatch_date)}</td>
                   <td><StatusChip status={po.commitment_status} /></td>
                   <td><HealthScore score={po.commitment_health_score} /></td>
                 </tr>
@@ -171,7 +171,7 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
 
       {/* All Companies Table */}
       <div className="card card-table-container" style={{ display: 'flex', flexDirection: 'column' }}>
-        <div className="card-header" style={{ background: '#F8FAFC' }}>
+        <div className="card-header" style={{ background: 'var(--bg-subtle)' }}>
           <span className="card-title">All Companies — Commitment Overview</span>
         </div>
         <table className="sap-table">
@@ -194,10 +194,10 @@ export default function CommitmentHealth({ API_BASE, systemDate, onNavigate }) {
                     : <span className="badge dispatched" style={{ fontSize: '10px' }}>✓ OK</span>}
                 </td>
                 <td className="mono">{c.total_commitments || 0}</td>
-                <td className="mono" style={{ color: '#166534', fontWeight: 600 }}>{c.honored || 0}</td>
-                <td className="mono" style={{ color: '#991B1B', fontWeight: 700 }}>{c.missed || 0}</td>
-                <td className="mono" style={{ color: '#92400E', fontWeight: 600 }}>{c.renegotiated || 0}</td>
-                <td className="mono" style={{ color: '#1C6BF4', fontWeight: 600 }}>{c.pending || 0}</td>
+                <td className="mono" style={{ color: 'var(--success)', fontWeight: 600 }}>{c.honored || 0}</td>
+                <td className="mono" style={{ color: 'var(--danger)', fontWeight: 700 }}>{c.missed || 0}</td>
+                <td className="mono" style={{ color: 'var(--warning)', fontWeight: 600 }}>{c.renegotiated || 0}</td>
+                <td className="mono" style={{ color: 'var(--primary-blue)', fontWeight: 600 }}>{c.pending || 0}</td>
               </tr>
             ))}
           </tbody>

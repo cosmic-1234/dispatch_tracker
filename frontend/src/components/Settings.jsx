@@ -108,7 +108,7 @@ export default function Settings({ API_BASE, triggerRefresh }) {
       <form onSubmit={handleSaveSettings}>
         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {successMsg && (
-            <div style={{ backgroundColor: '#D1FAE5', border: '1px solid #A7F3D0', color: '#065F46', padding: '10px', fontSize: '13px', borderRadius: '4px', fontWeight: 500 }}>
+            <div style={{ backgroundColor: 'var(--success-bg)', border: '1px solid #A7F3D0', color: 'var(--success)', padding: '10px', fontSize: '13px', borderRadius: '4px', fontWeight: 500 }}>
               {successMsg}
             </div>
           )}
@@ -193,7 +193,7 @@ export default function Settings({ API_BASE, triggerRefresh }) {
           </div>
 
         </div>
-        <div className="card-footer" style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', backgroundColor: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
+        <div className="card-footer" style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', backgroundColor: 'var(--bg-subtle)', borderTop: '1px solid #E2E8F0' }}>
           <button type="submit" className="btn btn-primary" disabled={saving} style={{ display: 'flex', gap: '6px' }}>
             <Save size={14} />
             <span>Save System Parameters</span>

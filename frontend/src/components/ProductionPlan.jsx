@@ -521,20 +521,20 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '400px', gap: '12px' }}>
-        <RefreshCw size={24} className="spin" style={{ color: '#1C6BF4' }} />
+        <RefreshCw size={24} className="spin" style={{ color: 'var(--primary-blue)' }} />
         <span>Loading Dispatch Ledger data...</span>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: '#F7F5F0', padding: '24px', borderRadius: '12px', minHeight: '80vh', border: '1px solid #E4E2DC' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--bg-app)', padding: '24px', borderRadius: '12px', minHeight: '80vh', border: '1px solid #E4E2DC' }}>
       
       {/* Top Banner and Navigation Tabs */}
       <div style={{ backgroundColor: 'var(--primary-navy)', padding: '24px 24px 0 24px', borderRadius: '8px 8px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <div style={{ color: '#D4AF37', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DISPATCH LEDGER</div>
-          <h2 style={{ margin: '4px 0 0 0', color: '#FFFFFF', fontSize: '22px', fontWeight: 700 }}>Dynamic Dispatch Planning Center</h2>
+          <div style={{ color: 'var(--accent)', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DISPATCH LEDGER</div>
+          <h2 style={{ margin: '4px 0 0 0', color: 'var(--bg-elevated)', fontSize: '22px', fontWeight: 700 }}>Dynamic Dispatch Planning Center</h2>
         </div>
         {/* Tab selector */}
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -547,7 +547,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 fontSize: '13px',
                 fontWeight: 600,
                 border: 'none',
-                background: activeTab === tab ? '#F7F5F0' : 'transparent',
+                background: activeTab === tab ? 'var(--bg-app)' : 'transparent',
                 color: activeTab === tab ? 'var(--primary-navy)' : 'rgba(255, 255, 255, 0.7)',
                 borderRadius: '6px 6px 0 0',
                 cursor: 'pointer',
@@ -576,8 +576,8 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   fontWeight: 700,
                   borderRadius: '6px',
                   border: '1px solid #CBD5E1',
-                  backgroundColor: selectedSubTab === tab ? 'var(--primary-navy)' : '#FFFFFF',
-                  color: selectedSubTab === tab ? '#FFFFFF' : '#334155',
+                  backgroundColor: selectedSubTab === tab ? 'var(--primary-navy)' : 'var(--bg-elevated)',
+                  color: selectedSubTab === tab ? 'var(--bg-elevated)' : 'var(--text-primary)',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
@@ -592,48 +592,48 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             
             {/* Form Card 1: Log Entry */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid #E2DCD0', borderRadius: '8px' }}>
-              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
+              <div style={{ backgroundColor: 'var(--border-color)', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
                 Log entry — {selectedSubTab}
               </div>
               <form onSubmit={handleAddEntry} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 2fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
                     <input 
                       type="date" 
                       value={logEntryDate} 
                       onChange={(e) => setLogEntryDate(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Production qty</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Production qty</label>
                     <input 
                       type="number" 
                       step="0.1"
                       value={prodQty} 
                       onChange={(e) => setProdQty(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Purchased qty</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Purchased qty</label>
                     <input 
                       type="number" 
                       step="0.1"
                       value={purchasedQty} 
                       onChange={(e) => setPurchasedQty(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Notes</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Notes</label>
                     <input 
                       type="text" 
                       placeholder="optional" 
                       value={entryNotes} 
                       onChange={(e) => setEntryNotes(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                 </div>
@@ -643,7 +643,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   disabled={submittingEntry}
                   style={{
                     backgroundColor: 'var(--primary-blue)',
-                    color: '#FFFFFF',
+                    color: 'var(--bg-elevated)',
                     border: 'none',
                     borderRadius: '6px',
                     padding: '8px 20px',
@@ -664,28 +664,28 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
 
             {/* Form Card 2: Log Dispatch */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid #E2DCD0', borderRadius: '8px' }}>
-              <div style={{ backgroundColor: '#E5DED0', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
+              <div style={{ backgroundColor: 'var(--border-color)', padding: '12px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--primary-navy)', borderBottom: '1px solid #E2DCD0' }}>
                 Log dispatch — {selectedSubTab}
               </div>
               <form onSubmit={handleAddDispatch} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.2fr', gap: '12px' }}>
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
                     <input 
                       type="date" 
                       value={logDispatchDate} 
                       onChange={(e) => setLogDispatchDate(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                   
                   <div className="form-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Company</label>
+                      <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Company</label>
                       <button 
                         type="button" 
                         onClick={() => setShowAddCompany(true)}
-                        style={{ border: 'none', background: 'none', color: '#0369A1', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                        style={{ border: 'none', background: 'none', color: 'var(--info)', fontSize: '11px', fontWeight: 600, cursor: 'pointer', padding: 0 }}
                       >
                         + new company
                       </button>
@@ -693,7 +693,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                     <select
                       value={dispatchCompanyId}
                       onChange={(e) => setDispatchCompanyId(e.target.value)}
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', outline: 'none', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', outline: 'none', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     >
                       {companies.map(co => (
                         <option key={co.id} value={co.id}>{co.name}</option>
@@ -703,26 +703,26 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   </div>
 
                   <div className="form-group">
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Quantity</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Quantity</label>
                     <input 
                       type="number" 
                       step="0.1"
                       value={dispatchQty} 
                       onChange={(e) => setDispatchQty(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginTop: '4px' }}>
                   <div className="form-group" style={{ flex: '0 0 180px', margin: 0 }}>
-                    <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Price / unit (optional)</label>
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Price / unit (optional)</label>
                     <input 
                       type="number" 
                       step="0.01"
                       value={dispatchPrice} 
                       onChange={(e) => setDispatchPrice(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: '#FFFFFF', color: '#334155' }}
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
 
@@ -730,8 +730,8 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                     type="submit" 
                     disabled={submittingDispatch}
                     style={{
-                      backgroundColor: '#235E52',
-                      color: '#FFFFFF',
+                      backgroundColor: 'var(--primary-blue)',
+                      color: 'var(--bg-elevated)',
                       border: 'none',
                       borderRadius: '6px',
                       padding: '8px 20px',
@@ -747,7 +747,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 </div>
                 
                 {companies.length === 0 && (
-                  <div style={{ fontSize: '11px', color: '#64748B', fontStyle: 'italic', marginTop: '4px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px' }}>
                     No companies yet — click "+ new company" to add one.
                   </div>
                 )}
@@ -767,7 +767,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   borderRadius: '6px', 
                   border: 'none', 
                   background: 'var(--primary-blue)', 
-                  color: '#FFFFFF', 
+                  color: 'var(--bg-elevated)', 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -789,7 +789,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   borderRadius: '6px', 
                   border: 'none', 
                   background: 'var(--primary-blue)', 
-                  color: '#FFFFFF', 
+                  color: 'var(--bg-elevated)', 
                   cursor: 'pointer', 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -803,20 +803,20 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             </div>
             <button 
               onClick={() => setSelectedMonth(systemDate.slice(0, 7))}
-              style={{ background: 'none', border: 'none', textDecoration: 'underline', color: '#0369A1', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', textDecoration: 'underline', color: 'var(--info)', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
             >
               Today
             </button>
           </div>
 
           {/* Sunday-to-Saturday Calendar Grid */}
-          <div style={{ backgroundColor: '#FAF6EE', padding: '16px', borderRadius: '24px', border: '1px solid #E2DCD0' }}>
-            <div style={{ borderRadius: '16px', overflow: 'hidden', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0' }}>
+          <div style={{ backgroundColor: 'var(--bg-app)', padding: '16px', borderRadius: '24px', border: '1px solid #E2DCD0' }}>
+            <div style={{ borderRadius: '16px', overflow: 'hidden', backgroundColor: 'var(--bg-elevated)', border: '1px solid #E2E8F0' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
                   <tr style={{ backgroundColor: 'var(--primary-navy)', borderBottom: '1px solid #E2E8F0' }}>
                     {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-                      <th key={day} style={{ padding: '12px 6px', fontSize: '11px', fontWeight: 700, color: '#FFFFFF', textAlign: 'center', width: '14.28%' }}>
+                      <th key={day} style={{ padding: '12px 6px', fontSize: '11px', fontWeight: 700, color: 'var(--bg-elevated)', textAlign: 'center', width: '14.28%' }}>
                         {day}
                       </th>
                     ))}
@@ -871,14 +871,14 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                               borderRight: dIdx === 6 ? 'none' : '1px solid #E2E8F0', 
                               cursor: 'pointer',
                               position: 'relative',
-                              backgroundColor: isSelected ? '#DCEFEA' : '#FFFFFF',
+                              backgroundColor: isSelected ? 'var(--success-bg)' : 'var(--bg-elevated)',
                             }}
                           >
                             {/* Day number */}
                             <div style={{ 
                               fontSize: '13px', 
                               fontWeight: 700, 
-                              color: isCurrentMonth ? '#1E293B' : '#CBD5E1',
+                              color: isCurrentMonth ? 'var(--text-primary)' : 'var(--border-strong)',
                               marginBottom: '4px',
                               opacity: isCurrentMonth ? 1 : 0.5
                             }}>
@@ -894,25 +894,25 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                               opacity: isCurrentMonth ? 1 : 0.5 
                             }}>
                               {prodQty > 0 && (
-                                <div style={{ fontSize: '10px', color: '#78350F', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--warning)', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
                                   <span>Prod:</span>
                                   <span style={{ fontWeight: 700 }}>+{prodQty.toFixed(1)}</span>
                                 </div>
                               )}
                               {stockQty > 0 && (
-                                <div style={{ fontSize: '10px', color: '#0F766E', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--success)', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
                                   <span>Stock:</span>
                                   <span style={{ fontWeight: 700 }}>{stockQty.toFixed(1)}</span>
                                 </div>
                               )}
                               {dispatchQty > 0 && (
-                                <div style={{ fontSize: '10px', color: '#C2410C', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--warning)', display: 'flex', justifyContent: 'space-between', fontFamily: 'monospace' }}>
                                   <span>Disp:</span>
                                   <span style={{ fontWeight: 700 }}>-{dispatchQty.toFixed(1)}</span>
                                 </div>
                               )}
                               {total === 0 && (
-                                <div style={{ fontSize: '10px', color: '#94A3B8', fontStyle: 'italic', marginTop: '2px' }}>
+                                <div style={{ fontSize: '10px', color: 'var(--text-disabled)', fontStyle: 'italic', marginTop: '2px' }}>
                                   No ops
                                 </div>
                               )}
@@ -926,28 +926,28 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                 width: '100%', 
                                 borderRadius: '3px', 
                                 overflow: 'hidden', 
-                                backgroundColor: '#F1F5F9',
+                                backgroundColor: 'var(--bg-subtle)',
                                 marginTop: '6px',
                                 opacity: isCurrentMonth ? 1 : 0.4
                               }}>
                                 {prodQty > 0 && (
                                   <div style={{ 
                                     width: `${prodWidth}%`, 
-                                    backgroundColor: '#E5DEC9', 
+                                    backgroundColor: 'var(--border-color)', 
                                     height: '100%' 
                                   }} />
                                 )}
                                 {stockQty > 0 && (
                                   <div style={{ 
                                     width: `${stockWidth}%`, 
-                                    backgroundColor: '#BCE3E2', 
+                                    backgroundColor: 'var(--success-border)', 
                                     height: '100%' 
                                   }} />
                                 )}
                                 {dispatchQty > 0 && (
                                   <div style={{ 
                                     width: `${dispatchWidth}%`, 
-                                    backgroundColor: '#DFB26C', 
+                                    backgroundColor: 'var(--accent)', 
                                     height: '100%' 
                                   }} />
                                 )}
@@ -977,7 +977,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                   top: '-15px',
                                   left: dIdx > 4 ? '-130px' : '-10px', // Prevent overflow on rightmost columns
                                   width: '240px',
-                                  backgroundColor: '#FFFFFF',
+                                  backgroundColor: 'var(--bg-elevated)',
                                   border: '2px solid var(--primary-navy)',
                                   borderRadius: '12px',
                                   boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
@@ -993,7 +993,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                   <strong style={{ fontSize: '12px', color: 'var(--primary-navy)' }}>Edit Planning ({dayNum})</strong>
                                   <button 
                                     onClick={() => setEditingDate(null)}
-                                    style={{ border: 'none', background: 'none', color: '#64748B', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+                                    style={{ border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
                                   >
                                     ✕
                                   </button>
@@ -1001,10 +1001,10 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
 
                                 {/* Production & Stock Form */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Production & Stock</div>
+                                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Production & Stock</div>
                                   <div style={{ display: 'flex', gap: '8px' }}>
                                     <div style={{ flex: 1 }}>
-                                      <label style={{ fontSize: '9px', color: '#64748B', display: 'block', marginBottom: '2px' }}>Prod Qty</label>
+                                      <label style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Prod Qty</label>
                                       <input 
                                         type="number" 
                                         step="0.1"
@@ -1014,7 +1014,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                       />
                                     </div>
                                     <div style={{ flex: 1 }}>
-                                      <label style={{ fontSize: '9px', color: '#64748B', display: 'block', marginBottom: '2px' }}>Purch Qty</label>
+                                      <label style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Purch Qty</label>
                                       <input 
                                         type="number" 
                                         step="0.1"
@@ -1029,7 +1029,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                     disabled={savingEdit}
                                     style={{
                                       backgroundColor: 'var(--primary-blue)',
-                                      color: '#FFFFFF',
+                                      color: 'var(--bg-elevated)',
                                       border: 'none',
                                       borderRadius: '4px',
                                       padding: '4px 8px',
@@ -1048,14 +1048,14 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
 
                                 {/* Dispatch Form */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Log Dispatch</div>
+                                  <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Log Dispatch</div>
                                   
                                   <div>
-                                    <label style={{ fontSize: '9px', color: '#64748B', display: 'block', marginBottom: '2px' }}>Company</label>
+                                    <label style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Company</label>
                                     <select
                                       value={editDispatchCompanyId}
                                       onChange={(e) => setEditDispatchCompanyId(e.target.value)}
-                                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', outline: 'none', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
+                                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', outline: 'none', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)' }}
                                     >
                                       {companies.map(co => (
                                         <option key={co.id} value={co.id}>{co.name}</option>
@@ -1066,7 +1066,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
 
                                   <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
                                     <div style={{ flex: 1 }}>
-                                      <label style={{ fontSize: '9px', color: '#64748B', display: 'block', marginBottom: '2px' }}>Qty (MT)</label>
+                                      <label style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Qty (MT)</label>
                                       <input 
                                         type="number" 
                                         step="0.1"
@@ -1079,8 +1079,8 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                       onClick={() => handleAddEditDispatch(dateStr)}
                                       disabled={savingEdit}
                                       style={{
-                                        backgroundColor: '#235E52',
-                                        color: '#FFFFFF',
+                                        backgroundColor: 'var(--primary-blue)',
+                                        color: 'var(--bg-elevated)',
                                         border: 'none',
                                         borderRadius: '4px',
                                         padding: '4px 8px',
@@ -1108,20 +1108,20 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             {/* Legend / Footer bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 12px 0 12px', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: '#64748B' }}>
-                  <div style={{ width: '16px', height: '12px', backgroundColor: '#E5DEC9', borderRadius: '2px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)' }}>
+                  <div style={{ width: '16px', height: '12px', backgroundColor: 'var(--border-color)', borderRadius: '2px' }} />
                   <span>Production</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: '#64748B' }}>
-                  <div style={{ width: '16px', height: '12px', backgroundColor: '#BCE3E2', borderRadius: '2px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)' }}>
+                  <div style={{ width: '16px', height: '12px', backgroundColor: 'var(--success-border)', borderRadius: '2px' }} />
                   <span>Stock</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: '#64748B' }}>
-                  <div style={{ width: '16px', height: '12px', backgroundColor: '#DFB26C', borderRadius: '2px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)' }}>
+                  <div style={{ width: '16px', height: '12px', backgroundColor: 'var(--accent)', borderRadius: '2px' }} />
                   <span>Dispatch (party · qty)</span>
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#64748B', fontStyle: 'normal' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'normal' }}>
                 Click any day to set it as the log date above.
               </div>
             </div>
@@ -1134,19 +1134,19 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-            <div className="card" style={{ padding: '16px 20px', border: '1px solid #BAE6FD', backgroundColor: '#F0F9FF' }}>
-              <div style={{ fontSize: '11px', color: '#0369A1', textTransform: 'uppercase', fontWeight: 700 }}>Total Ordered</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#0369A1', marginTop: '4px' }}>{totalOrdered.toFixed(1)} MT</div>
+            <div className="card" style={{ padding: '16px 20px', border: '1px solid #BAE6FD', backgroundColor: 'var(--info-bg)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--info)', textTransform: 'uppercase', fontWeight: 700 }}>Total Ordered</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--info)', marginTop: '4px' }}>{totalOrdered.toFixed(1)} MT</div>
             </div>
             
-            <div className="card" style={{ padding: '16px 20px', border: '1px solid #A7F3D0', backgroundColor: '#F0FDF4' }}>
-              <div style={{ fontSize: '11px', color: '#065F46', textTransform: 'uppercase', fontWeight: 700 }}>Total Delivered</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#065F46', marginTop: '4px' }}>{totalDelivered.toFixed(1)} MT</div>
+            <div className="card" style={{ padding: '16px 20px', border: '1px solid #A7F3D0', backgroundColor: 'var(--success-bg)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--success)', textTransform: 'uppercase', fontWeight: 700 }}>Total Delivered</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--success)', marginTop: '4px' }}>{totalDelivered.toFixed(1)} MT</div>
             </div>
 
-            <div className="card" style={{ padding: '16px 20px', border: '1px solid #FECACA', backgroundColor: '#FEF2F2' }}>
-              <div style={{ fontSize: '11px', color: '#991B1B', textTransform: 'uppercase', fontWeight: 700 }}>Total Remaining</div>
-              <div style={{ fontSize: '28px', fontWeight: 700, color: '#991B1B', marginTop: '4px' }}>{totalRemaining.toFixed(1)} MT</div>
+            <div className="card" style={{ padding: '16px 20px', border: '1px solid #FECACA', backgroundColor: 'var(--danger-bg)' }}>
+              <div style={{ fontSize: '11px', color: 'var(--danger)', textTransform: 'uppercase', fontWeight: 700 }}>Total Remaining</div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--danger)', marginTop: '4px' }}>{totalRemaining.toFixed(1)} MT</div>
             </div>
           </div>
 
@@ -1155,7 +1155,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
               <span className="card-title">Operational Fulfillment Performance</span>
             </div>
             <div className="card-body" style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-              <div style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}> FULFILLMENT RATE </div>
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 600 }}> FULFILLMENT RATE </div>
               <div style={{ fontSize: '48px', fontWeight: 800, color: 'var(--primary-navy)' }}>
                 {totalOrdered > 0 ? ((totalDelivered / totalOrdered) * 100).toFixed(1) : '0.0'}%
               </div>
@@ -1174,11 +1174,11 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
             <div style={{ overflowX: 'auto' }}>
               <table className="table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: '#64748B', textAlign: 'left' }}>Customers</th>
-                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: '#64748B', textAlign: 'right' }}>Quantity Ordered (MT)</th>
-                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: '#64748B', textAlign: 'right' }}>Delivered (MT)</th>
-                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: '#64748B', textAlign: 'right' }}>Remaining (MT)</th>
+                  <tr style={{ backgroundColor: 'var(--bg-subtle)', borderBottom: '1px solid #E2E8F0' }}>
+                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'left' }}>Customers</th>
+                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>Quantity Ordered (MT)</th>
+                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>Delivered (MT)</th>
+                    <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textAlign: 'right' }}>Remaining (MT)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1186,16 +1186,16 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                     const remaining = row.ordered - row.delivered;
                     return (
                       <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: 600, color: '#1E293B' }}>{row.company}</td>
+                        <td style={{ padding: '10px 16px', fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{row.company}</td>
                         <td style={{ padding: '10px 16px', fontSize: '12px', textAlign: 'right', fontWeight: 500 }} className="mono">{row.ordered.toFixed(1)}</td>
-                        <td style={{ padding: '10px 16px', fontSize: '12px', textAlign: 'right', fontWeight: 500, color: '#16A34A' }} className="mono">{row.delivered.toFixed(1)}</td>
-                        <td style={{ padding: '10px 16px', fontSize: '12px', textAlign: 'right', fontWeight: 600, color: remaining > 0 ? '#DC2626' : '#1E293B' }} className="mono">{remaining.toFixed(1)}</td>
+                        <td style={{ padding: '10px 16px', fontSize: '12px', textAlign: 'right', fontWeight: 500, color: 'var(--success)' }} className="mono">{row.delivered.toFixed(1)}</td>
+                        <td style={{ padding: '10px 16px', fontSize: '12px', textAlign: 'right', fontWeight: 600, color: remaining > 0 ? 'var(--danger)' : 'var(--text-primary)' }} className="mono">{remaining.toFixed(1)}</td>
                       </tr>
                     );
                   })}
                   {customerRows.length === 0 && (
                     <tr>
-                      <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: '#94A3B8', fontSize: '12px', fontStyle: 'italic' }}>
+                      <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: 'var(--text-disabled)', fontSize: '12px', fontStyle: 'italic' }}>
                         No customer orders recorded for {selectedSubTab} in {selectedMonth}
                       </td>
                     </tr>
@@ -1203,11 +1203,11 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 </tbody>
                 {customerRows.length > 0 && (
                   <tfoot>
-                    <tr style={{ backgroundColor: '#F8FAFC', borderTop: '2px solid #E2E8F0', fontWeight: 700 }}>
-                      <td style={{ padding: '12px 16px', fontSize: '12px', color: '#1E293B' }}>SUM</td>
+                    <tr style={{ backgroundColor: 'var(--bg-subtle)', borderTop: '2px solid #E2E8F0', fontWeight: 700 }}>
+                      <td style={{ padding: '12px 16px', fontSize: '12px', color: 'var(--text-primary)' }}>SUM</td>
                       <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'right' }} className="mono">{totalOrdered.toFixed(1)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'right', color: '#16A34A' }} className="mono">{totalDelivered.toFixed(1)}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'right', color: totalRemaining > 0 ? '#DC2626' : '#1E293B' }} className="mono">{totalRemaining.toFixed(1)}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'right', color: 'var(--success)' }} className="mono">{totalDelivered.toFixed(1)}</td>
+                      <td style={{ padding: '12px 16px', fontSize: '12px', textAlign: 'right', color: totalRemaining > 0 ? 'var(--danger)' : 'var(--text-primary)' }} className="mono">{totalRemaining.toFixed(1)}</td>
                     </tr>
                   </tfoot>
                 )}
@@ -1235,19 +1235,19 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
       {/* Add Company Popup Modal */}
       {showAddCompany && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '400px', backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
+          <div className="modal-content" style={{ maxWidth: '400px', backgroundColor: 'var(--bg-elevated)', padding: '20px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--primary-navy)' }}>Add New Company</h3>
               <button 
                 onClick={() => setShowAddCompany(false)}
-                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: '#94A3B8' }}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px', color: 'var(--text-disabled)' }}
               >
                 <X size={18} />
               </button>
             </div>
             <form onSubmit={handleCreateCompany} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Company Name</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Company Name</label>
                 <input 
                   type="text" 
                   value={newCompanyName} 
@@ -1259,7 +1259,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
               </div>
 
               <div className="form-group">
-                <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Tier</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Tier</label>
                 <select 
                   value={newCompanyTier} 
                   onChange={(e) => setNewCompanyTier(e.target.value)}
@@ -1272,7 +1272,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
               </div>
 
               <div className="form-group">
-                <label style={{ fontSize: '11px', color: '#64748B', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Primary Product</label>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Primary Product</label>
                 <select 
                   value={newCompanyProduct} 
                   onChange={(e) => setNewCompanyProduct(e.target.value)}
