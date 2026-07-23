@@ -19,7 +19,10 @@ import {
   HeartPulse,
   Globe,
   Upload,
-  X
+  X,
+  Moon,
+  Sun,
+  Sparkles
 } from 'lucide-react';
 
 // Components
@@ -57,6 +60,19 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [aiSidebarOpen, setAiSidebarOpen] = useState(true); // default open for planner visibility
   const [systemDate, setSystemDate] = useState(new Date().toLocaleDateString('en-CA'));
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'light';
+    const saved = window.localStorage.getItem('shakti-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('shakti-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   
   // Dashboard indicators and alerts
   const [dashboardData, setDashboardData] = useState(null);
@@ -185,79 +201,79 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container" data-testid="app-container">
       {/* 1. Left Sidebar Navigation */}
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`} data-testid="left-sidebar">
         <div className="sidebar-header">
           {!sidebarCollapsed ? (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
                 <img src={shaktiLogo} alt="Shakti" style={{ height: '22px', width: 'auto', objectFit: 'contain' }} />
                 <h2>SHAKTI SCM</h2>
               </div>
-              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} title="Collapse Menu">
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(true)} title="Collapse Menu" data-testid="sidebar-collapse-btn">
                 <Menu size={16} />
               </button>
             </>
           ) : (
             <>
-              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} title="Expand Menu">
+              <button className="sidebar-collapse-btn" onClick={() => setSidebarCollapsed(false)} title="Expand Menu" data-testid="sidebar-expand-btn">
                 <Menu size={16} />
               </button>
             </>
           )}
         </div>
         
-        <nav className="sidebar-nav">
-          {!sidebarCollapsed && <div className="sidebar-section-label">OPERATIONS</div>}
-          <a className={`nav-item ${activeModule === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveModule('dashboard')}>
-            <LayoutDashboard size={20} />
+        <nav className="sidebar-nav" data-testid="sidebar-nav">
+          {!sidebarCollapsed && <div className="sidebar-section-label">Operations</div>}
+          <a className={`nav-item ${activeModule === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveModule('dashboard')} data-testid="nav-dashboard">
+            <LayoutDashboard size={18} />
             <span className="nav-label">Dashboard</span>
           </a>
-          <a className={`nav-item ${activeModule === 'po' ? 'active' : ''}`} onClick={() => setActiveModule('po')}>
-            <FileText size={20} />
+          <a className={`nav-item ${activeModule === 'po' ? 'active' : ''}`} onClick={() => setActiveModule('po')} data-testid="nav-po">
+            <FileText size={18} />
             <span className="nav-label">PO Management</span>
           </a>
-          <a className={`nav-item ${activeModule === 'dispatch' ? 'active' : ''}`} onClick={() => setActiveModule('dispatch')}>
-            <Truck size={20} />
+          <a className={`nav-item ${activeModule === 'dispatch' ? 'active' : ''}`} onClick={() => setActiveModule('dispatch')} data-testid="nav-dispatch">
+            <Truck size={18} />
             <span className="nav-label">Dispatch Planning</span>
           </a>
-          <a className={`nav-item ${activeModule === 'inventory' ? 'active' : ''}`} onClick={() => setActiveModule('inventory')}>
-            <Boxes size={20} />
+          <a className={`nav-item ${activeModule === 'inventory' ? 'active' : ''}`} onClick={() => setActiveModule('inventory')} data-testid="nav-inventory">
+            <Boxes size={18} />
             <span className="nav-label">Inventory Management</span>
           </a>
-          <a className={`nav-item ${activeModule === 'production' ? 'active' : ''}`} onClick={() => setActiveModule('production')}>
-            <Calendar size={20} />
+          <a className={`nav-item ${activeModule === 'production' ? 'active' : ''}`} onClick={() => setActiveModule('production')} data-testid="nav-production">
+            <Calendar size={18} />
             <span className="nav-label">Production Plan</span>
           </a>
 
           <div className="sidebar-separator"></div>
-          {!sidebarCollapsed && <div className="sidebar-section-label">INTELLIGENCE</div>}
-          <a className={`nav-item ${activeModule === 'commitment-health' ? 'active' : ''}`} onClick={() => setActiveModule('commitment-health')}>
-            <HeartPulse size={20} />
+          {!sidebarCollapsed && <div className="sidebar-section-label">Intelligence</div>}
+          <a className={`nav-item ${activeModule === 'commitment-health' ? 'active' : ''}`} onClick={() => setActiveModule('commitment-health')} data-testid="nav-commitment-health">
+            <HeartPulse size={18} />
             <span className="nav-label">Commitment Health</span>
           </a>
-          <a className={`nav-item ${activeModule === 'reports' ? 'active' : ''}`} onClick={() => setActiveModule('reports')}>
-            <BarChart3 size={20} />
+          <a className={`nav-item ${activeModule === 'reports' ? 'active' : ''}`} onClick={() => setActiveModule('reports')} data-testid="nav-reports">
+            <BarChart3 size={18} />
             <span className="nav-label">Reports</span>
           </a>
 
           <div className="sidebar-separator"></div>
-          {!sidebarCollapsed && <div className="sidebar-section-label">ADMINISTRATION</div>}
-          <a className={`nav-item ${activeModule === 'companies' ? 'active' : ''}`} onClick={() => setActiveModule('companies')}>
-            <Users size={20} />
+          {!sidebarCollapsed && <div className="sidebar-section-label">Administration</div>}
+          <a className={`nav-item ${activeModule === 'companies' ? 'active' : ''}`} onClick={() => setActiveModule('companies')} data-testid="nav-companies">
+            <Users size={18} />
             <span className="nav-label">Company Master</span>
           </a>
-          <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')}>
-            <SettingsIcon size={20} />
+          <a className={`nav-item ${activeModule === 'settings' ? 'active' : ''}`} onClick={() => setActiveModule('settings')} data-testid="nav-settings">
+            <SettingsIcon size={18} />
             <span className="nav-label">Portal Settings</span>
           </a>
-          <a className={`nav-item ${activeModule === 'import' ? 'active' : ''}`} onClick={() => setActiveModule('import')}>
-            <Upload size={20} />
+          <a className={`nav-item ${activeModule === 'import' ? 'active' : ''}`} onClick={() => setActiveModule('import')} data-testid="nav-import">
+            <Upload size={18} />
             <span className="nav-label">Data Import</span>
           </a>
-          <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal">
-            <Globe size={20} />
+          <a className="nav-item" onClick={() => window.open('/?portal=customer', '_blank')} title="Open Customer Self-Service Portal" data-testid="nav-customer-portal">
+            <Globe size={18} />
             <span className="nav-label">Customer Portal ↗</span>
           </a>
         </nav>
@@ -276,22 +292,31 @@ export default function App() {
       {/* 2. Main Workspace */}
       <div className="main-wrapper">
         {/* Header Bar */}
-        <header className="top-header">
-          <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '24px', width: 'auto', objectFit: 'contain' }} />
-            <h1>SHAKTI SOLVENT PLANNING PORTAL</h1>
-            <span className="badge" style={{ backgroundColor: '#EFF3F6', border: '1px solid #D9D9D9', color: '#32363A', textTransform: 'none', display: 'flex', gap: '6px' }}>
-              <Clock size={12} color="#515559" />
-              <span>Simulated SCM System Date: <strong>{formatDate(systemDate)}</strong></span>
+        <header className="top-header" data-testid="top-header">
+          <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} data-testid="header-brand-logo" />
+            <h1 data-testid="header-brand-title">Shakti Solvent Planning Portal</h1>
+            <span className="badge" data-testid="header-system-date">
+              <Clock size={11} style={{ marginRight: '6px' }} />
+              <span>System Date · <strong>{formatDate(systemDate)}</strong></span>
             </span>
           </div>
 
           <div className="header-controls">
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', height: '32px' }} onClick={triggerRefresh} title="Sync Portal Data">
+            <button
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label="Toggle theme"
+              data-testid="theme-toggle-btn"
+            >
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+            <button className="btn btn-secondary" style={{ padding: '6px 10px', height: '34px' }} onClick={triggerRefresh} title="Sync Portal Data" data-testid="header-refresh-btn">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-primary" style={{ padding: '6px 12px', height: '32px' }} onClick={() => setAiSidebarOpen(!aiSidebarOpen)}>
-              <MessageSquare size={14} style={{ marginRight: '6px' }} />
+            <button className="btn btn-primary" style={{ padding: '6px 14px', height: '34px' }} onClick={() => setAiSidebarOpen(!aiSidebarOpen)} data-testid="ai-agent-toggle-btn">
+              <Sparkles size={14} style={{ marginRight: '2px' }} />
               AI Agent {aiSidebarOpen ? 'Hide' : 'Show'}
             </button>
           </div>
@@ -439,51 +464,52 @@ export default function App() {
       </div>
 
       {/* 3. Collapsible right AI Chat Sidebar */}
-      <aside className={`ai-sidebar ${aiSidebarOpen ? '' : 'collapsed'}`}>
+      <aside className={`ai-sidebar ${aiSidebarOpen ? '' : 'collapsed'}`} data-testid="ai-sidebar">
         <div className="ai-header">
           <div className="ai-header-title">
-            <MessageSquare size={16} color="#1C6BF4" />
+            <Sparkles size={14} />
             <span>AI Dispatch Assistant</span>
           </div>
-          <span className="badge" style={{ backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', textTransform: 'none', fontSize: '9px' }}>
+          <span className="badge" style={{ fontSize: '9.5px', padding: '3px 8px' }}>
             OpenRouter AI
           </span>
         </div>
 
-        <div className="ai-chat-messages">
+        <div className="ai-chat-messages" data-testid="ai-chat-messages">
           {chatMessages.map(msg => (
-            <div key={msg.id} className={`chat-message ${msg.sender}`}>
+            <div key={msg.id} className={`chat-message ${msg.sender}`} data-testid={`chat-msg-${msg.sender}`}>
               <span className="chat-message-meta">{msg.sender === 'user' ? 'Planner' : 'AI Agent'}</span>
               <div className="chat-message-text">
                 {msg.sender === 'agent' ? parseMarkdown(msg.text) : msg.text}
               </div>
               {msg.provider && (
-                <div style={{ fontSize: '8px', color: '#94A3B8', marginTop: '4px', textAlign: 'right', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '9px', opacity: 0.55, marginTop: '4px', textAlign: 'right', fontStyle: 'italic' }}>
                   Via {msg.provider}
                 </div>
               )}
             </div>
           ))}
           {chatSending && (
-            <div className="chat-message agent" style={{ opacity: 0.7 }}>
+            <div className="chat-message agent" style={{ opacity: 0.75 }} data-testid="chat-thinking">
               <span className="chat-message-meta">AI Agent</span>
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <RefreshCw size={12} className="mono" style={{ animation: 'spin 1.5s linear infinite' }} />
-                <span>Analyzing current logistics database context...</span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <RefreshCw size={12} style={{ animation: 'spin 1.2s linear infinite' }} />
+                <span>Analyzing current logistics database…</span>
               </div>
             </div>
           )}
         </div>
 
-        <form onSubmit={handleSendMessage} className="ai-chat-input-area">
+        <form onSubmit={handleSendMessage} className="ai-chat-input-area" data-testid="ai-chat-form">
           <input 
             type="text" 
-            placeholder="Ask AI dispatch queries..." 
+            placeholder="Ask AI dispatch queries…" 
             value={chatInput} 
             onChange={(e) => setChatInput(e.target.value)}
             disabled={chatSending}
+            data-testid="ai-chat-input"
           />
-          <button type="submit" className="btn btn-primary" style={{ padding: '8px' }} disabled={chatSending}>
+          <button type="submit" className="btn btn-primary" style={{ padding: '0 16px', height: '40px' }} disabled={chatSending} data-testid="ai-chat-send-btn">
             Send
           </button>
         </form>
