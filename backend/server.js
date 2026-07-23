@@ -2717,7 +2717,7 @@ Guidelines:
                 },
                 body: JSON.stringify({
                     model: '~google/gemini-flash-latest',
-                    max_tokens: 1500,
+                    max_tokens: 800,
                     messages: [
                         { role: 'system', content: systemPrompt },
                         { role: 'user', content: message }
@@ -2825,7 +2825,7 @@ Do not include any explanation or markdown formatting in your response. Just the
                 },
                 body: JSON.stringify({
                     model: '~google/gemini-flash-latest',
-                    max_tokens: 1500,
+                    max_tokens: 800,
                     messages: [
                         { role: 'system', content: systemPrompt },
                         { role: 'user', content: text }

@@ -531,10 +531,10 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', backgroundColor: 'var(--bg-app)', padding: '24px', borderRadius: '12px', minHeight: '80vh', border: '1px solid #E4E2DC' }}>
       
       {/* Top Banner and Navigation Tabs */}
-      <div style={{ backgroundColor: 'var(--primary-navy)', padding: '24px 24px 0 24px', borderRadius: '8px 8px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ backgroundColor: 'var(--bg-banner)', padding: '24px 24px 0 24px', borderRadius: '8px 8px 0 0', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div>
-          <div style={{ color: 'var(--accent)', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DISPATCH LEDGER</div>
-          <h2 style={{ margin: '4px 0 0 0', color: 'var(--bg-elevated)', fontSize: '22px', fontWeight: 700 }}>Dynamic Dispatch Planning Center</h2>
+          <div style={{ color: 'var(--text-banner-sub)', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>DISPATCH LEDGER</div>
+          <h2 style={{ margin: '4px 0 0 0', color: 'var(--text-banner-title)', fontSize: '22px', fontWeight: 700 }}>Dynamic Dispatch Planning Center</h2>
         </div>
         {/* Tab selector */}
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -548,7 +548,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 fontWeight: 600,
                 border: 'none',
                 background: activeTab === tab ? 'var(--bg-app)' : 'transparent',
-                color: activeTab === tab ? 'var(--primary-navy)' : 'rgba(255, 255, 255, 0.7)',
+                color: activeTab === tab ? 'var(--text-banner-tab-active)' : 'var(--text-banner-tab-inactive)',
                 borderRadius: '6px 6px 0 0',
                 cursor: 'pointer',
                 transition: 'all 0.2s'

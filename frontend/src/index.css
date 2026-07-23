@@ -129,6 +129,13 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Planning Center Banner Theme variables */
+  --bg-banner: #0F1C33;
+  --text-banner-title: #FFFFFF;
+  --text-banner-sub: #E7A96B;
+  --text-banner-tab-active: #0F1C33;
+  --text-banner-tab-inactive: rgba(255, 255, 255, 0.7);
 }
 
 /* Dark theme overrides */
@@ -169,6 +176,13 @@
   --info: #60A5FA;
   --info-bg: #0F2340;
   --info-border: #1E3C6B;
+
+  /* Planning Center Banner Theme overrides */
+  --bg-banner: #1B2029;
+  --text-banner-title: #EEF1F5;
+  --text-banner-sub: #E7A96B;
+  --text-banner-tab-active: #4FD1B0;
+  --text-banner-tab-inactive: #8A94A3;
 
   --status-received-text: #C7CBD2;
   --status-received-bg: #1B2029;
