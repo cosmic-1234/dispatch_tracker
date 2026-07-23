@@ -63,7 +63,7 @@ export default function Reports({ API_BASE, systemDate }) {
     if (activeTab === 'monthly') {
       downloadCSV(
         "Monthly_Dispatch_Summary",
-        ["Client Company", "Product Portfolio", "Month Period", "Dispatched Qty (MT)", "Pending Balance (MT)"],
+        ["Customer Company", "Product Portfolio", "Month Period", "Dispatched Qty (MT)", "Pending Balance (MT)"],
         reportData.monthly_summary,
         r => [r.company_name, r.product_type, r.month, r.total_dispatched_qty, r.pending_balance || 0]
       );
@@ -159,7 +159,7 @@ export default function Reports({ API_BASE, systemDate }) {
                   <table className="sap-table">
                     <thead>
                       <tr>
-                        <th>Client Company</th>
+                        <th>Customer Company</th>
                         <th>Product Portfolio</th>
                         <th>Month Period</th>
                         <th>Total Dispatched Qty (MT)</th>

@@ -252,7 +252,7 @@ app.get('/api/products', async (req, res) => {
         );
         let products = rows.map(r => r.product_type);
         if (products.length === 0) {
-            products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+            products = ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
         }
         res.json(products);
     } catch (err) {
@@ -563,7 +563,7 @@ app.get('/api/optimizer', async (req, res) => {
         const stockRows = await queryAll("SELECT product_type, closing_stock FROM inventory_snapshots WHERE date = ?", [systemDate]);
         const currentStocks = {};
         // Default to 0 for products with missing snapshots
-        ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].forEach(p => {
+        ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'].forEach(p => {
             currentStocks[p] = 0.0;
         });
         stockRows.forEach(r => {
@@ -1319,7 +1319,7 @@ app.get('/api/dashboard', async (req, res) => {
             currentStocks[r.product_type] = r.closing_stock;
         });
         
-        const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+        const products = ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
         const stockStatuses = products.map(prod => {
             const stock = currentStocks[prod] !== undefined ? currentStocks[prod] : 0.0;
             const minT = thresholds[prod] || 0.0;
@@ -1542,7 +1542,7 @@ app.get('/api/dashboard/morning-brief', async (req, res) => {
         const stockRows = await queryAll("SELECT product_type, closing_stock FROM inventory_snapshots WHERE date = ?", [systemDate]);
         const stockMap = {};
         stockRows.forEach(r => { stockMap[r.product_type] = r.closing_stock; });
-        ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'].forEach(prod => {
+        ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'].forEach(prod => {
             const stock = stockMap[prod] || 0;
             const minT = thresholds[prod] || 0;
             if (stock < minT) {
@@ -1689,23 +1689,23 @@ app.post('/api/import', async (req, res) => {
 
         // Product mapping translation helper
         const PRODUCT_MAPPING = {
-            'MTO': 'Toluene',
-            'AA': 'Ethyl Acetate',
-            'RETARDER': 'Retarder',
-            'ACETONE': 'Acetone',
-            'SL SHORT HS': 'Benzene',
-            '200LTR SHAVI HS': 'Acetone',
-            '50LTR SHAVI HS': 'DEP',
-            'BENZENE': 'Benzene',
-            'DEP': 'DEP',
-            'ETHYL ACETATE': 'Ethyl Acetate',
-            'TOLUENE': 'Toluene'
+            'MTO': 'SMO',
+            'AA': 'AA',
+            'RETARDER': 'RETARDER',
+            'ACETONE': 'SDS',
+            'SL SHORT HS': 'KMO',
+            '200LTR SHAVI HS': 'SDS',
+            '50LTR SHAVI HS': 'SDS',
+            'BENZENE': 'KMO',
+            'DEP': 'SDS',
+            'ETHYL ACETATE': 'AA',
+            'TOLUENE': 'SMO'
         };
 
         const mapProduct = (p) => {
-            if (!p) return 'Acetone';
+            if (!p) return 'AA';
             const clean = String(p).trim().toUpperCase();
-            return PRODUCT_MAPPING[clean] || 'Acetone';
+            return PRODUCT_MAPPING[clean] || 'AA';
         };
 
         // Cache for companies to avoid repeated lookups
@@ -1780,7 +1780,7 @@ app.post('/api/import', async (req, res) => {
                     const mappedProducts = JSON.stringify([mapProduct(rawProduct)]);
                     await tx.run(
                         `INSERT INTO companies (id, name, tier, primary_products, contact_person, contact_phone, credit_status, portal_login_enabled)
-                         VALUES (?, ?, 'C', ?, 'Imported Client', '+91-00000-00000', 'Active', 0)`,
+                         VALUES (?, ?, 'C', ?, 'Imported Customer', '+91-00000-00000', 'Active', 0)`,
                         [companyId, cleanCoName, mappedProducts]
                     );
                     newCompanyCount++;
@@ -1898,31 +1898,31 @@ app.post('/api/import-planning', async (req, res) => {
 
         // Product mapping helper
         const PRODUCT_MAPPING = {
-            'MTO': 'Toluene',
-            'AA': 'Ethyl Acetate',
-            'RETARDER': 'Retarder',
-            'ACETONE': 'Acetone',
-            'SL SHORT HS': 'Benzene',
-            '200LTR SHAVI HS': 'Acetone',
-            '50LTR SHAVI HS': 'DEP',
-            'BENZENE': 'Benzene',
-            'DEP': 'DEP',
-            'ETHYL ACETATE': 'Ethyl Acetate',
-            'TOLUENE': 'Toluene',
-            'TOLUNE': 'Toluene'
+            'MTO': 'SMO',
+            'AA': 'AA',
+            'RETARDER': 'RETARDER',
+            'ACETONE': 'SDS',
+            'SL SHORT HS': 'KMO',
+            '200LTR SHAVI HS': 'SDS',
+            '50LTR SHAVI HS': 'SDS',
+            'BENZENE': 'KMO',
+            'DEP': 'SDS',
+            'ETHYL ACETATE': 'AA',
+            'TOLUENE': 'SMO',
+            'TOLUNE': 'SMO'
         };
 
         const mapProduct = (p) => {
-            if (!p) return 'Acetone';
+            if (!p) return 'AA';
             const clean = String(p).trim().toUpperCase();
-            if (clean.includes('ACETONE') && clean.includes('ETHYL')) return 'Ethyl Acetate';
-            if (clean.includes('ACETONE')) return 'Acetone';
-            if (clean.includes('BENZENE')) return 'Benzene';
-            if (clean.includes('DEP')) return 'DEP';
-            if (clean.includes('ETHYL')) return 'Ethyl Acetate';
-            if (clean.includes('RETARDER')) return 'Retarder';
-            if (clean.includes('TOLUNE') || clean.includes('TOLUENE')) return 'Toluene';
-            return PRODUCT_MAPPING[clean] || 'Acetone';
+            if (clean.includes('ACETONE') && clean.includes('ETHYL')) return 'AA';
+            if (clean.includes('ACETONE')) return 'SDS';
+            if (clean.includes('BENZENE')) return 'KMO';
+            if (clean.includes('DEP')) return 'SDS';
+            if (clean.includes('ETHYL')) return 'AA';
+            if (clean.includes('RETARDER')) return 'RETARDER';
+            if (clean.includes('TOLUNE') || clean.includes('TOLUENE')) return 'SMO';
+            return PRODUCT_MAPPING[clean] || 'AA';
         };
 
         let newCompanyCount = 0;
@@ -1964,7 +1964,7 @@ app.post('/api/import-planning', async (req, res) => {
                     const mappedProducts = JSON.stringify([mapProduct(rawProduct)]);
                     await tx.run(
                         `INSERT INTO companies (id, name, tier, primary_products, contact_person, contact_phone, credit_status, portal_login_enabled)
-                         VALUES (?, ?, 'B', ?, 'Imported Client', '+91-00000-00000', 'Active', 1)`,
+                         VALUES (?, ?, 'B', ?, 'Imported Customer', '+91-00000-00000', 'Active', 1)`,
                         [companyId, cleanCoName, mappedProducts]
                     );
                     newCompanyCount++;
@@ -2032,14 +2032,13 @@ app.post('/api/import-planning', async (req, res) => {
             // B. Seed Calendar Production Additions
             if (calendar && calendar.length > 0) {
                 // Initialize snapshots for the range of dates for all products
-                const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+                const products = ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
                 const initialStocks = {
-                    Acetone: 150.0,
-                    Benzene: 100.0,
-                    DEP: 40.0,
-                    'Ethyl Acetate': 120.0,
-                    Retarder: 25.0,
-                    Toluene: 180.0
+                    AA: 120.0,
+                    KMO: 100.0,
+                    RETARDER: 25.0,
+                    SDS: 150.0,
+                    SMO: 180.0
                 };
 
                 for (const item of calendar) {
@@ -2172,13 +2171,13 @@ app.post('/api/import-purchases', async (req, res) => {
         const mapMaterialToProduct = (m) => {
             if (!m) return 'Other';
             const clean = String(m).trim().toLowerCase();
-            if (clean.includes('acetone')) return 'Acetone';
-            if (clean.includes('methanol')) return 'Benzene';
-            if (clean.includes('alcohol') || clean.includes('alocohal')) return 'Retarder';
-            if (clean.includes('toluene')) return 'Toluene';
-            if (clean.includes('benzene')) return 'Benzene';
-            if (clean.includes('ethyl acetate')) return 'Ethyl Acetate';
-            if (clean.includes('dep')) return 'DEP';
+            if (clean.includes('acetone')) return 'SDS';
+            if (clean.includes('methanol')) return 'KMO';
+            if (clean.includes('alcohol') || clean.includes('alocohal')) return 'RETARDER';
+            if (clean.includes('toluene')) return 'SMO';
+            if (clean.includes('benzene')) return 'KMO';
+            if (clean.includes('ethyl acetate')) return 'AA';
+            if (clean.includes('dep')) return 'SDS';
             return 'Other';
         };
 
@@ -2250,7 +2249,7 @@ app.post('/api/import-purchases', async (req, res) => {
             }
 
             // 3. Recalculate opening/closing stocks chronologically for all products to keep snapshots fully consistent!
-            const products = ['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene'];
+            const products = ['AA', 'KMO', 'RETARDER', 'SDS', 'SMO'];
             for (const prod of products) {
                 const snaps = await tx.all("SELECT * FROM inventory_snapshots WHERE product_type = ? ORDER BY date ASC", [prod]);
                 let lastClosingStock = snaps.length > 0 ? snaps[0].opening_stock : 0.0;
@@ -2684,7 +2683,7 @@ app.post('/api/ai-chat', async (req, res) => {
 
         const systemPrompt = `
 You are the AI Dispatch Agent for a chemical solvent distribution business.
-Products: Acetone, Benzene, DEP, Ethyl Acetate, Retarder, Toluene.
+Products: AA, KMO, RETARDER, SDS, SMO.
 
 Current Simulated Date: ${systemDate}
 
@@ -2707,19 +2706,20 @@ Guidelines:
 `;
 
         if (apiKey && apiKey.trim() !== '') {
-            console.log('Calling Anthropic Claude API...');
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
+            console.log('Calling OpenRouter API (Claude 3.5 Sonnet)...');
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': apiKey,
-                    'anthropic-version': '2023-06-01'
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://github.com/google-gemini/antigravity',
+                    'X-Title': 'Chemical Solvent Dispatch Planner'
                 },
                 body: JSON.stringify({
-                    model: 'claude-3-5-sonnet-20241022',
-                    max_tokens: 1024,
-                    system: systemPrompt,
+                    model: '~google/gemini-flash-latest',
+                    max_tokens: 1500,
                     messages: [
+                        { role: 'system', content: systemPrompt },
                         { role: 'user', content: message }
                     ]
                 })
@@ -2727,16 +2727,22 @@ Guidelines:
 
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`Claude API request failed: ${errText}`);
+                throw new Error(`OpenRouter API request failed: ${errText}`);
             }
 
             const data = await response.json();
+            const choice = data.choices && data.choices[0];
+            const content = choice && choice.message && choice.message.content;
+            if (!content) {
+                throw new Error(`Invalid OpenRouter response: ${JSON.stringify(data)}`);
+            }
+
             return res.json({
-                response: data.content[0].text,
-                provider: 'Claude API'
+                response: content,
+                provider: 'OpenRouter (Gemini Flash)'
             });
         } else {
-            console.log('No Anthropic API Key found. Simulating response...');
+            console.log('No OpenRouter API Key found. Simulating response...');
             const simResponse = simulateAIResponse(message, systemDate, currentStocks, thresholds, pendingPOs, productionPlans);
             return res.json({
                 response: simResponse,
@@ -2744,6 +2750,136 @@ Guidelines:
             });
         }
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==========================================
+// 9b. AI PO Parser Endpoint (LLM-based)
+// ==========================================
+app.post('/api/parse-po', async (req, res) => {
+    try {
+        const { text } = req.body;
+        if (!text) {
+            return res.status(400).json({ error: 'PO text content is required.' });
+        }
+
+        // Fetch companies list for matching on the server
+        const companies = await queryAll("SELECT id, name FROM companies");
+
+        const keyRow = await queryGet("SELECT value FROM system_settings WHERE key = 'anthropic_api_key'");
+        const apiKey = keyRow ? keyRow.value : process.env.ANTHROPIC_API_KEY;
+
+        const systemPrompt = `
+You are an expert Purchase Order (PO) parser for Shakti SCM.
+Your task is to extract structured information from the provided PO text.
+
+Allowed product types in our database:
+['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']
+
+Guidelines:
+1. Determine if this is a Vendor PO (where Shakti is the buyer/customer) or a Customer PO (where Shakti is the seller/supplier).
+   - If the PO lists "Shakti" or "Shakti Solvent" as the Buyer, Consignee, or Ship-To, set "is_vendor_po" to true.
+   - Otherwise, set "is_vendor_po" to false.
+2. Extract the PO Number (id).
+3. Extract the PO Date (date_received) formatted as "YYYY-MM-DD".
+4. Identify the company names:
+   - For a Customer PO: Extract the customer's company name into "customer_name" (e.g. "Punjab Chemicals Ltd"). Set "vendor_name" to null.
+   - For a Vendor PO: Extract the supplier's company name into "vendor_name" (e.g. "Shivam Industries"). Set "customer_name" to null.
+5. Extract the line items. For each line item:
+   - "scanned_description": the raw item description/name.
+   - "product_type": map the product to one of the 5 allowed product types: AA, KMO, RETARDER, SDS, SMO. If a product is mentioned like "sodium methoxide" or "cyclohexane", map it to "KMO". If "acetone" or "dep" is mentioned, map it to "SDS". If "toluene" is mentioned, map it to "SMO". If "ethyl acetate" is mentioned, map it to "AA". If "retarder" is mentioned, map it to "RETARDER".
+   - "quantity": the quantity converted to Metric Tons (MT). Note: 1 MT = 1000 Kgs. If the quantity is in kilograms (e.g. 10,000 Kgs), convert it to 10. If it's in MT, keep it as is.
+   - "unit_rate": unit rate per Kg or per MT. If quantity was converted from Kgs to MT, ensure the rate matches the currency amount (Amount = qty in Kg * rate per Kg, or qty in MT * rate per MT). Generally, unit_rate is price per Kg (or price per MT). Keep the rate numeric.
+   - "uom": original Unit of Measure (e.g., "Kgs", "MT", "Drums", etc.).
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "id": "PO Number",
+  "date_received": "YYYY-MM-DD",
+  "is_vendor_po": true/false,
+  "customer_name": "extracted customer company name (or null)",
+  "vendor_name": "extracted vendor company name (or null)",
+  "items": [
+    {
+      "scanned_description": "item description",
+      "product_type": "AA/KMO/RETARDER/SDS/SMO",
+      "quantity": 10.5,
+      "unit_rate": 85.0,
+      "uom": "Kgs"
+    }
+  ]
+}
+Do not include any explanation or markdown formatting in your response. Just the JSON object.
+`;
+
+        if (apiKey && apiKey.trim() !== '') {
+            console.log('Calling OpenRouter API for PO parsing...');
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                    'HTTP-Referer': 'https://github.com/google-gemini/antigravity',
+                    'X-Title': 'Chemical Solvent Dispatch Planner'
+                },
+                body: JSON.stringify({
+                    model: '~google/gemini-flash-latest',
+                    max_tokens: 1500,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: text }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`OpenRouter API request failed: ${errText}`);
+            }
+
+            const data = await response.json();
+            const choice = data.choices && data.choices[0];
+            let content = choice && choice.message && choice.message.content;
+            if (!content) {
+                throw new Error(`Invalid OpenRouter response: ${JSON.stringify(data)}`);
+            }
+
+            // Clean markdown JSON wrapper if present
+            content = content.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+
+            const parsed = JSON.parse(content);
+
+            // Find matching company in DB on the server side
+            let companyId = null;
+            if (!parsed.is_vendor_po && parsed.customer_name) {
+                const cleanTarget = parsed.customer_name.toLowerCase().replace(/pvt\.?\s*ltd\.?/g, '').replace(/llp/g, '').trim();
+                if (cleanTarget.length >= 3) {
+                    const match = companies.find(c => {
+                        const cleanName = c.name.toLowerCase().replace(/pvt\.?\s*ltd\.?/g, '').replace(/llp/g, '').trim();
+                        return cleanTarget.includes(cleanName) || cleanName.includes(cleanTarget);
+                    });
+                    if (match) {
+                        companyId = match.id;
+                    }
+                }
+            }
+
+            const responsePayload = {
+                id: parsed.id || '',
+                date_received: parsed.date_received || '',
+                is_vendor_po: !!parsed.is_vendor_po,
+                company_id: companyId,
+                vendor_name: parsed.vendor_name || null,
+                items: parsed.items || []
+            };
+
+            return res.json(responsePayload);
+        } else {
+            return res.status(400).json({ error: 'OpenRouter API Key is not configured in settings.' });
+        }
+    } catch (err) {
+        console.error('PO Parsing error:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -2790,49 +2926,49 @@ function simulateAIResponse(message, systemDate, stocks, thresholds, pendingPOs,
         return resp;
     }
 
-    if (msg.includes('acetone') && msg.includes('remain') && msg.includes('tier a')) {
-        const acetoneA = pendingPOs
-            .filter(po => po.product_type === 'Acetone' && po.tier === 'A')
+    if (msg.includes('sds') && msg.includes('remain') && msg.includes('tier a')) {
+        const sdsA = pendingPOs
+            .filter(po => po.product_type === 'SDS' && po.tier === 'A')
             .reduce((acc, curr) => acc + curr.pending_qty, 0);
         
-        const currentStock = stocks['Acetone'] || 0.0;
-        const remaining = Math.max(0, currentStock - acetoneA);
-        const threshold = thresholds['Acetone'] || 50.0;
+        const currentStock = stocks['SDS'] || 0.0;
+        const remaining = Math.max(0, currentStock - sdsA);
+        const threshold = thresholds['SDS'] || 50.0;
         
-        let resp = `### Acetone Tier A Fulfillment Projection\n\n`;
-        resp += `- Current Acetone Stock: **${currentStock} MT**\n`;
-        resp += `- Total Pending Tier A Acetone Demand: **${acetoneA} MT**\n`;
+        let resp = `### SDS Tier A Fulfillment Projection\n\n`;
+        resp += `- Current SDS Stock: **${currentStock} MT**\n`;
+        resp += `- Total Pending Tier A SDS Demand: **${sdsA} MT**\n`;
         resp += `- Projected Closing Stock: **${remaining.toFixed(2)} MT**\n`;
         resp += `- Configured Minimum Safety Threshold: **${threshold} MT**\n\n`;
 
         if (remaining < threshold) {
-            resp += `⚠️ **Risk Flag**: Fulfilling all Tier A Acetone orders will push stock down to **${remaining.toFixed(2)} MT**, which violates the minimum safety stock limit of **${threshold} MT** by **${(threshold - remaining).toFixed(2)} MT**. Production replenishment should be scheduled immediately.`;
+            resp += `⚠️ **Risk Flag**: Fulfilling all Tier A SDS orders will push stock down to **${remaining.toFixed(2)} MT**, which violates the minimum safety stock limit of **${threshold} MT** by **${(threshold - remaining).toFixed(2)} MT**. Production replenishment should be scheduled immediately.`;
         } else {
             resp += `✅ **Inventory Healthy**: Remaining projected stock of **${remaining.toFixed(2)} MT** will be sufficient and remains above the safety threshold of **${threshold} MT**.`;
         }
         return resp;
     }
 
-    if (msg.includes('benzene') && msg.includes('punjab') && msg.includes('thursday')) {
-        const punjabBenzene = pendingPOs
-            .filter(po => po.company.includes('Punjab') && po.product_type === 'Benzene')
+    if (msg.includes('kmo') && msg.includes('punjab') && msg.includes('thursday')) {
+        const punjabKmo = pendingPOs
+            .filter(po => po.company.includes('Punjab') && po.product_type === 'KMO')
             .reduce((acc, curr) => acc + curr.pending_qty, 0);
 
-        const currentStock = stocks['Benzene'] || 0.0;
-        const weeklyPlanned = productionPlans.find(p => p.product_type === 'Benzene')?.planned_quantity || 30.0;
+        const currentStock = stocks['KMO'] || 0.0;
+        const weeklyPlanned = productionPlans.find(p => p.product_type === 'KMO')?.planned_quantity || 30.0;
         const dailyProd = weeklyPlanned / 7.0;
-        const projectedStockIn7Days = currentStock + (dailyProd * 7) - punjabBenzene;
-        const threshold = thresholds['Benzene'] || 40.0;
+        const projectedStockIn7Days = currentStock + (dailyProd * 7) - punjabKmo;
+        const threshold = thresholds['KMO'] || 40.0;
 
-        let resp = `### Benzene Projection for Punjab Chemicals (7 Days Out)\n\n`;
-        resp += `- Current Benzene Stock: **${currentStock} MT**\n`;
-        resp += `- Punjab Chemicals Benzene Demand: **${punjabBenzene} MT**\n`;
+        let resp = `### KMO Projection for Punjab Chemicals (7 Days Out)\n\n`;
+        resp += `- Current KMO Stock: **${currentStock} MT**\n`;
+        resp += `- Punjab Chemicals KMO Demand: **${punjabKmo} MT**\n`;
         resp += `- Estimated Production Replenishment (7 Days): **+${(dailyProd * 7).toFixed(1)} MT** (based on Weekly Plan of ${weeklyPlanned} MT)\n`;
         resp += `- Projected Stock after Fulfilling Punjab: **${projectedStockIn7Days.toFixed(2)} MT**\n`;
         resp += `- Safety Threshold: **${threshold} MT**\n\n`;
 
         if (projectedStockIn7Days < threshold) {
-            resp += `⚠️ **Alert**: Stock levels will drop below safety threshold to **${projectedStockIn7Days.toFixed(2)} MT** by next Thursday if Punjab Chemicals' order of **${punjabBenzene} MT** is fully dispatched without additional purchase receipt or boosted production runs.`;
+            resp += `⚠️ **Alert**: Stock levels will drop below safety threshold to **${projectedStockIn7Days.toFixed(2)} MT** by next Thursday if Punjab Chemicals' order of **${punjabKmo} MT** is fully dispatched without additional purchase receipt or boosted production runs.`;
         } else {
             resp += `✅ **Sufficient Stock**: Yes, the current stock plus scheduled weekly production is sufficient to cover Punjab's order and retain a safe margin of **${(projectedStockIn7Days - threshold).toFixed(1)} MT** above the safety threshold.`;
         }
@@ -2880,8 +3016,8 @@ function simulateAIResponse(message, systemDate, stocks, thresholds, pendingPOs,
     let defaultResp = `### AI Dispatch Agent Services System (${systemDate})\n\n`;
     defaultResp += `I have analyzed the active database parameters. Please ask specific logistics queries, such as:\n\n`;
     defaultResp += `1. *"Which customer orders should be dispatched today?"*\n`;
-    defaultResp += `2. *"How much Acetone inventory will remain after fulfilling all Tier A POs?"*\n`;
-    defaultResp += `3. *"Will we have enough Benzene for Punjab Chemicals' order by next Thursday?"*\n`;
+    defaultResp += `2. *"How much SDS inventory will remain after fulfilling all Tier A POs?"*\n`;
+    defaultResp += `3. *"Will we have enough KMO for Punjab Chemicals' order by next Thursday?"*\n`;
     defaultResp += `4. *"Which POs are at risk of stockout this week?"*\n\n`;
     defaultResp += `Current Inventory overview: ${Object.entries(stocks).map(([k, v]) => `${k}: **${v} MT**`).join(', ')}.`;
     return defaultResp;

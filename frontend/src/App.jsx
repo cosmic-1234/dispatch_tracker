@@ -125,7 +125,12 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: promptText })
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(d => { throw new Error(d.error || 'Failed to get response from AI.'); });
+        }
+        return res.json();
+      })
       .then(data => {
         setChatMessages(prev => [...prev, {
           id: Date.now() + 1,
@@ -140,7 +145,7 @@ export default function App() {
         setChatMessages(prev => [...prev, {
           id: Date.now() + 1,
           sender: 'agent',
-          text: `Error connecting to AI service backend: ${err.message}. Please verify the Express server is running.`
+          text: `AI Assistant Error: ${err.message}`
         }]);
         setChatSending(false);
       });
@@ -441,7 +446,7 @@ export default function App() {
             <span>AI Dispatch Assistant</span>
           </div>
           <span className="badge" style={{ backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', textTransform: 'none', fontSize: '9px' }}>
-            Claude 3.5 Sonnet
+            OpenRouter AI
           </span>
         </div>
 

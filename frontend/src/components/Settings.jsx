@@ -12,12 +12,11 @@ export default function Settings({ API_BASE, triggerRefresh }) {
   const [vehicleCapacity, setVehicleCapacity] = useState('32.0');
   const [apiKey, setApiKey] = useState('');
   const [thresholds, setThresholds] = useState({
-    Acetone: '50.0',
-    Benzene: '40.0',
-    DEP: '20.0',
-    'Ethyl Acetate': '30.0',
-    Retarder: '10.0',
-    Toluene: '60.0'
+    AA: '30.0',
+    KMO: '40.0',
+    RETARDER: '10.0',
+    SDS: '50.0',
+    SMO: '60.0'
   });
 
   useEffect(() => {
@@ -172,17 +171,17 @@ export default function Settings({ API_BASE, triggerRefresh }) {
             </div>
           </div>
 
-          {/* SECTION C: Claude API Credentials */}
+          {/* SECTION C: OpenRouter API Credentials */}
           <div>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--primary-navy)', marginBottom: '8px', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px', textTransform: 'uppercase' }}>
               <Shield size={15} color="#1C6BF4" />
               <span>AI Dispatch Agent Integration</span>
             </h4>
             <div className="form-group">
-              <label>Anthropic Claude API Secret Key</label>
+              <label>OpenRouter API Secret Key</label>
               <input 
                 type="password" 
-                placeholder="sk-ant-..." 
+                placeholder="sk-or-..." 
                 value={apiKey || ''}
                 onChange={(e) => setApiKey(e.target.value)}
                 style={{ fontFamily: 'monospace' }}

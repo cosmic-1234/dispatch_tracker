@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS companies (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     tier TEXT NOT NULL CHECK(tier IN ('A', 'B', 'C')),
-    primary_products TEXT NOT NULL, -- JSON array of products: e.g. ["Acetone", "Toluene"]
+    primary_products TEXT NOT NULL, -- JSON array of products: e.g. ["AA", "SMO"]
     contact_person TEXT NOT NULL,
     contact_phone TEXT NOT NULL,
     credit_status TEXT NOT NULL DEFAULT 'Active' CHECK(credit_status IN ('Active', 'On Hold')),
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
 CREATE TABLE IF NOT EXISTS po_line_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     po_id TEXT NOT NULL,
-    product_type TEXT NOT NULL CHECK(product_type IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene')),
+    product_type TEXT NOT NULL CHECK(product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO')),
     quantity REAL NOT NULL CHECK(quantity > 0),
     allocated_quantity REAL NOT NULL DEFAULT 0 CHECK(allocated_quantity >= 0),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS po_line_items (
 -- 4. Dispatch Log
 CREATE TABLE IF NOT EXISTS dispatch_log (
     id TEXT PRIMARY KEY, -- e.g. DSP-2026-0001
-    product_type TEXT NOT NULL CHECK(product_type IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene')),
+    product_type TEXT NOT NULL CHECK(product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO')),
     quantity REAL NOT NULL CHECK(quantity > 0),
     vehicle_id TEXT NOT NULL, -- Run ID / Vehicle ID
     planned_dispatch_date DATE NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS dispatch_allocations (
 -- 5. Inventory Snapshots (one snapshot per product per day)
 CREATE TABLE IF NOT EXISTS inventory_snapshots (
     id TEXT PRIMARY KEY, -- e.g. Acetone_2026-06-29
-    product_type TEXT NOT NULL CHECK(product_type IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene')),
+    product_type TEXT NOT NULL CHECK(product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO')),
     date DATE NOT NULL,
     opening_stock REAL NOT NULL CHECK(opening_stock >= 0),
     production_added REAL NOT NULL DEFAULT 0 CHECK(production_added >= 0),
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS inventory_snapshots (
 -- 6. Production Plan (week-wise)
 CREATE TABLE IF NOT EXISTS production_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    product_type TEXT NOT NULL CHECK(product_type IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene')),
+    product_type TEXT NOT NULL CHECK(product_type IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO')),
     week_start_date DATE NOT NULL, -- e.g. Monday's date
     planned_quantity REAL NOT NULL CHECK(planned_quantity >= 0),
     actual_quantity REAL NOT NULL DEFAULT 0 CHECK(actual_quantity >= 0),
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS vendor_purchases (
     quantity REAL NOT NULL CHECK(quantity >= 0),
     rate REAL,
     amount REAL,
-    mapped_product TEXT NOT NULL CHECK(mapped_product IN ('Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene', 'Other')),
+    mapped_product TEXT NOT NULL CHECK(mapped_product IN ('AA', 'KMO', 'RETARDER', 'SDS', 'SMO', 'Other')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

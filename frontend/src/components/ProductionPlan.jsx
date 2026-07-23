@@ -18,8 +18,8 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
   const [activeTab, setActiveTab] = useState('Planning Schedule');
   
   // Product sub-tabs dynamically loaded from database
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
-  const [selectedSubTab, setSelectedSubTab] = useState('Acetone');
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
+  const [selectedSubTab, setSelectedSubTab] = useState('AA');
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -855,7 +855,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                           `Production: +${prodQty.toFixed(1)} MT\n` +
                           `Stock: ${stockQty.toFixed(1)} MT\n` +
                           `Dispatch: ${dispatchQty.toFixed(1)} MT` +
-                          (dayDispatches.length > 0 ? ` (${dayDispatches.map(d => `${d.allocations?.[0]?.company_name || 'Client'}: ${d.quantity} MT`).join(', ')})` : '')
+                          (dayDispatches.length > 0 ? ` (${dayDispatches.map(d => `${d.allocations?.[0]?.company_name || 'Customer'}: ${d.quantity} MT`).join(', ')})` : '')
                           : `Date: ${dateStr}\nNo data recorded`;
 
                         return (
@@ -1168,7 +1168,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
       {activeTab === 'Parties & PO' && (
         <div className="card" style={{ padding: 0 }}>
           <div className="card-header" style={{ padding: '12px 16px', borderBottom: '1px solid #E2E8F0' }}>
-            <span className="card-title" style={{ fontSize: '13px', fontWeight: 600 }}>Client Orders & Fulfillment ({selectedSubTab})</span>
+            <span className="card-title" style={{ fontSize: '13px', fontWeight: 600 }}>Customer Orders & Fulfillment ({selectedSubTab})</span>
           </div>
           <div className="card-body" style={{ padding: 0 }}>
             <div style={{ overflowX: 'auto' }}>
@@ -1196,7 +1196,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                   {customerRows.length === 0 && (
                     <tr>
                       <td colSpan="4" style={{ padding: '24px', textAlign: 'center', color: '#94A3B8', fontSize: '12px', fontStyle: 'italic' }}>
-                        No client orders recorded for {selectedSubTab} in {selectedMonth}
+                        No customer orders recorded for {selectedSubTab} in {selectedMonth}
                       </td>
                     </tr>
                   )}

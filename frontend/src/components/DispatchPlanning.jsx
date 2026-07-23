@@ -18,8 +18,8 @@ export default function DispatchPlanning({ API_BASE, systemDate, triggerRefresh 
 
   // What-If Scenario Simulator state
   const [showSimulator, setShowSimulator] = useState(false);
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
-  const [simProduct, setSimProduct] = useState('Acetone');
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
+  const [simProduct, setSimProduct] = useState('AA');
   const [simExtraDispatch, setSimExtraDispatch] = useState(0);
   const [simProductionBoost, setSimProductionBoost] = useState(0);
   const [scenarioName, setScenarioName] = useState('');

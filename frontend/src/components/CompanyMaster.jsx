@@ -29,7 +29,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
   const [compContactPerson, setCompContactPerson] = useState('');
   const [compContactPhone, setCompContactPhone] = useState('');
   const [compCreditStatus, setCompCreditStatus] = useState('Active');
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
   const [selectedProducts, setSelectedProducts] = useState({});
 
   useEffect(() => {
@@ -195,7 +195,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#64748B' }} />
               <input 
                 type="text" 
-                placeholder="Search Client ID / Name..." 
+                placeholder="Search Company ID / Name..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{ paddingLeft: '32px', width: '220px', height: '32px' }}
@@ -218,7 +218,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
 
           <button className="btn btn-primary" onClick={handleAddClick}>
             <Plus size={16} />
-            <span>Add Client Company</span>
+            <span>Add Company</span>
           </button>
         </div>
       </div>
@@ -242,7 +242,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px' }}>Loading client companies directory...</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px' }}>Loading companies directory...</td>
                 </tr>
               ) : filtered.map(c => (
                 <tr key={c.id}>
@@ -295,7 +295,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
               ))}
               {(!loading && filtered.length === 0) && (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px', color: '#64748B' }}>No client companies found.</td>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '16px', color: '#64748B' }}>No companies found.</td>
                 </tr>
               )}
             </tbody>
@@ -308,7 +308,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '550px' }}>
             <div className="modal-header">
-              <h3>{editingId ? 'Edit Customer Specifications' : 'Register New Client Company'}</h3>
+              <h3>{editingId ? 'Edit Company Specifications' : 'Register New Company'}</h3>
               <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowFormModal(false)}>
                 <X size={16} />
               </button>
@@ -442,7 +442,7 @@ export default function CompanyMaster({ API_BASE, triggerRefresh }) {
             {/* Drawer Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2DCD0', paddingBottom: '16px', marginBottom: '20px' }}>
               <div>
-                <div style={{ color: '#D4AF37', fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>CLIENT DOSSIER</div>
+                <div style={{ color: '#D4AF37', fontSize: '10px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>COMPANY DOSSIER</div>
                 <h3 style={{ margin: '4px 0 0 0', color: '#1C2D5A', fontSize: '18px', fontWeight: 700 }}>
                   {selectedCompany?.name}
                 </h3>

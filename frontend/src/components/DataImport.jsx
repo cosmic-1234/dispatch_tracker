@@ -33,7 +33,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
     vendor_name: ''
   });
 
-  const [products, setProducts] = useState(['Acetone', 'Benzene', 'DEP', 'Ethyl Acetate', 'Retarder', 'Toluene']);
+  const [products, setProducts] = useState(['AA', 'KMO', 'RETARDER', 'SDS', 'SMO']);
 
   useEffect(() => {
     fetch(`${API_BASE}/companies`)
@@ -53,34 +53,34 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
 
   // Product mapping translator definition for preview
   const PRODUCT_MAPPING = {
-    'MTO': 'Toluene',
-    'AA': 'Ethyl Acetate',
-    'RETARDER': 'Retarder',
-    'ACETONE': 'Acetone',
-    'SL SHORT HS': 'Benzene',
-    '200LTR SHAVI HS': 'Acetone',
-    '50LTR SHAVI HS': 'DEP',
-    'BENZENE': 'Benzene',
-    'DEP': 'DEP',
-    'ETHYL ACETATE': 'Ethyl Acetate',
-    'TOLUENE': 'Toluene',
-    'TOLUNE': 'Toluene'
+    'MTO': 'SMO',
+    'AA': 'AA',
+    'RETARDER': 'RETARDER',
+    'ACETONE': 'SDS',
+    'SL SHORT HS': 'KMO',
+    '200LTR SHAVI HS': 'SDS',
+    '50LTR SHAVI HS': 'SDS',
+    'BENZENE': 'KMO',
+    'DEP': 'SDS',
+    'ETHYL ACETATE': 'AA',
+    'TOLUENE': 'SMO',
+    'TOLUNE': 'SMO'
   };
 
   const getMappedProduct = (p) => {
     if (!p) return 'Other';
     const clean = String(p).trim().toUpperCase();
     if (activeTab === 'purchases') {
-      if (clean.includes('ACETONE')) return 'Acetone';
-      if (clean.includes('METHANOL')) return 'Benzene';
-      if (clean.includes('ALCOHOL') || clean.includes('ALOCOHAL')) return 'Retarder';
-      if (clean.includes('TOLUENE')) return 'Toluene';
-      if (clean.includes('BENZENE')) return 'Benzene';
-      if (clean.includes('ETHYL ACETATE')) return 'Ethyl Acetate';
-      if (clean.includes('DEP')) return 'DEP';
+      if (clean.includes('ACETONE')) return 'SDS';
+      if (clean.includes('METHANOL')) return 'KMO';
+      if (clean.includes('ALCOHOL') || clean.includes('ALOCOHAL')) return 'RETARDER';
+      if (clean.includes('TOLUENE')) return 'SMO';
+      if (clean.includes('BENZENE')) return 'KMO';
+      if (clean.includes('ETHYL ACETATE')) return 'AA';
+      if (clean.includes('DEP')) return 'SDS';
       return 'Other';
     }
-    return PRODUCT_MAPPING[clean] || 'Acetone (Default)';
+    return PRODUCT_MAPPING[clean] || 'SDS';
   };
 
   // Load SheetJS and PDFJS from CDN
@@ -463,14 +463,14 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
     const lines = text.split('\n');
     const parsedItems = [];
     const productKeywords = [
-      { key: 'cyclohexane', name: 'Benzene' },
-      { key: 'sodium methoxide', name: 'Benzene' },
-      { key: 'acetone', name: 'Acetone' },
-      { key: 'benzene', name: 'Benzene' },
-      { key: 'dep', name: 'DEP' },
-      { key: 'ethyl acetate', name: 'Ethyl Acetate' },
-      { key: 'retarder', name: 'Retarder' },
-      { key: 'toluene', name: 'Toluene' }
+      { key: 'cyclohexane', name: 'KMO' },
+      { key: 'sodium methoxide', name: 'KMO' },
+      { key: 'acetone', name: 'SDS' },
+      { key: 'benzene', name: 'KMO' },
+      { key: 'dep', name: 'SDS' },
+      { key: 'ethyl acetate', name: 'AA' },
+      { key: 'retarder', name: 'RETARDER' },
+      { key: 'toluene', name: 'SMO' }
     ];
 
     for (let l = 0; l < lines.length; l++) {
@@ -671,7 +671,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
         });
     } else {
       if (!scannedPO.company_id) {
-        setErrorMessage('Please select a Client Company.');
+        setErrorMessage('Please select a Customer Company.');
         setImporting(false);
         return;
       }
@@ -708,8 +708,8 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
           }
         })
         .catch(err => {
-          console.error('Error saving scanned client PO:', err);
-          setErrorMessage('Failed to save Client Sales Order.');
+          console.error('Error saving scanned customer PO:', err);
+          setErrorMessage('Failed to save Customer Sales Order.');
           setImporting(false);
         });
     }
@@ -731,7 +731,48 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
             }
             const arr = new Uint8Array(e.target.result);
             const text = await extractTextFromPDF(arr);
-            parseTallyPOText(text);
+            
+            // Call backend LLM-based PO parser
+            fetch(`${API_BASE}/parse-po`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text })
+            })
+              .then(res => {
+                if (!res.ok) {
+                  return res.json().then(d => { throw new Error(d.error || 'Failed to parse PO via LLM.'); });
+                }
+                return res.json();
+              })
+              .then(parsedPO => {
+                let committedDate = '';
+                if (parsedPO.date_received) {
+                  const d = new Date(parsedPO.date_received);
+                  d.setDate(d.getDate() + 3);
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  committedDate = `${y}-${m}-${day}`;
+                }
+
+                setScannedPO({
+                  id: parsedPO.id || '',
+                  company_id: parsedPO.company_id || '',
+                  date_received: parsedPO.date_received || '',
+                  committed_dispatch_date: committedDate,
+                  notes: `Uploaded and parsed via LLM PO Scanner on ${new Date().toLocaleDateString()}`,
+                  items: parsedPO.items || [],
+                  is_vendor_po: !!parsedPO.is_vendor_po,
+                  vendor_name: parsedPO.vendor_name || ''
+                });
+                setParsing(false);
+              })
+              .catch(err => {
+                console.error('LLM PO parse error:', err);
+                setErrorMessage(`LLM parsing failed: ${err.message}`);
+                setFile(null);
+                setParsing(false);
+              });
           } catch (err) {
             setErrorMessage(err.message);
             setFile(null);
@@ -752,7 +793,48 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
             const worksheet = workbook.Sheets[firstSheetName];
             const rows = window.XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             const text = rows.map(r => r.join(' ')).join('\n');
-            parseTallyPOText(text);
+            
+            // Call backend LLM-based PO parser
+            fetch(`${API_BASE}/parse-po`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text })
+            })
+              .then(res => {
+                if (!res.ok) {
+                  return res.json().then(d => { throw new Error(d.error || 'Failed to parse PO via LLM.'); });
+                }
+                return res.json();
+              })
+              .then(parsedPO => {
+                let committedDate = '';
+                if (parsedPO.date_received) {
+                  const d = new Date(parsedPO.date_received);
+                  d.setDate(d.getDate() + 3);
+                  const y = d.getFullYear();
+                  const m = String(d.getMonth() + 1).padStart(2, '0');
+                  const day = String(d.getDate()).padStart(2, '0');
+                  committedDate = `${y}-${m}-${day}`;
+                }
+
+                setScannedPO({
+                  id: parsedPO.id || '',
+                  company_id: parsedPO.company_id || '',
+                  date_received: parsedPO.date_received || '',
+                  committed_dispatch_date: committedDate,
+                  notes: `Uploaded and parsed via LLM PO Scanner on ${new Date().toLocaleDateString()}`,
+                  items: parsedPO.items || [],
+                  is_vendor_po: !!parsedPO.is_vendor_po,
+                  vendor_name: parsedPO.vendor_name || ''
+                });
+                setParsing(false);
+              })
+              .catch(err => {
+                console.error('LLM PO parse error:', err);
+                setErrorMessage(`LLM parsing failed: ${err.message}`);
+                setFile(null);
+                setParsing(false);
+              });
           } catch (err) {
             setErrorMessage(`Excel parse error: ${err.message}`);
             setFile(null);
@@ -944,7 +1026,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                 cursor: 'pointer'
               }}
             >
-              Client Sales Orders
+              Customer Sales Orders
             </button>
             <button 
               onClick={() => handleTabChange('purchases')}
@@ -1172,7 +1254,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         checked={!scannedPO.is_vendor_po} 
                         onChange={() => setScannedPO(prev => ({ ...prev, is_vendor_po: false }))} 
                       />
-                      <span>Client Sales Order (PO from Client)</span>
+                      <span>Customer Sales Order (PO from Customer)</span>
                     </label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', fontWeight: 'normal', textTransform: 'none' }}>
                       <input 
@@ -1207,13 +1289,13 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     
                     {!scannedPO.is_vendor_po ? (
                       <div className="form-group">
-                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Client Company <span style={{ color: '#EF4444' }}>*</span></label>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#475569' }}>Customer Company <span style={{ color: '#EF4444' }}>*</span></label>
                         <select 
                           value={scannedPO.company_id}
                           onChange={(e) => setScannedPO(prev => ({ ...prev, company_id: e.target.value }))}
                           style={{ width: '100%', padding: '6px 10px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: '#FFFFFF' }}
                         >
-                          <option value="">-- Select Client Company --</option>
+                          <option value="">-- Select Customer Company --</option>
                           {companies.map(c => (
                             <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
                           ))}
@@ -1357,7 +1439,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                       onClick={() => {
                         setScannedPO(prev => ({
                           ...prev,
-                          items: [...prev.items, { scanned_description: 'Manual Item Entry', product_type: scannedPO.is_vendor_po ? 'Other' : 'Acetone', quantity: 1.0, unit_rate: 0.0, uom: 'MT' }]
+                          items: [...prev.items, { scanned_description: 'Manual Item Entry', product_type: scannedPO.is_vendor_po ? 'Other' : 'AA', quantity: 1.0, unit_rate: 0.0, uom: 'MT' }]
                         }));
                       }}
                       style={{
@@ -1452,7 +1534,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                         <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{parsedRows.length.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Clients' : 'Unique Vendors'}</div>
+                        <div style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase' }}>{activeTab === 'sales' ? 'Unique Customers' : 'Unique Vendors'}</div>
                         <div style={{ fontSize: '16px', fontWeight: 600, color: '#1E293B', marginTop: '2px' }}>{uniqueCompanies.length}</div>
                       </div>
                       <div>
@@ -1497,20 +1579,20 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Product Auto-Mapping Info:</strong> Spreadsheet products will be automatically mapped to standard portal products:
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: '6px', fontFamily: 'monospace' }}>
-                      <span>MTO ➔ Toluene</span>
-                      <span>AA ➔ Ethyl Acetate</span>
-                      <span>SL Short HS ➔ Benzene</span>
-                      <span>Shavi HS ➔ Acetone/DEP</span>
+                      <span>MTO ➔ SMO</span>
+                      <span>AA ➔ AA</span>
+                      <span>SL Short HS ➔ KMO</span>
+                      <span>Shavi HS ➔ SDS</span>
                     </div>
                   </div>
                 ) : activeTab === 'purchases' ? (
                   <div style={{ fontSize: '12px', color: '#64748B', backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', padding: '10px', borderRadius: '4px', lineHeight: 1.4 }}>
                     <strong>Material Auto-Mapping Info:</strong> Purchased materials will be mapped to standard finished products to update purchased stock quantities:
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: '6px', fontFamily: 'monospace' }}>
-                      <span>Acetone ➔ Acetone</span>
-                      <span>Methanol ➔ Benzene</span>
-                      <span>Denatured Absolute Alocohal ➔ Retarder</span>
-                      <span>Other raw materials (coal, containers, flakes) ➔ Stored as 'Other' (does not affect standard solvent stocks)</span>
+                      <span>Acetone ➔ SDS</span>
+                      <span>Methanol ➔ KMO</span>
+                      <span>Denatured Absolute Alocohal ➔ RETARDER</span>
+                      <span>Other raw materials (coal, containers, flakes) ➔ Stored as 'Other' (does not affect standard stocks)</span>
                     </div>
                   </div>
                 ) : (
@@ -1518,7 +1600,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                     <strong>Enterprise Planning Mapping Info:</strong>
                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px' }}>
                       <li>Daily additions in calendar will update production logs for <strong>Ethyl Acetate (AA)</strong>.</li>
-                      <li>Client orders table on the right will seed companies, purchase orders, and executed dispatches (for delivered quantities).</li>
+                      <li>Customer orders table on the right will seed companies, purchase orders, and executed dispatches (for delivered quantities).</li>
                       <li>Products will auto-map: <em>AA/Ethyl Acetate ➔ Ethyl Acetate</em>, <em>Tolune ➔ Toluene</em>, <em>Retarder ➔ Retarder</em>, etc.</li>
                     </ul>
                   </div>
@@ -1574,7 +1656,7 @@ export default function DataImport({ API_BASE, triggerRefresh }) {
                   {/* Orders Preview */}
                   <div className="card">
                     <div className="card-header">
-                      <span className="card-title">Parsed Client Orders Preview</span>
+                      <span className="card-title">Parsed Customer Orders Preview</span>
                     </div>
                     <div className="card-table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                       <table className="table">
