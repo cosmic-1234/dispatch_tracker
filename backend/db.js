@@ -212,10 +212,10 @@ export async function initDb() {
                               AND ccu.column_name = $2
                         `, [tableName, columnName]);
                         for (const row of checkRes.rows) {
-                            await client.query(\`ALTER TABLE \${tableName} DROP CONSTRAINT IF EXISTS \${row.constraint_name}\`);
+                            await client.query(`ALTER TABLE ${tableName} DROP CONSTRAINT IF EXISTS ${row.constraint_name}`);
                         }
                     } catch (err) {
-                        console.warn(\`Warning dropping check constraints on \${tableName}.\${columnName}:\`, err.message);
+                        console.warn(`Warning dropping check constraints on ${tableName}.${columnName}:`, err.message);
                     }
                 };
 
