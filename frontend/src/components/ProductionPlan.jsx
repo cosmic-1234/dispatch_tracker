@@ -635,7 +635,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 Log entry — {selectedSubTab}
               </div>
               <form onSubmit={handleAddEntry} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 2fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
                     <input 
@@ -645,6 +645,18 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                       style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
+                  <div className="form-group">
+                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Notes</label>
+                    <input 
+                      type="text" 
+                      placeholder="optional" 
+                      value={entryNotes} 
+                      onChange={(e) => setEntryNotes(e.target.value)} 
+                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Production qty</label>
                     <input 
@@ -662,16 +674,6 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                       step="0.1"
                       value={purchasedQty} 
                       onChange={(e) => setPurchasedQty(e.target.value)} 
-                      style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Notes</label>
-                    <input 
-                      type="text" 
-                      placeholder="optional" 
-                      value={entryNotes} 
-                      onChange={(e) => setEntryNotes(e.target.value)} 
                       style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
@@ -707,7 +709,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                 Log dispatch — {selectedSubTab}
               </div>
               <form onSubmit={handleAddDispatch} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1.2fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Date</label>
                     <input 
@@ -740,7 +742,9 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                       {companies.length === 0 && <option value="">No companies loaded</option>}
                     </select>
                   </div>
+                </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="form-group">
                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Quantity</label>
                     <input 
@@ -751,10 +755,8 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                       style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
-                </div>
 
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginTop: '4px' }}>
-                  <div className="form-group" style={{ flex: '0 0 180px', margin: 0 }}>
+                  <div className="form-group" style={{ margin: 0 }}>
                     <label style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Price / unit (optional)</label>
                     <input 
                       type="number" 
@@ -764,26 +766,28 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                       style={{ padding: '8px 12px', fontSize: '13px', border: '1px solid #CBD5E1', borderRadius: '6px', width: '100%', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                     />
                   </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={submittingDispatch}
-                    style={{
-                      backgroundColor: 'var(--primary-blue)',
-                      color: 'var(--bg-elevated)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '8px 20px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      height: '34px',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    Add dispatch
-                  </button>
                 </div>
+
+                <button 
+                  type="submit" 
+                  disabled={submittingDispatch}
+                  style={{
+                    backgroundColor: 'var(--primary-blue)',
+                    color: 'var(--bg-elevated)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '8px 20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    alignSelf: 'flex-start',
+                    marginTop: '8px',
+                    height: '34px',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  Add dispatch
+                </button>
                 
                 {companies.length === 0 && (
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px' }}>
