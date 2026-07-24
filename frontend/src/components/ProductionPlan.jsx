@@ -36,6 +36,11 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
   const [editDispatchQty, setEditDispatchQty] = useState('0');
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Dragging States for Quick Edit Card
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   // Active planning month
   const [selectedMonth, setSelectedMonth] = useState('2026-07'); // Default to July 2026
 
@@ -217,7 +222,41 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
       setEditDispatchCompanyId('');
     }
     setEditDispatchQty('0');
+    setDragOffset({ x: 0, y: 0 });
+    setIsDragging(false);
   };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - dragOffset.x,
+      y: e.clientY - dragOffset.y
+    });
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e) => {
+      setDragOffset({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart, dragOffset]);
 
   const handleSaveEditProduction = async (dateStr) => {
     const prodVal = parseFloat(editProdQty || 0);
@@ -968,28 +1007,40 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                               Quick Edit
                             </button>
 
-                            {/* Floating Popover Editor Card */}
+                            {/* Draggable Floating Popover Editor Card */}
                             {editingDate === dateStr && (
                               <div 
                                 onClick={(e) => e.stopPropagation()}
                                 style={{
                                   position: 'absolute',
-                                  top: '-15px',
+                                  top: wIdx >= 3 ? '-250px' : '-15px', // Open upwards for lower rows to prevent cutoff
                                   left: dIdx > 4 ? '-130px' : '-10px', // Prevent overflow on rightmost columns
                                   width: '240px',
                                   backgroundColor: 'var(--bg-elevated)',
                                   border: '2px solid var(--primary-navy)',
                                   borderRadius: '12px',
-                                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+                                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2), 0 4px 6px -2px rgba(0,0,0,0.1)',
                                   padding: '12px',
-                                  zIndex: 100,
+                                  zIndex: 10000, // Make sure it sits on top of everything
                                   display: 'flex',
                                   flexDirection: 'column',
                                   gap: '10px',
-                                  textAlign: 'left'
+                                  textAlign: 'left',
+                                  transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`
                                 }}
                               >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0', paddingBottom: '6px' }}>
+                                <div 
+                                  onMouseDown={handleMouseDown}
+                                  style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center', 
+                                    borderBottom: '1px solid var(--border-color)', 
+                                    paddingBottom: '6px',
+                                    cursor: 'move',
+                                    userSelect: 'none'
+                                  }}
+                                >
                                   <strong style={{ fontSize: '12px', color: 'var(--primary-navy)' }}>Edit Planning ({dayNum})</strong>
                                   <button 
                                     onClick={() => setEditingDate(null)}
@@ -1010,7 +1061,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                         step="0.1"
                                         value={editProdQty}
                                         onChange={(e) => setEditProdQty(e.target.value)}
-                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box' }}
+                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                                       />
                                     </div>
                                     <div style={{ flex: 1 }}>
@@ -1020,7 +1071,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                         step="0.1"
                                         value={editPurchasedQty}
                                         onChange={(e) => setEditPurchasedQty(e.target.value)}
-                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box' }}
+                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                                       />
                                     </div>
                                   </div>
@@ -1044,7 +1095,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                   </button>
                                 </div>
 
-                                <div style={{ borderTop: '1px solid #E2E8F0', marginTop: '4px', paddingTop: '6px' }} />
+                                <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '4px', paddingTop: '6px' }} />
 
                                 {/* Dispatch Form */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1055,7 +1106,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                     <select
                                       value={editDispatchCompanyId}
                                       onChange={(e) => setEditDispatchCompanyId(e.target.value)}
-                                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', outline: 'none', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)' }}
+                                      style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', outline: 'none', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                                     >
                                       {companies.map(co => (
                                         <option key={co.id} value={co.id}>{co.name}</option>
@@ -1072,7 +1123,7 @@ export default function ProductionPlan({ API_BASE, systemDate, triggerRefresh })
                                         step="0.1"
                                         value={editDispatchQty}
                                         onChange={(e) => setEditDispatchQty(e.target.value)}
-                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box' }}
+                                        style={{ width: '100%', padding: '4px 6px', fontSize: '11px', border: '1px solid #CBD5E1', borderRadius: '4px', boxSizing: 'border-box', backgroundColor: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
                                       />
                                     </div>
                                     <button 
