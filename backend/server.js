@@ -1020,7 +1020,13 @@ app.post('/api/dispatch', async (req, res) => {
                     [poId, product_type, remainingToAllocate, remainingToAllocate]
                 );
 
-                const poLineItemId = resultLineItem.lastID || resultLineItem.lastId;
+                let poLineItemId = resultLineItem.lastID || resultLineItem.lastId;
+                if (!poLineItemId) {
+                    const row = await tx.get("SELECT id FROM po_line_items WHERE po_id = ? AND product_type = ?", [poId, product_type]);
+                    if (row) {
+                        poLineItemId = row.id;
+                    }
+                }
 
                 await tx.run(
                     `INSERT INTO dispatch_allocations (dispatch_id, po_id, po_line_item_id, quantity)
@@ -1637,7 +1643,15 @@ app.post('/api/scenarios', async (req, res) => {
             [name, typeof snapshot_json === 'string' ? snapshot_json : JSON.stringify(snapshot_json),
              ai_narration || null, created_by || 'Planner']
         );
-        res.json({ success: true, id: result.lastID || result.lastId });
+        
+        let scenarioId = result.lastID || result.lastId;
+        if (!scenarioId) {
+            const row = await queryGet("SELECT id FROM scenario_snapshots WHERE name = ? ORDER BY created_at DESC LIMIT 1", [name]);
+            if (row) {
+                scenarioId = row.id;
+            }
+        }
+        res.json({ success: true, id: scenarioId });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
