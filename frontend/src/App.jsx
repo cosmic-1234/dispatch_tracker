@@ -304,9 +304,17 @@ export default function App() {
         {/* Header Bar */}
         <header className="top-header" data-testid="top-header">
           <div className="header-title" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img src={shaktiLogo} alt="Shakti Logo" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} data-testid="header-brand-logo" />
-            <h1 data-testid="header-brand-title">Shakti Solvent Planning Portal</h1>
-            <span className="badge" data-testid="header-system-date">
+            <button 
+              className="mobile-menu-btn" 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', padding: 0 }}
+              title="Toggle Menu"
+            >
+              <Menu size={20} />
+            </button>
+            <img src={shaktiLogo} alt="Shakti Logo" className="header-logo" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} data-testid="header-brand-logo" />
+            <h1 data-testid="header-brand-title" className="header-title-text">Shakti Solvent Planning Portal</h1>
+            <span className="badge header-system-date" data-testid="header-system-date">
               <Clock size={11} style={{ marginRight: '6px' }} />
               <span>System Date · <strong>{formatDate(systemDate)}</strong></span>
             </span>
@@ -325,9 +333,9 @@ export default function App() {
             <button className="btn btn-secondary" style={{ padding: '6px 10px', height: '34px' }} onClick={triggerRefresh} title="Sync Portal Data" data-testid="header-refresh-btn">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-primary" style={{ padding: '6px 14px', height: '34px' }} onClick={() => setAiSidebarOpen(!aiSidebarOpen)} data-testid="ai-agent-toggle-btn">
-              <Sparkles size={14} style={{ marginRight: '2px' }} />
-              AI Agent {aiSidebarOpen ? 'Hide' : 'Show'}
+            <button className="btn btn-primary ai-agent-toggle-btn" style={{ padding: '6px 14px', height: '34px', display: 'inline-flex', alignItems: 'center', gap: '4px' }} onClick={() => setAiSidebarOpen(!aiSidebarOpen)} data-testid="ai-agent-toggle-btn">
+              <Sparkles size={14} />
+              <span className="btn-text">AI Agent {aiSidebarOpen ? 'Hide' : 'Show'}</span>
             </button>
           </div>
         </header>

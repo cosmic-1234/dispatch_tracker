@@ -1743,3 +1743,82 @@ select {
 /* Utility: text color helper for muted labels/subtitles */
 .text-muted { color: var(--text-muted); }
 .text-secondary { color: var(--text-secondary); }
+
+/* ─────────────────────────────  MOBILE RESPONSIVENESS  ───────────────────────────── */
+.mobile-menu-btn {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  /* Top Header tweaks */
+  .mobile-menu-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .header-title-text {
+    font-size: 12px !important;
+    letter-spacing: 0.01em !important;
+  }
+  .header-system-date {
+    display: none !important;
+  }
+  .ai-agent-toggle-btn .btn-text {
+    display: none !important;
+  }
+  .ai-agent-toggle-btn {
+    padding: 6px 10px !important;
+  }
+  .top-header {
+    padding: 0 12px !important;
+    gap: 8px;
+  }
+  
+  /* Left Sidebar as Overlay */
+  .sidebar {
+    position: fixed !important;
+    top: 0; left: 0;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    transition: transform 220ms ease !important;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.15) !important;
+    transform: translateX(0) !important;
+  }
+  .sidebar.collapsed {
+    transform: translateX(-100%) !important;
+    margin-right: 0 !important;
+    width: var(--sidebar-width) !important;
+  }
+  
+  /* AI Sidebar as Overlay */
+  .ai-sidebar {
+    position: fixed !important;
+    top: 0; right: 0;
+    height: 100vh !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    z-index: 10000 !important;
+    transition: transform 220ms ease !important;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.15) !important;
+    transform: translateX(0) !important;
+  }
+  .ai-sidebar.collapsed {
+    transform: translateX(100%) !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Stack inline grids */
+  .module-container div[style*="display: grid"],
+  .module-container div[style*="display:grid"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Adjust some components style for tight spaces */
+  .module-container {
+    padding: 12px !important;
+  }
+  .card {
+    padding: 12px !important;
+  }
+}
